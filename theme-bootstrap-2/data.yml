@@ -1,8 +1,8 @@
-title : awaken_ing
+title : HOMEPAGE
 tagline: blog
 author :
   name : awaken_ing
-  email : awaken_ing@163.com
+  email : awaken_ing#163#com
   github : awakening-fong
   feedburner : feedname
 
@@ -11,4 +11,4 @@ navigation :
   - tags
   - categories
   - pages
-  - about
+  - about-me

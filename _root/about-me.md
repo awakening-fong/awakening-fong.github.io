@@ -4,4 +4,4 @@
  * I/O 
  * 内存管理
 
-邮箱: awaken_ing#163.com
+邮箱: awaken_ing#163#com
