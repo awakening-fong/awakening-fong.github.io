@@ -1,0 +1,5 @@
+﻿"theme-bootstrap-2" :
+  "use" : "theme"
+#base_path: ""
+#production_url : 'http://awakening-fong.github.io/'
+

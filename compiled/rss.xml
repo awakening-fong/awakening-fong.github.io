@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>awaken_ing</title>
+    <description>awaken_ing</description>
+    <link/>
+    <pubDate>2016-12-30</pubDate>
+    <item>
+      <title>About Me</title>
+      <link>/about-me</link>
+      <description>&lt;p&gt;&#x5173;&#x6CE8;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ARM&lt;/li&gt;
+&lt;li&gt;I/O &lt;/li&gt;
+&lt;li&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&#x90AE;&#x7BB1;: awaken_ing#163.com&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>Archive</title>
+      <link>/archive</link>
+      <description>
+</description>
+    </item>
+    <item>
+      <title>Categories</title>
+      <link>/categories</link>
+      <description>
+&lt;ul class="tag_box inline"&gt;
+&lt;/ul&gt;
+
+</description>
+    </item>
+    <item>
+      <title>Home</title>
+      <link>/</link>
+      <description>## Hello World
+
+
+&lt;div class="pagination"&gt;
+  &lt;ul&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    <item>
+      <title>Index</title>
+      <link>/</link>
+      <description/>
+    </item>
+    <item>
+      <title>Pages</title>
+      <link>/pages</link>
+      <description>
+&lt;ul&gt;
+  
+    &lt;li&gt;&lt;a href="/about-me"&gt;About Me&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/archive"&gt;Archive&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/categories"&gt;Categories&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;
+  
+  
+    &lt;li&gt;&lt;a href="/"&gt;Index&lt;/a&gt;&lt;/li&gt;
+  
+    &lt;li class="active"&gt;&lt;a href="/pages" class="active"&gt;Pages&lt;/a&gt;&lt;/li&gt;
+  
+  
+  
+    &lt;li&gt;&lt;a href="/tags"&gt;Tags&lt;/a&gt;&lt;/li&gt;
+  
+&lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>Tags</title>
+      <link>/tags</link>
+      <description>
+&lt;ul class="tag_box inline"&gt;
+&lt;/ul&gt;
+
+ 
+</description>
+    </item>
+  </channel>
+</rss>
