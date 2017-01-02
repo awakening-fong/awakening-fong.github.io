@@ -1,5 +1,10 @@
-﻿"theme-bootstrap-2" :
+"theme-bootstrap-2" :
   "use" : "theme"
+
 #base_path: ""
-#production_url : 'http://awakening-fong.github.io/'
+production_url : 'http://awakening-fong.github.io/'
+
+posts :
+  "sort" : ["date", "desc"]
+  exclude: ['.*\.txt']
 
