@@ -3,11 +3,11 @@
   <channel>
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
-    <link>http://awakening-fong.github.io/</link>
-    <pubDate>2017-01-04</pubDate>
+    <link>https://awakening-fong.github.io</link>
+    <pubDate>2017-01-05</pubDate>
     <item>
       <title>generic_make_request</title>
-      <link>http://awakening-fong.github.io//posts/generic_make_request</link>
+      <link>https://awakening-fong.github.io/posts/generic_make_request</link>
       <pubDate>2017-01-04</pubDate>
       <description>&lt;p&gt;linux-3.10.86/block/blk-core.c&lt;/p&gt;
 
@@ -90,7 +90,7 @@
     </item>
     <item>
       <title>tag TOWRITE to avoid livelocking?</title>
-      <link>http://awakening-fong.github.io//posts/tag_towrie_livelock</link>
+      <link>https://awakening-fong.github.io/posts/tag_towrie_livelock</link>
       <pubDate>2017-01-03</pubDate>
       <description>&lt;div class="summary"&gt;
 &#x4E3B;&#x8981;&#x4ECB;&#x7ECD;writeback&#x4E2D;&#x7684;livelocking.
@@ -226,7 +226,7 @@ Thus we interrupt background writeback if there is some other work to do.
     </item>
     <item>
       <title>do_generic_file_read&#x4E2D;&#x7684;readahead</title>
-      <link>http://awakening-fong.github.io//posts/readahead</link>
+      <link>https://awakening-fong.github.io/posts/readahead</link>
       <pubDate>2017-01-03</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. readahead&lt;/h4&gt;&lt;/h1&gt;
 
@@ -326,7 +326,7 @@ blk_start_plug(struct blk_plug *plug)
     </item>
     <item>
       <title>&#x56DE;&#x5199;&#x8DEF;&#x5F84;</title>
-      <link>http://awakening-fong.github.io//posts/writeback_routine</link>
+      <link>https://awakening-fong.github.io/posts/writeback_routine</link>
       <pubDate>2017-01-01</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;&#x65B9;&#x5F0F;1. &#x524D;&#x671F;tag dirty&lt;/h4&gt;&lt;/h1&gt;
 
@@ -522,7 +522,7 @@ generic_file_direct_write
     </item>
     <item>
       <title>generic_perform_write&#x6D41;&#x7A0B;</title>
-      <link>http://awakening-fong.github.io//posts/generic_perform_write</link>
+      <link>https://awakening-fong.github.io/posts/generic_perform_write</link>
       <pubDate>2016-12-31</pubDate>
       <description>&lt;pre&gt;&lt;code class="c"&gt;generic_perform_write
 {
@@ -585,7 +585,7 @@ again:
     </item>
     <item>
       <title>flush_dcache_page</title>
-      <link>http://awakening-fong.github.io//posts/flush_dcache_page</link>
+      <link>https://awakening-fong.github.io/posts/flush_dcache_page</link>
       <pubDate>2016-12-31</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. flush_dcache_page&#x7684;&#x5B9E;&#x73B0;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -731,7 +731,7 @@ page_ok:  /*page&#x662F;uptodate&#x72B6;&#x6001;*/
     </item>
     <item>
       <title>ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;</title>
-      <link>http://awakening-fong.github.io//posts/arm_asm</link>
+      <link>https://awakening-fong.github.io/posts/arm_asm</link>
       <pubDate>2016-12-31</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. ^&#x540E;&#x7F00;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -780,7 +780,7 @@ If bit 0 of Rm is clear, bit 1 must not be set.  &lt;/p&gt;
     </item>
     <item>
       <title>set_buffer_new</title>
-      <link>http://awakening-fong.github.io//posts/set_buffer_new</link>
+      <link>https://awakening-fong.github.io/posts/set_buffer_new</link>
       <pubDate>2016-12-31</pubDate>
       <description>&lt;div class="summary"&gt;
 &#x672C;&#x6587;&#x4E3B;&#x8981;&#x89E3;&#x91CA;BH_New&#x7684;&#x542B;&#x4E49;, &#x4EE5;&#x53CA;&#x4F55;&#x65F6;&#x8BBE;&#x7F6E;&#x8BE5;&#x6807;&#x5FD7;.
@@ -872,7 +872,7 @@ void unmap_underlying_metadata(struct block_device *bdev, sector_t block)
     </item>
     <item>
       <title>&#x8BFB;&#x5199;&#x51FD;&#x6570;&#x4E2D;&#x7684;lock_page</title>
-      <link>http://awakening-fong.github.io//posts/read_write_lock_page</link>
+      <link>https://awakening-fong.github.io/posts/read_write_lock_page</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;div class="summary"&gt;
 do_generic_file_read&#x548C;generic_perform_write&#x4E2D;&#x5BF9;&#x9501;&#x7684;&#x5904;&#x7406;.  &lt;br&gt;  
@@ -1001,7 +1001,7 @@ ext2_write_end -&amp;gt; generic_write_end()
     </item>
     <item>
       <title>ext2 disk layout</title>
-      <link>http://awakening-fong.github.io//posts/ext2_layout</link>
+      <link>https://awakening-fong.github.io/posts/ext2_layout</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt; 1.&#x76EE;&#x6807;/&#x4EFB;&#x52A1;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -1779,7 +1779,7 @@ Group 8: (Blocks 65537-71679)
     </item>
     <item>
       <title>address_space&#x548C;buffer_head&#x7684;&#x4E00;&#x4E9B;field</title>
-      <link>http://awakening-fong.github.io//posts/field_of_bh_and_address_space</link>
+      <link>https://awakening-fong.github.io/posts/field_of_bh_and_address_space</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
 
