@@ -61,182 +61,254 @@
 <div class="row-fluid">
   <div class="span12">
     <div class="post">
-  <h3 class="title"><a href="/posts/generic_make_request">generic_make_request</a> <span class="date">2017-01-04</span></h3>
+  <h3 class="title"><a href="/posts/slub_partial">SLUB 03:partial和cpu partial</a> <span class="date">2017-01-14</span></h3>
 
   <div class="summary ellipsis">
-<p>linux-3.10.86/block/blk-core.c</p>
+<p>主要介绍partial和cpu partial的产生.<br>
+内核未定义 CONFIG_NUMA</p>
 
-<p>先断章取义下:</p>
+<p>partial没有指明是node partial还是cpu partial时, 则指的是node partial.</p>
 
-<pre><code class="c">void generic_make_request(struct bio *bio)
+<h1 id="toc_0"><h4>1. node partial的产生</h4></h1>
+
+<p>在cpu0上执行new_slab_objects -&gt; new_slab, 由于可能睡眠, 之后可能运行在cpu1上. 这时若cpu1的c-&gt;page非空, 则根据情况, 可能将其放入node partial中.</p>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code>__slab_alloc
+|--local_irq_save(flags);
+|--freelist =new_slab_objects //buddy的page的首个obj
+|    |--page = new_slab(s, flags, node); //在cpu0上
+|    |--c = __this_cpu_ptr(s-&gt;cpu_slab) //进程可能迁移到cpu1上
+|    |--if (c-&gt;page) flush_slab(s, c);
+
+flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
+|-- deactivate_slab(s, c-&gt;page, c-&gt;freelist)
+
+
+static void deactivate_slab(struct kmem_cache *s, struct page *page, void *freelist)
 {
 
-    bio_list_init(&amp;bio_list_on_stack);
-    current-&gt;bio_list = &amp;bio_list_on_stack;
+    /*
+     while循环前:
+     obj_t2 -&gt; obj_t1 -&gt; NULL
+     ^
+     @page-&gt;freelist
+
+     obj_03 -&gt; obj_02 -&gt; obj_01 -&gt; NULL
+     ^
+     @freelist
+
+
+     循环单次后:   
+     obj_03   -&gt;  obj_t2  -&gt; obj_t1 -&gt; NULL
+     ^
+     page-&gt;freelist 
+
+
+     obj_02 -&gt; obj_01 -&gt; NULL
+     ^
+     freelist
+
+     再来一回:
+     obj_02 -&gt; obj_03   -&gt;  obj_t2  -&gt; obj_t1 -&gt; NULL
+     ^
+     page-&gt;freelist
+
+
+     obj_01 -&gt; NULL
+     ^
+     freelist
+
+     问题:为何不直接修改指针把两个链表串起来, 而是要一个一个object的放到链表中?
+     答:因为要修改counters, 所以要一个一个数.
+    */
+    while (freelist &amp;&amp; (nextfree = get_freepointer(s, freelist))) {
+        ...
+    }
+
+    ....
+
+    /*
+    如果这里freelist为NULL, 说明@freelist传入时就为NULL
+    */
+    /*把the last one也接上*/
+    if (freelist) {
+        new.inuse--;
+        /* 
+        new-&gt;freelist
+        v
+        obj_01 -&gt; obj_02 -&gt; obj_03   -&gt;  obj_t2  -&gt; obj_t1 -&gt; NULL
+        ^
+        freelist
+        */
+        set_freepointer(s, freelist, old.freelist);
+        new.freelist = freelist;
+    } else
+        ...
+
+    new.frozen = 0;
+
+    //有M_FREE, M_PARTIAL等情况, 这里只看M_PARTIAL
     ...
-        /*
-        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
-        否则, 从哪里pop呢?
-        */
-    q-&gt;make_request_fn(q, bio);
-    bio = bio_list_pop(current-&gt;bio_list);
+
+    if (m == M_PARTIAL) {
+        /*问题:为何不是put_cpu_partial()?*/
+        add_partial(n, page, tail);
+
+    }
+
+}
+</code></pre>
+</div>
+
+  <div class="more">
+    <a href="/posts/slub_partial" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
+
+  <div class="summary ellipsis">
+<p>本文假定没有打开CONFIG_SLUB_DEBUG, 没有配置CONFIG_NUMA.</p>
+
+<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
+ *   on any list. It is not on any list. The processor that froze the slab is the one who can
+ *   perform list operations on the page. Other processors may put objects
+ *   onto the freelist but the processor that froze the slab is the only
+ *   one that can retrieve the objects from the page's freelist.
+</code></pre>
+
+<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
+cpu02不能从该page中取obj, 只能把obj还给该page.</p>
+
+<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
+
+<p>linux-3.10.86/include/linux/slub_def.h</p>
+
+<pre><code>struct kmem_cache_cpu {
+...
+    struct page *partial;   /* Partially allocated frozen slabs */
     ...
-}
+};
 </code></pre>
-
-<p>上面的猜想是片面的, 还是来个全貌的:</p>
 </div>
 
   <div class="more">
-    <a href="/posts/generic_make_request" class="btn btn-small">read more..</a>
+    <a href="/posts/slub_frozen" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/tag_towrie_livelock">tag TOWRITE to avoid livelocking?</a> <span class="date">2017-01-03</span></h3>
-
-  <div class="summary">
-主要介绍writeback中的livelocking.
-</div>
-
-  <div class="more">
-    <a href="/posts/tag_towrie_livelock" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/readahead">do_generic_file_read中的readahead</a> <span class="date">2017-01-03</span></h3>
+  <h3 class="title"><a href="/posts/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
 
   <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. readahead</h4></h1>
+<h1 id="toc_0"><h4>1. tid</h4></h1>
 
-<p>do_generic_file_read 中有两个ahead相关的函数:</p>
+<p>linux-3.10.86/include/linux/slub_def.h</p>
 
-<pre><code>do_generic_file_read -&gt; page_cache_sync_readahead 
-generic_file_aio_read -&gt; do_generic_file_read -&gt;  page_cache_async_readahead
+<pre><code>struct kmem_cache_cpu {
+    ...
+    unsigned long tid;  /* Globally unique transaction id */
+    ..
+};
 </code></pre>
 
-<p>问:page_cache_sync_readahead 和 page_cache_async_readahead  的差别在哪里? sync和async体现在哪?<br>
-答: 一个当前page cache中没有所需的数据, 发起的是对当下要用的数据的读取;<br>
-另一个是page cache中有所需的数据, 发起对后面可能要用的数据的读取.</p>
+<p>linux-3.10.86/mm/slub.c</p>
 
-<p>linux-3.10.86/mm/filemap.c</p>
-
-<pre><code>do_generic_file_read
-{
-        page = find_get_page(mapping, index);
-        if (!page){
-            page_cache_sync_readahead(...)
-            ...
-        }
-        if (PageReadahead(page)) {
-            page_cache_async_readahead(...)
-        }
-        ...
-
-}
+<pre><code>#ifdef CONFIG_PREEMPT
+/*
+ * Calculate the next globally unique transaction for disambiguiation
+ * during cmpxchg. The transactions start with the cpu number and are then
+ * incremented by CONFIG_NR_CPUS.
 </code></pre>
+
+<p>问题:一次不是加1, 而是加CONFIG_NR_CPUS, 为啥?<br>
+答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
+不过上面的注释有点老, 因为实际并不是加CONFIG_NR_CPUS, 而是TID_STEP.</p>
 </div>
 
   <div class="more">
-    <a href="/posts/readahead" class="btn btn-small">read more..</a>
+    <a href="/posts/slub_tid" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/writeback_routine">回写路径</a> <span class="date">2017-01-01</span></h3>
+  <h3 class="title"><a href="/posts/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a> <span class="date">2017-01-12</span></h3>
 
   <div class="summary ellipsis">
-<h1 id="toc_0"><h4>方式1. 前期tag dirty</h4></h1>
+<p>文来自本人旧博客:  blog.163.com/awaken_ing/blog/static/1206131972016316114114855</p>
 
-<p>linux-3.10.86/mm/page-writeback.c</p>
+<p>平台 ARM Versatile Express for Cortex-A9 SMP<br>
+内核版本 3.10.86 (未定义 CONFIG_NUMA)  </p>
 
-<pre><code class="c">
-write_cache_pages
+<h1 id="toc_0"><h4>1. 概览</h4></h1>
+
+<p>The SLUB allocator 相比SLAB, 试图 remove the metadata overhead inside slabs, reduce the number of caches, and so on.
+The only metadata present in the SLUB allocator is the in-object “next-free-object” pointer, which allows us to link free objects together. struct kmem_cache 的成员 int offset 用来指明 指针在 object 中的偏移量, 这个指针指向的是下一个可用的object. How does the allocator manage to find the first free object? The answer lies in the approach of saving a pointer to such an object inside each page struct associated with the slab page.
+SLUB allocator 没有SLAB的full list 和 empty list.</p>
+
+<p><img src="/assets/media/slub_01.jpg"></p>
+
+<p>图片来自 <a href="http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf">http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf</a></p>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code>slab_alloc() -&gt; slab_alloc_node()
+slab_alloc_node(struct kmem_cache *s, ...
 {
-
-    while (...) {
-
-        nr_pages = pagevec_lookup_tag(&amp;pvec, mapping, &amp;index, tag,
-                  min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
-        if (nr_pages == 0)
-            break;
-
+    struct kmem_cache_cpu *c=__this_cpu_ptr(s-&gt;cpu_slab);
+    object = c-&gt;freelist;
+    if fastpath {
+        void *next_object = get_freepointer_safe(s, object);
+        c-&gt;freelist=next_object; //via  this_cpu_cmpxchg_double()
+    }else
         ...
-            lock_page(page);
-        ...
-            /*常见的有__mpage_writepage 或者 __writepage*/
-            ret = (*writepage)(page, wbc, data);
-
-
+    return object;
+}
+static inline void *get_freepointer(struct kmem_cache *s, void *object)
+{
+    return *(void **)(object + s-&gt;offset);
 }
 </code></pre>
 </div>
 
   <div class="more">
-    <a href="/posts/writeback_routine" class="btn btn-small">read more..</a>
+    <a href="/posts/slub_slab_alloc" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/generic_perform_write">generic_perform_write流程</a> <span class="date">2016-12-31</span></h3>
+  <h3 class="title"><a href="/posts/scheduler_01_lost_wake-up">调度器, 从lost wake-up problem说起</a> <span class="date">2017-01-11</span></h3>
 
-  <div class="summary"><pre><code class="c">generic_perform_write
-{
+  <div class="summary ellipsis">
+<p>文来自本人的旧博客 blog.163.com/awaken_ing/blog/static/1206131972016124113539444/</p>
 
-        /*
-        ==0==计算没有和PAGE_CACHE_SIZE对齐的那部分的大小, 代码中的bytes.
+<h1 id="toc_0"><h4>0. 引言</h4></h1>
 
-        杂问题:
-        假定PAGE_CACHE_SIZE为4, pos为5, iov_iter_count()大于2个PAGE_CACHE_SIZE,
-        则offset为1, bytes为3
-        所以, 代码中的bytes就是示意图中|///|那部分:
-      pos==0    pos==5
-        ^         ^
-        |         |
-        |----|  |-.---|  |----|
-                  |///|
-                  读取
-        */
-        offset = (pos &amp; (PAGE_CACHE_SIZE - 1));
-        bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
-                        iov_iter_count(i));
-again:
-        /*
-        如何防止dead lock可参考
-        https://lkml.org/lkml/2015/6/30/631
-        */
-        iov_iter_fault_in_readable(...);
+<p>The lost wake-up problem 请参考 <a href="http://www.linuxjournal.com/article/8144">http://www.linuxjournal.com/article/8144</a><br>
+本篇主要解释为何修改后的代码没有问题.
+修改后的代码为:</p>
 
-        /*
-        ==1==准备page
-        答:
-        如果在address_space中没有该pos对应的page, 则分配page并添加到address_space.
-        如果没有写完整的一个sector, 则需要先从磁盘读出原sector.
-        */
-        status = a_ops-&gt;write_begin(file, mapping, pos, bytes, flags,
-                        &amp;page, &amp;fsdata);
+<pre><code>1  set_current_state(TASK_INTERRUPTIBLE);
+2  spin_lock(&amp;list_lock);
+3  if(list_empty(&amp;list_head)) {
+4         spin_unlock(&amp;list_lock); //如果这里面让出cpu?
+//如果在这个点被生产者唤醒会如何?
+5         schedule();
+6         spin_lock(&amp;list_lock);
+7  }
+8  set_current_state(TASK_RUNNING);
+9
+10 /* Rest of the code ... */
+11 spin_unlock(&amp;list_lock);
+</code></pre>
 
-        /*
-        ==2==填充page cache
-        */
-        /*
-        flush_dcache_page 见https://awakening-fong.github.io/posts/flush_dcache_page
-        */
-        if (mapping_writably_mapped(mapping))
-            flush_dcache_page(page);
-        pagefault_disable();
-        copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
-        pagefault_enable();
-        flush_dcache_page(page);
-        /*
-        ==3==标记为dirty, 处理short write
-        short wrtie是让 copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);复制bytes, 结果实际只复制copied. 若发生short write, 则重来.
-        */
-        a_ops-&gt;write_end(...);
-
-}
-
-</code></pre></div>
+</div>
 
   <div class="more">
-    <a href="/posts/generic_perform_write" class="btn btn-small">read more..</a>
+    <a href="/posts/scheduler_01_lost_wake-up" class="btn btn-small">read more..</a>
   </div>
 </div>
 
@@ -245,6 +317,7 @@ again:
       <li class="active"><a href="/posts/index/1">1</a></li>
       <li><a href="/posts/index/2">2</a></li>
       <li><a href="/posts/index/3">3</a></li>
+      <li><a href="/posts/index/4">4</a></li>
   </ul>
 </div>
 

@@ -66,13 +66,16 @@
     <a href="/categories#ARM-ref">ARM <span>1</span></a>
   </li>
   <li>
+    <a href="/categories#I/O-ref">I/O <span>9</span></a>
+  </li>
+  <li>
     <a href="/categories#file system-ref">file system <span>1</span></a>
   </li>
   <li>
-    <a href="/categories#I/O-ref">I/O <span>8</span></a>
+    <a href="/categories#内存管理-ref">内存管理 <span>5</span></a>
   </li>
   <li>
-    <a href="/categories#内存管理-ref">内存管理 <span>1</span></a>
+    <a href="/categories#进程调度-ref">进程调度 <span>4</span></a>
   </li>
 </ul>
 
@@ -80,12 +83,9 @@
   <ul>
       <li><a href="/posts/arm_asm">ARM的一些汇编</a></li>
   </ul>
-  <h3>file system (1)</h3>
+  <h3>I/O (9)</h3>
   <ul>
-      <li><a href="/posts/ext2_layout">ext2 disk layout</a></li>
-  </ul>
-  <h3>I/O (8)</h3>
-  <ul>
+      <li><a href="/posts/deadline-iosched">deadline-iosched</a></li>
       <li><a href="/posts/field_of_bh_and_address_space">address_space和buffer_head的一些field</a></li>
       <li><a href="/posts/generic_make_request">generic_make_request</a></li>
       <li><a href="/posts/generic_perform_write">generic_perform_write流程</a></li>
@@ -95,9 +95,24 @@
       <li><a href="/posts/tag_towrie_livelock">tag TOWRITE to avoid livelocking?</a></li>
       <li><a href="/posts/writeback_routine">回写路径</a></li>
   </ul>
-  <h3>内存管理 (1)</h3>
+  <h3>file system (1)</h3>
+  <ul>
+      <li><a href="/posts/ext2_layout">ext2 disk layout</a></li>
+  </ul>
+  <h3>内存管理 (5)</h3>
   <ul>
       <li><a href="/posts/flush_dcache_page">flush_dcache_page</a></li>
+      <li><a href="/posts/slub_frozen">SLUB 02:frozen</a></li>
+      <li><a href="/posts/slub_partial">SLUB 03:partial和cpu partial</a></li>
+      <li><a href="/posts/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a></li>
+      <li><a href="/posts/slub_tid">SLUB 04:tid</a></li>
+  </ul>
+  <h3>进程调度 (4)</h3>
+  <ul>
+      <li><a href="/posts/scheduler_00_implementation">调度器CFS的实现</a></li>
+      <li><a href="/posts/scheduler_01_lost_wake-up">调度器, 从lost wake-up problem说起</a></li>
+      <li><a href="/posts/scheduler_02_preempt">仅检查TIF_NEED_RESCHED,不检查preempt_count?</a></li>
+      <li><a href="/posts/scheduler_03_switch_to">arm linux的switch_to</a></li>
   </ul>
 
   </div>
