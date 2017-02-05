@@ -4,10 +4,10 @@
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2017-01-15</pubDate>
+    <pubDate>2017-02-05</pubDate>
     <item>
       <title>SLUB 03:partial&#x548C;cpu partial</title>
-      <link>https://awakening-fong.github.io/posts/slub_partial</link>
+      <link>https://awakening-fong.github.io/posts/mm/slub_partial</link>
       <pubDate>2017-01-14</pubDate>
       <description>&lt;p&gt;&#x4E3B;&#x8981;&#x4ECB;&#x7ECD;partial&#x548C;cpu partial&#x7684;&#x4EA7;&#x751F;.&lt;br&gt;
 &#x5185;&#x6838;&#x672A;&#x5B9A;&#x4E49; CONFIG_NUMA&lt;/p&gt;
@@ -137,7 +137,7 @@ struct kmem_cache_cpu&#x4E5F;&#x6CA1;&#x6709;&#x94FE;&#x8868;&#x7BA1;&#x7406;&#x
     </item>
     <item>
       <title>SLUB 02:frozen</title>
-      <link>https://awakening-fong.github.io/posts/slub_frozen</link>
+      <link>https://awakening-fong.github.io/posts/mm/slub_frozen</link>
       <pubDate>2017-01-14</pubDate>
       <description>&lt;p&gt;&#x672C;&#x6587;&#x5047;&#x5B9A;&#x6CA1;&#x6709;&#x6253;&#x5F00;CONFIG_SLUB_DEBUG, &#x6CA1;&#x6709;&#x914D;&#x7F6E;CONFIG_NUMA.&lt;/p&gt;
 
@@ -248,7 +248,7 @@ obj_t2 -&amp;gt;  obj_t1 -&amp;gt; NULL.&lt;/p&gt;
     </item>
     <item>
       <title>SLUB 04:tid</title>
-      <link>https://awakening-fong.github.io/posts/slub_tid</link>
+      <link>https://awakening-fong.github.io/posts/mm/slub_tid</link>
       <pubDate>2017-01-14</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. tid&lt;/h4&gt;&lt;/h1&gt;
 
@@ -348,7 +348,7 @@ page = c-&amp;gt;page;
     </item>
     <item>
       <title>SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;</title>
-      <link>https://awakening-fong.github.io/posts/slub_slab_alloc</link>
+      <link>https://awakening-fong.github.io/posts/mm/slub_slab_alloc</link>
       <pubDate>2017-01-12</pubDate>
       <description>&lt;p&gt;&#x6587;&#x6765;&#x81EA;&#x672C;&#x4EBA;&#x65E7;&#x535A;&#x5BA2;:  blog.163.com/awaken_ing/blog/static/1206131972016316114114855&lt;/p&gt;
 
@@ -454,8 +454,47 @@ __SetPageSlab(page)
 </description>
     </item>
     <item>
+      <title>&#x4EC5;&#x68C0;&#x67E5;TIF_NEED_RESCHED,&#x4E0D;&#x68C0;&#x67E5;preempt_count?</title>
+      <link>https://awakening-fong.github.io/posts/scheduler/scheduler_02_preempt</link>
+      <pubDate>2017-01-11</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4F55;&#x65F6;&#x8BBE;&#x7F6E; TIF_NEED_RESCHED&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x4EFB;&#x52A1;task01&#x8FD8;&#x6CA1;&#x6709;&#x5B8C;&#x6210;, &#x4F46;&#x8C03;&#x5EA6;&#x5668;&#x8BA4;&#x4E3A; &#x5176;&#x8FD0;&#x884C;&#x7684;&#x591F;&#x4E45;&#x4E86;, &#x5C31;&#x8BBE;&#x7F6E;TIF_NEED_RESCHED, &#x8FD9;&#x6837;, &#x5728;&#x5408;&#x9002;&#x7684;&#x65F6;&#x673A;, task01&#x5C31;&#x4F1A;&#x88AB;&#x8C03;&#x5EA6;&#x8D70;, &#x7531;&#x5176;&#x4ED6;task&#x4F7F;&#x7528;cpu.&lt;/p&gt;
+
+&lt;p&gt;&#x9664;&#x4E86;scheduler_tick&#x4F1A;&#x8BBE;&#x7F6E;&#x5916;, &#x5F53;&#x4E00;&#x4E2A;&#x4F18;&#x5148;&#x7EA7;&#x9AD8;&#x7684;&#x8FDB;&#x7A0B;&#x8FDB;&#x5165;&#x53EF;&#x6267;&#x884C;&#x72B6;&#x6001;&#x7684;&#x65F6;&#x5019;, try_to_wake_up()&#x4E5F;&#x4F1A;&#x8BBE;&#x7F6E;&#x8FD9;&#x4E2A;&#x6807;&#x5FD7;&#x3002;&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4E0D;&#x68C0;&#x67E5;preempt_count?&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x4F8B; linux-3.10.86/arch/arm/kernel/entry-armv.S&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;__vector_irq()
+|--__irq_usr()  @entry-armv.S
+|   |--usr_entry()
+|   |--irq_handler()
+|   |--ret_to_user_from_irq() @entry-common.S
+|   |   |--work_pending()   
+|   |   |   |--do_work_pending @signal.c
+
+do_work_pending
+{
+    do {
+        if (likely(thread_flags &amp;amp; _TIF_NEED_RESCHED))
+            schedule();
+        else
+           ...
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8FD9;&#x91CC;&#x4EC5;&#x5224;&#x65AD;_TIF_NEED_RESCHED, &#x6CA1;&#x6709;&#x5224;&#x65AD; preempt_count, &#x4E3A;&#x5565;?&lt;br&gt;
+&#x96BE;&#x9053;&#x8BF4;, &#x7981;&#x7528;&#x62A2;&#x5360;&#x4F9D;&#x65E7;&#x4F1A;&#x53D1;&#x751F;&#x62A2;&#x5360;?&lt;br&gt;
+&#x7B54;: &#x5047;&#x5B9A;&#x8FD9;&#x4E2A;&#x65F6;&#x95F4;&#x70B9;&#x4E0A;, preempt_count&#x4E0D;&#x4E3A;0, &#x90A3;&#x4E48;, &#x4E4B;&#x540E;&#x5C31;&#x8FD4;&#x56DE;&#x7528;&#x6237;&#x6001;, &#x6CA1;&#x6709;&#x673A;&#x4F1A;&#x518D;&#x64CD;&#x4F5C; preempt_count&#x4E86;.&lt;br&gt;
+&#x8FD9;&#x6837;&#x5C31;&#x76F8;&#x5F53;&#x4E8E; &#x5728;&#x5185;&#x6838;&#x6001;&#x8FC7;&#x7A0B;&#x4E2D; &#x5BF9;preempt count&#x8FDB;&#x884C;&#x7684;&#x52A0;&#x51CF;&#x4E0D;&#x5E73;&#x8861;, &#x8FD9;&#x4E8B;&#x4E0D;&#x8BE5;&#x53D1;&#x751F;, &#x6545;&#x5F53;&#x524D;&#x5207;&#x6362;&#x5230;&#x7528;&#x6237;&#x6001;&#x524D;, &#x5E76;&#x6CA1;&#x6709;&#x68C0;&#x67E5;preempt_count(). &#x6211;&#x4EEC;&#x8BA4;&#x4E3A;&#x5176;&#x7ED3;&#x679C;&#x662F;&#x53EF;&#x4EE5;&#x9884;&#x89C1;, &#x603B;&#x662F;0, &#x5141;&#x8BB8;&#x62A2;&#x5360;&#x53D1;&#x751F;.&lt;/p&gt;
+</description>
+    </item>
+    <item>
       <title>&#x8C03;&#x5EA6;&#x5668;, &#x4ECE;lost wake-up problem&#x8BF4;&#x8D77;</title>
-      <link>https://awakening-fong.github.io/posts/scheduler_01_lost_wake-up</link>
+      <link>https://awakening-fong.github.io/posts/scheduler/scheduler_01_lost_wake-up</link>
       <pubDate>2017-01-11</pubDate>
       <description>&lt;p&gt;&#x6587;&#x6765;&#x81EA;&#x672C;&#x4EBA;&#x7684;&#x65E7;&#x535A;&#x5BA2; blog.163.com/awaken_ing/blog/static/1206131972016124113539444/&lt;/p&gt;
 
@@ -594,47 +633,8 @@ finish_wait()&#x8BBE;&#x7F6E;&#x72B6;&#x6001;&#x4E3A;TASK_RUNNING. &lt;/p&gt;
 </description>
     </item>
     <item>
-      <title>&#x4EC5;&#x68C0;&#x67E5;TIF_NEED_RESCHED,&#x4E0D;&#x68C0;&#x67E5;preempt_count?</title>
-      <link>https://awakening-fong.github.io/posts/scheduler_02_preempt</link>
-      <pubDate>2017-01-11</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4F55;&#x65F6;&#x8BBE;&#x7F6E; TIF_NEED_RESCHED&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4EFB;&#x52A1;task01&#x8FD8;&#x6CA1;&#x6709;&#x5B8C;&#x6210;, &#x4F46;&#x8C03;&#x5EA6;&#x5668;&#x8BA4;&#x4E3A; &#x5176;&#x8FD0;&#x884C;&#x7684;&#x591F;&#x4E45;&#x4E86;, &#x5C31;&#x8BBE;&#x7F6E;TIF_NEED_RESCHED, &#x8FD9;&#x6837;, &#x5728;&#x5408;&#x9002;&#x7684;&#x65F6;&#x673A;, task01&#x5C31;&#x4F1A;&#x88AB;&#x8C03;&#x5EA6;&#x8D70;, &#x7531;&#x5176;&#x4ED6;task&#x4F7F;&#x7528;cpu.&lt;/p&gt;
-
-&lt;p&gt;&#x9664;&#x4E86;scheduler_tick&#x4F1A;&#x8BBE;&#x7F6E;&#x5916;, &#x5F53;&#x4E00;&#x4E2A;&#x4F18;&#x5148;&#x7EA7;&#x9AD8;&#x7684;&#x8FDB;&#x7A0B;&#x8FDB;&#x5165;&#x53EF;&#x6267;&#x884C;&#x72B6;&#x6001;&#x7684;&#x65F6;&#x5019;, try_to_wake_up()&#x4E5F;&#x4F1A;&#x8BBE;&#x7F6E;&#x8FD9;&#x4E2A;&#x6807;&#x5FD7;&#x3002;&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4E0D;&#x68C0;&#x67E5;preempt_count?&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4F8B; linux-3.10.86/arch/arm/kernel/entry-armv.S&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__vector_irq()
-|--__irq_usr()  @entry-armv.S
-|   |--usr_entry()
-|   |--irq_handler()
-|   |--ret_to_user_from_irq() @entry-common.S
-|   |   |--work_pending()   
-|   |   |   |--do_work_pending @signal.c
-
-do_work_pending
-{
-    do {
-        if (likely(thread_flags &amp;amp; _TIF_NEED_RESCHED))
-            schedule();
-        else
-           ...
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x4EC5;&#x5224;&#x65AD;_TIF_NEED_RESCHED, &#x6CA1;&#x6709;&#x5224;&#x65AD; preempt_count, &#x4E3A;&#x5565;?&lt;br&gt;
-&#x96BE;&#x9053;&#x8BF4;, &#x7981;&#x7528;&#x62A2;&#x5360;&#x4F9D;&#x65E7;&#x4F1A;&#x53D1;&#x751F;&#x62A2;&#x5360;?&lt;br&gt;
-&#x7B54;: &#x5047;&#x5B9A;&#x8FD9;&#x4E2A;&#x65F6;&#x95F4;&#x70B9;&#x4E0A;, preempt_count&#x4E0D;&#x4E3A;0, &#x90A3;&#x4E48;, &#x4E4B;&#x540E;&#x5C31;&#x8FD4;&#x56DE;&#x7528;&#x6237;&#x6001;, &#x6CA1;&#x6709;&#x673A;&#x4F1A;&#x518D;&#x64CD;&#x4F5C; preempt_count&#x4E86;.&lt;br&gt;
-&#x8FD9;&#x6837;&#x5C31;&#x76F8;&#x5F53;&#x4E8E; &#x5728;&#x5185;&#x6838;&#x6001;&#x8FC7;&#x7A0B;&#x4E2D; &#x5BF9;preempt count&#x8FDB;&#x884C;&#x7684;&#x52A0;&#x51CF;&#x4E0D;&#x5E73;&#x8861;, &#x8FD9;&#x4E8B;&#x4E0D;&#x8BE5;&#x53D1;&#x751F;, &#x6545;&#x5F53;&#x524D;&#x5207;&#x6362;&#x5230;&#x7528;&#x6237;&#x6001;&#x524D;, &#x5E76;&#x6CA1;&#x6709;&#x68C0;&#x67E5;preempt_count(). &#x6211;&#x4EEC;&#x8BA4;&#x4E3A;&#x5176;&#x7ED3;&#x679C;&#x662F;&#x53EF;&#x4EE5;&#x9884;&#x89C1;, &#x603B;&#x662F;0, &#x5141;&#x8BB8;&#x62A2;&#x5360;&#x53D1;&#x751F;.&lt;/p&gt;
-</description>
-    </item>
-    <item>
       <title>arm linux&#x7684;switch_to</title>
-      <link>https://awakening-fong.github.io/posts/scheduler_03_switch_to</link>
+      <link>https://awakening-fong.github.io/posts/scheduler/scheduler_03_switch_to</link>
       <pubDate>2017-01-11</pubDate>
       <description>&lt;p&gt;&#x6587;&#x6765;&#x81EA;&#x672C;&#x4EBA;&#x7684;&#x65E7;&#x535A;&#x5BA2;: blog.163.com/awaken_ing/blog/static/12061319720158310574442/&lt;/p&gt;
 
@@ -702,7 +702,7 @@ do {    \
     </item>
     <item>
       <title>&#x8C03;&#x5EA6;&#x5668;CFS&#x7684;&#x5B9E;&#x73B0;</title>
-      <link>https://awakening-fong.github.io/posts/scheduler_00_implementation</link>
+      <link>https://awakening-fong.github.io/posts/scheduler/scheduler_00_implementation</link>
       <pubDate>2017-01-10</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6982;&#x8FF0;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -837,7 +837,7 @@ put_prev_task -&amp;gt; put_prev_task_fair -&amp;gt; put_prev_entity -&amp;gt; i
     </item>
     <item>
       <title>deadline-iosched</title>
-      <link>https://awakening-fong.github.io/posts/deadline-iosched</link>
+      <link>https://awakening-fong.github.io/posts/io/deadline-iosched</link>
       <pubDate>2017-01-06</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -1049,7 +1049,7 @@ linux-3.10.86/block/deadline-iosched.c&lt;/p&gt;
     </item>
     <item>
       <title>generic_make_request</title>
-      <link>https://awakening-fong.github.io/posts/generic_make_request</link>
+      <link>https://awakening-fong.github.io/posts/io/generic_make_request</link>
       <pubDate>2017-01-04</pubDate>
       <description>&lt;p&gt;linux-3.10.86/block/blk-core.c&lt;/p&gt;
 
@@ -1132,7 +1132,7 @@ linux-3.10.86/block/deadline-iosched.c&lt;/p&gt;
     </item>
     <item>
       <title>tag TOWRITE to avoid livelocking?</title>
-      <link>https://awakening-fong.github.io/posts/tag_towrie_livelock</link>
+      <link>https://awakening-fong.github.io/posts/io/tag_towrie_livelock</link>
       <pubDate>2017-01-03</pubDate>
       <description>&lt;div class="summary"&gt;
 &#x4E3B;&#x8981;&#x4ECB;&#x7ECD;writeback&#x4E2D;&#x7684;livelocking.
@@ -1268,7 +1268,7 @@ Thus we interrupt background writeback if there is some other work to do.
     </item>
     <item>
       <title>do_generic_file_read&#x4E2D;&#x7684;readahead</title>
-      <link>https://awakening-fong.github.io/posts/readahead</link>
+      <link>https://awakening-fong.github.io/posts/io/readahead</link>
       <pubDate>2017-01-03</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. readahead&lt;/h4&gt;&lt;/h1&gt;
 
@@ -1388,7 +1388,7 @@ linux-3.10.86/include/linux/sched.h&lt;/p&gt;
     </item>
     <item>
       <title>&#x56DE;&#x5199;&#x8DEF;&#x5F84;</title>
-      <link>https://awakening-fong.github.io/posts/writeback_routine</link>
+      <link>https://awakening-fong.github.io/posts/io/writeback_routine</link>
       <pubDate>2017-01-01</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;&#x65B9;&#x5F0F;1. &#x524D;&#x671F;tag dirty&lt;/h4&gt;&lt;/h1&gt;
 
@@ -1583,212 +1583,8 @@ generic_file_direct_write
 </description>
     </item>
     <item>
-      <title>set_buffer_new</title>
-      <link>https://awakening-fong.github.io/posts/set_buffer_new</link>
-      <pubDate>2016-12-31</pubDate>
-      <description>&lt;div class="summary"&gt;
-&#x672C;&#x6587;&#x4E3B;&#x8981;&#x89E3;&#x91CA;BH_New&#x7684;&#x542B;&#x4E49;, &#x4EE5;&#x53CA;&#x4F55;&#x65F6;&#x8BBE;&#x7F6E;&#x8BE5;&#x6807;&#x5FD7;.
-&lt;/div&gt;
-
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1.  set_buffer_new &lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/fs/ext2/inode.c  &lt;/p&gt;
-
-&lt;pre&gt;&lt;code class="c"&gt;static int ext2_get_blocks(struct inode *inode,
-               sector_t iblock, unsigned long maxblocks,
-               struct buffer_head *bh_result,
-               int create)
-{
-
-
-    /*
-    &#x5728;&#x67E5;&#x627E;@iblock&#x7684;&#x8FC7;&#x7A0B;&#x4E2D;, &#x9047;&#x5230;&#x4E86;&#x6307;&#x5411;&#x5757;0&#x7684;&#x60C5;&#x51B5;.
-    &#x6BD4;&#x5982;ext2_get_blocks()&#x67E5;&#x627E;iblock&#x4E3A;6&#x7684;&#x6620;&#x5C04;,
-    &#x7ED3;&#x679C;ext2_inode&#x7684;i_data[5]==0
-
-    &#x5047;&#x5B9A;&#x6587;&#x4EF6;&#x7684;0-21&#x5757;&#x90FD;&#x662F;hole:
-    ext2_get_blocks()&#x4E2D;&#x67E5;&#x627E;@iblock&#x4E3A;20,
-    i_data[12]==0, &#x90A3;&#x4E48;, &#x4F1A;set_buffer_new;
-    &#x4E0B;&#x56DE;&#x67E5;&#x627E;@iblock&#x4E3A;21, i_data[12]!=0, 
-    &#x4E0D;&#x8FC7;, i_data&#x7684;&#x4E0B;&#x4E00;&#x7EA7;, offset&#x4E3A;8&#x7684;&#x5730;&#x65B9;, &#x8FD8;&#x662F;0 ,
-    &#x6240;&#x4EE5;, &#x4F9D;&#x65E7;set_buffer_new.
-    &#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x67E5;&#x627E;@iblock&#x4E3A;20, &#x53EA;&#x89E6;&#x53D1;1&#x6B21;set_buffer_new, &#x800C;&#x4E0D;&#x662F;2&#x6B21;, 
-    &#x56E0;&#x4E3A;&#x662F;&#x5728;&#x5206;&#x914D;&#x597D;chain&#x6240;&#x9700;&#x7684;&#x5757;&#x540E;, &#x624D;&#x8C03;&#x7528;&#x4E00;&#x6B21;set_buffer_new.
-    &#x7136;&#x540E;&#x67E5;&#x627E;@iblock&#x4E3A;21, &#x4F1A;&#x89E6;&#x53D1;1&#x6B21;set_buffer_new;
-
-
-    &#x95EE;&#x9898;:buffer_new()&#x610F;&#x5473;&#x7740;&#x4EC0;&#x4E48;?
-    &#x7B54;:&#x610F;&#x5473;&#x7740;, &#x5C06;&#x539F;&#x5148;&#x8FD8;&#x4E0D;&#x5C5E;&#x4E8E;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x7684;&#x5757;, &#x5212;&#x5206;&#x7ED9;&#x4E86;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;.
-
-    */
-    set_buffer_new(bh_result);
-got_it:
-    ...
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. unmap_underlying_metadata&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code class="c"&gt;
-__block_write_begin
-{
-    ...
-    err = get_block(inode, block, bh, 1); //&#x6BD4;&#x5982;ext2_get_blocks
-    if (err)
-        break;
-    if (buffer_new(bh)) {
-        unmap_underlying_metadata(bh-&amp;gt;b_bdev,
-                    bh-&amp;gt;b_blocknr);
-        ...
-    }
-
-}
-
-
-/*
- __block_write_full_page
- {
-    create_page_buffers //&#x8FD9;&#x91CC;&#x6CA1;&#x6709;&#x4ECE;&#x88F8;&#x5757;&#x8BBE;&#x5907;&#x7684;&#x5730;&#x5740;&#x7A7A;&#x95F4;&#x4E2D;&#x67E5;&#x627E;
-    unmap_underlying_metadata
- }
- */
-void unmap_underlying_metadata(struct block_device *bdev, sector_t block)
-{
-    struct buffer_head *old_bh;
-
-    might_sleep();
-
-    old_bh = __find_get_block_slow(bdev, block);//&#x4ECE;&#x88F8;&#x5757;&#x8BBE;&#x5907;&#x7684;&#x5730;&#x5740;&#x7A7A;&#x95F4;&#x4E2D;&#x67E5;&#x627E;
-    if (old_bh) {
-        clear_buffer_dirty(old_bh);
-        /*
-        &#x95EE;&#x9898;:&#x8FD9;&#x91CC;&#x6CA1;&#x6709;&#x83B7;&#x53D6;&#x9501;, &#x53EA;&#x662F;&#x7B49;&#x5F85;&#x4ED6;&#x4EBA;&#x628A;&#x9501;&#x91CA;&#x653E;&#x6389;, &#x610F;&#x4E49;&#x4F55;&#x5728;?
-        &#x7B54;:&#x8BA9;&#x4E24;&#x8005;&#x4E0D;&#x8981;&#x76F8;&#x4E92;&#x5E72;&#x6270;.
-        */
-        wait_on_buffer(old_bh);
-        clear_buffer_req(old_bh);
-        ...
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;</title>
-      <link>https://awakening-fong.github.io/posts/arm_asm</link>
-      <pubDate>2016-12-31</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. ^&#x540E;&#x7F00;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;ARM &#xAE; Developer Suite Version 1.2 Assembler Guide P128  &lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;4.2.4 LDM and STM&lt;br&gt;
-^ is an optional suffix. You must not use it in User mode or System mode.&lt;br&gt;
-It has two purposes:&lt;br&gt;
-    &#x2022; If op is LDM and reglist contains the pc (r15), in addition to the normal multiple register transfer, the SPSR is copied into the CPSR. This is for returning from exception handlers. Use this only from exception modes.&lt;br&gt;
-    &#x2022; Otherwise, data is transferred into or out of the User mode registers instead of the current mode registers.  &lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x4F8B;&#x5982;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;&#x53EA;&#x6709;&#x5F53;pop/LDM&#x5217;&#x8868;&#x4E2D;&#x6709;pc&#x65F6;, &#x624D;&#x4F1A;cpsr:=spsr.
-&#x4F8B; &lt;code&gt;ldmia sp,{r0-pc}^&lt;/code&gt;
-&#x8FD9;&#x91CC;^&#x8868;&#x793A; &#x5C06;spsr&#x590D;&#x5236;&#x5230;cpsr.&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;code&gt;stmdb   r0, {sp, lr}^&lt;/code&gt;
-&#x8FD9;&#x91CC;^&#x8868;&#x793A;&#x8BBF;&#x95EE;&#x7684;&#x662F;usr &#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x5BC4;&#x5B58;&#x5668;&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. SUBS&#x548C;MOVS(S&#x540E;&#x7F00;)&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5728;&#x5F02;&#x5E38;&#x6A21;&#x5F0F;&#x4E0B;, &lt;code&gt;SUBS pc, lr&lt;/code&gt; &#x4F1A;&#x6267;&#x884C;CPSR:=SPSR, &#x4E14;&#x4FEE;&#x6539;PC(&#x5373;&#x8DF3;&#x8F6C;), &#x4E5F;&#x5C31;&#x662F;&#x7528;&#x6765;&#x5B8C;&#x6210;&#x4ECE;&#x5F02;&#x5E38;&#x6A21;&#x5F0F;&#x9000;&#x51FA;.&lt;/p&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. pop&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;ldm&#x548C;stm&#x6307;&#x4EE4;
-registers&#x662F;&#x6309;&#x5BC4;&#x5B58;&#x5668;&#x7F16;&#x53F7;&#x6392;&#x5E8F;&#x7684;(&#x548C;&#x4E66;&#x5199;&#x987A;&#x5E8F;&#x65E0;&#x5173;), &#x4F4E;&#x7F16;&#x53F7;&#x7684;&#x5F97;&#x5230;&#x4F4E;&#x5730;&#x5740;&#x7684;, &#x9AD8;&#x7F16;&#x53F7;&#x5F97;&#x5230;&#x9AD8;&#x5730;&#x5740;&#x7684;.&lt;/p&gt;
-
-&lt;p&gt;&#x6309;&#x7167;&#x5BC4;&#x5B58;&#x5668;&#x7F16;&#x53F7;, &#x800C;&#x4E0D;&#x662F;&#x6307;&#x4EE4;&#x4E2D;&#x7684;&#x4E66;&#x5199;&#x987A;&#x5E8F;&#x6765;&#x5165;&#x6808;&#x548C;&#x51FA;&#x6808;.&lt;/p&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. blx&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;bl&#x548C;blx&#x7684;&#x533A;&#x522B;?
-&#x7B54;:blx&#x6839;&#x636E;&#x60C5;&#x51B5;&#x4F1A;&#x5207;&#x6362;&#x5230;thumb.&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;BX{cond} Rm&lt;/code&gt;&lt;br&gt;
-Rm is an ARM register containing the address to branchto.&lt;br&gt;
-Bit 0 of Rm is not used as part of the address. &#x4E0D;&#x7BA1;&#x662F;arm&#x6216;&#x8005;thumb&#x6A21;&#x5F0F;&#x4E0B;, bit 0&#x90FD;&#x4E0D;&#x7528;&#x4F5C;&#x5BFB;&#x5740;.&lt;br&gt;
-If bit 0 of Rm is set, the instruction sets the T flag in the CPSR, and the code at the destination is interpreted as Thumb code.  &#x5982;&#x679C;bit 0&#x88AB;&#x7F6E;&#x4F4D;, &#x90A3;&#x4E48;, &#x6307;&#x4EE4;&#x4F1A;&#x8BBE;&#x7F6E;CPSR&#x7684;T&#x6807;&#x5FD7;&#x4F4D;.&lt;br&gt;
-If bit 0 of Rm is clear, bit 1 must not be set.  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>generic_perform_write&#x6D41;&#x7A0B;</title>
-      <link>https://awakening-fong.github.io/posts/generic_perform_write</link>
-      <pubDate>2016-12-31</pubDate>
-      <description>&lt;pre&gt;&lt;code class="c"&gt;generic_perform_write
-{
-
-        /*
-        ==0==&#x8BA1;&#x7B97;&#x6CA1;&#x6709;&#x548C;PAGE_CACHE_SIZE&#x5BF9;&#x9F50;&#x7684;&#x90A3;&#x90E8;&#x5206;&#x7684;&#x5927;&#x5C0F;, &#x4EE3;&#x7801;&#x4E2D;&#x7684;bytes.
-
-        &#x6742;&#x95EE;&#x9898;:
-        &#x5047;&#x5B9A;PAGE_CACHE_SIZE&#x4E3A;4, pos&#x4E3A;5, iov_iter_count()&#x5927;&#x4E8E;2&#x4E2A;PAGE_CACHE_SIZE,
-        &#x5219;offset&#x4E3A;1, bytes&#x4E3A;3
-        &#x6240;&#x4EE5;, &#x4EE3;&#x7801;&#x4E2D;&#x7684;bytes&#x5C31;&#x662F;&#x793A;&#x610F;&#x56FE;&#x4E2D;|///|&#x90A3;&#x90E8;&#x5206;:
-      pos==0    pos==5
-        ^         ^
-        |         |
-        |----|  |-.---|  |----|
-                  |///|
-                  &#x8BFB;&#x53D6;
-        */
-        offset = (pos &amp;amp; (PAGE_CACHE_SIZE - 1));
-        bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
-                        iov_iter_count(i));
-again:
-        /*
-        &#x5982;&#x4F55;&#x9632;&#x6B62;dead lock&#x53EF;&#x53C2;&#x8003;
-        https://lkml.org/lkml/2015/6/30/631
-        */
-        iov_iter_fault_in_readable(...);
-
-        /*
-        ==1==&#x51C6;&#x5907;page
-        &#x7B54;:
-        &#x5982;&#x679C;&#x5728;address_space&#x4E2D;&#x6CA1;&#x6709;&#x8BE5;pos&#x5BF9;&#x5E94;&#x7684;page, &#x5219;&#x5206;&#x914D;page&#x5E76;&#x6DFB;&#x52A0;&#x5230;address_space.
-        &#x5982;&#x679C;&#x6CA1;&#x6709;&#x5199;&#x5B8C;&#x6574;&#x7684;&#x4E00;&#x4E2A;sector, &#x5219;&#x9700;&#x8981;&#x5148;&#x4ECE;&#x78C1;&#x76D8;&#x8BFB;&#x51FA;&#x539F;sector.
-        */
-        status = a_ops-&amp;gt;write_begin(file, mapping, pos, bytes, flags,
-                        &amp;amp;page, &amp;amp;fsdata);
-
-        /*
-        ==2==&#x586B;&#x5145;page cache
-        */
-        /*
-        flush_dcache_page &#x89C1;https://awakening-fong.github.io/posts/flush_dcache_page
-        */
-        if (mapping_writably_mapped(mapping))
-            flush_dcache_page(page);
-        pagefault_disable();
-        copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
-        pagefault_enable();
-        flush_dcache_page(page);
-        /*
-        ==3==&#x6807;&#x8BB0;&#x4E3A;dirty, &#x5904;&#x7406;short write
-        short wrtie&#x662F;&#x8BA9; copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);&#x590D;&#x5236;bytes, &#x7ED3;&#x679C;&#x5B9E;&#x9645;&#x53EA;&#x590D;&#x5236;copied. &#x82E5;&#x53D1;&#x751F;short write, &#x5219;&#x91CD;&#x6765;.
-        */
-        a_ops-&amp;gt;write_end(...);
-
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
       <title>flush_dcache_page</title>
-      <link>https://awakening-fong.github.io/posts/flush_dcache_page</link>
+      <link>https://awakening-fong.github.io/posts/mm/flush_dcache_page</link>
       <pubDate>2016-12-31</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. flush_dcache_page&#x7684;&#x5B9E;&#x73B0;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -1933,8 +1729,212 @@ page_ok:  /*page&#x662F;uptodate&#x72B6;&#x6001;*/
 </description>
     </item>
     <item>
+      <title>set_buffer_new</title>
+      <link>https://awakening-fong.github.io/posts/io/set_buffer_new</link>
+      <pubDate>2016-12-31</pubDate>
+      <description>&lt;div class="summary"&gt;
+&#x672C;&#x6587;&#x4E3B;&#x8981;&#x89E3;&#x91CA;BH_New&#x7684;&#x542B;&#x4E49;, &#x4EE5;&#x53CA;&#x4F55;&#x65F6;&#x8BBE;&#x7F6E;&#x8BE5;&#x6807;&#x5FD7;.
+&lt;/div&gt;
+
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1.  set_buffer_new &lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/fs/ext2/inode.c  &lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;static int ext2_get_blocks(struct inode *inode,
+               sector_t iblock, unsigned long maxblocks,
+               struct buffer_head *bh_result,
+               int create)
+{
+
+
+    /*
+    &#x5728;&#x67E5;&#x627E;@iblock&#x7684;&#x8FC7;&#x7A0B;&#x4E2D;, &#x9047;&#x5230;&#x4E86;&#x6307;&#x5411;&#x5757;0&#x7684;&#x60C5;&#x51B5;.
+    &#x6BD4;&#x5982;ext2_get_blocks()&#x67E5;&#x627E;iblock&#x4E3A;6&#x7684;&#x6620;&#x5C04;,
+    &#x7ED3;&#x679C;ext2_inode&#x7684;i_data[5]==0
+
+    &#x5047;&#x5B9A;&#x6587;&#x4EF6;&#x7684;0-21&#x5757;&#x90FD;&#x662F;hole:
+    ext2_get_blocks()&#x4E2D;&#x67E5;&#x627E;@iblock&#x4E3A;20,
+    i_data[12]==0, &#x90A3;&#x4E48;, &#x4F1A;set_buffer_new;
+    &#x4E0B;&#x56DE;&#x67E5;&#x627E;@iblock&#x4E3A;21, i_data[12]!=0, 
+    &#x4E0D;&#x8FC7;, i_data&#x7684;&#x4E0B;&#x4E00;&#x7EA7;, offset&#x4E3A;8&#x7684;&#x5730;&#x65B9;, &#x8FD8;&#x662F;0 ,
+    &#x6240;&#x4EE5;, &#x4F9D;&#x65E7;set_buffer_new.
+    &#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x67E5;&#x627E;@iblock&#x4E3A;20, &#x53EA;&#x89E6;&#x53D1;1&#x6B21;set_buffer_new, &#x800C;&#x4E0D;&#x662F;2&#x6B21;, 
+    &#x56E0;&#x4E3A;&#x662F;&#x5728;&#x5206;&#x914D;&#x597D;chain&#x6240;&#x9700;&#x7684;&#x5757;&#x540E;, &#x624D;&#x8C03;&#x7528;&#x4E00;&#x6B21;set_buffer_new.
+    &#x7136;&#x540E;&#x67E5;&#x627E;@iblock&#x4E3A;21, &#x4F1A;&#x89E6;&#x53D1;1&#x6B21;set_buffer_new;
+
+
+    &#x95EE;&#x9898;:buffer_new()&#x610F;&#x5473;&#x7740;&#x4EC0;&#x4E48;?
+    &#x7B54;:&#x610F;&#x5473;&#x7740;, &#x5C06;&#x539F;&#x5148;&#x8FD8;&#x4E0D;&#x5C5E;&#x4E8E;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x7684;&#x5757;, &#x5212;&#x5206;&#x7ED9;&#x4E86;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;.
+
+    */
+    set_buffer_new(bh_result);
+got_it:
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. unmap_underlying_metadata&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;
+__block_write_begin
+{
+    ...
+    err = get_block(inode, block, bh, 1); //&#x6BD4;&#x5982;ext2_get_blocks
+    if (err)
+        break;
+    if (buffer_new(bh)) {
+        unmap_underlying_metadata(bh-&amp;gt;b_bdev,
+                    bh-&amp;gt;b_blocknr);
+        ...
+    }
+
+}
+
+
+/*
+ __block_write_full_page
+ {
+    create_page_buffers //&#x8FD9;&#x91CC;&#x6CA1;&#x6709;&#x4ECE;&#x88F8;&#x5757;&#x8BBE;&#x5907;&#x7684;&#x5730;&#x5740;&#x7A7A;&#x95F4;&#x4E2D;&#x67E5;&#x627E;
+    unmap_underlying_metadata
+ }
+ */
+void unmap_underlying_metadata(struct block_device *bdev, sector_t block)
+{
+    struct buffer_head *old_bh;
+
+    might_sleep();
+
+    old_bh = __find_get_block_slow(bdev, block);//&#x4ECE;&#x88F8;&#x5757;&#x8BBE;&#x5907;&#x7684;&#x5730;&#x5740;&#x7A7A;&#x95F4;&#x4E2D;&#x67E5;&#x627E;
+    if (old_bh) {
+        clear_buffer_dirty(old_bh);
+        /*
+        &#x95EE;&#x9898;:&#x8FD9;&#x91CC;&#x6CA1;&#x6709;&#x83B7;&#x53D6;&#x9501;, &#x53EA;&#x662F;&#x7B49;&#x5F85;&#x4ED6;&#x4EBA;&#x628A;&#x9501;&#x91CA;&#x653E;&#x6389;, &#x610F;&#x4E49;&#x4F55;&#x5728;?
+        &#x7B54;:&#x8BA9;&#x4E24;&#x8005;&#x4E0D;&#x8981;&#x76F8;&#x4E92;&#x5E72;&#x6270;.
+        */
+        wait_on_buffer(old_bh);
+        clear_buffer_req(old_bh);
+        ...
+    }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
+      <title>ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;</title>
+      <link>https://awakening-fong.github.io/posts/arm/arm_asm</link>
+      <pubDate>2016-12-31</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. ^&#x540E;&#x7F00;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;ARM &#xAE; Developer Suite Version 1.2 Assembler Guide P128  &lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;4.2.4 LDM and STM&lt;br&gt;
+^ is an optional suffix. You must not use it in User mode or System mode.&lt;br&gt;
+It has two purposes:&lt;br&gt;
+    &#x2022; If op is LDM and reglist contains the pc (r15), in addition to the normal multiple register transfer, the SPSR is copied into the CPSR. This is for returning from exception handlers. Use this only from exception modes.&lt;br&gt;
+    &#x2022; Otherwise, data is transferred into or out of the User mode registers instead of the current mode registers.  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&#x4F8B;&#x5982;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&#x53EA;&#x6709;&#x5F53;pop/LDM&#x5217;&#x8868;&#x4E2D;&#x6709;pc&#x65F6;, &#x624D;&#x4F1A;cpsr:=spsr.
+&#x4F8B; &lt;code&gt;ldmia sp,{r0-pc}^&lt;/code&gt;
+&#x8FD9;&#x91CC;^&#x8868;&#x793A; &#x5C06;spsr&#x590D;&#x5236;&#x5230;cpsr.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;stmdb   r0, {sp, lr}^&lt;/code&gt;
+&#x8FD9;&#x91CC;^&#x8868;&#x793A;&#x8BBF;&#x95EE;&#x7684;&#x662F;usr &#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x5BC4;&#x5B58;&#x5668;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. SUBS&#x548C;MOVS(S&#x540E;&#x7F00;)&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5728;&#x5F02;&#x5E38;&#x6A21;&#x5F0F;&#x4E0B;, &lt;code&gt;SUBS pc, lr&lt;/code&gt; &#x4F1A;&#x6267;&#x884C;CPSR:=SPSR, &#x4E14;&#x4FEE;&#x6539;PC(&#x5373;&#x8DF3;&#x8F6C;), &#x4E5F;&#x5C31;&#x662F;&#x7528;&#x6765;&#x5B8C;&#x6210;&#x4ECE;&#x5F02;&#x5E38;&#x6A21;&#x5F0F;&#x9000;&#x51FA;.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. pop&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;ldm&#x548C;stm&#x6307;&#x4EE4;
+registers&#x662F;&#x6309;&#x5BC4;&#x5B58;&#x5668;&#x7F16;&#x53F7;&#x6392;&#x5E8F;&#x7684;(&#x548C;&#x4E66;&#x5199;&#x987A;&#x5E8F;&#x65E0;&#x5173;), &#x4F4E;&#x7F16;&#x53F7;&#x7684;&#x5F97;&#x5230;&#x4F4E;&#x5730;&#x5740;&#x7684;, &#x9AD8;&#x7F16;&#x53F7;&#x5F97;&#x5230;&#x9AD8;&#x5730;&#x5740;&#x7684;.&lt;/p&gt;
+
+&lt;p&gt;&#x6309;&#x7167;&#x5BC4;&#x5B58;&#x5668;&#x7F16;&#x53F7;, &#x800C;&#x4E0D;&#x662F;&#x6307;&#x4EE4;&#x4E2D;&#x7684;&#x4E66;&#x5199;&#x987A;&#x5E8F;&#x6765;&#x5165;&#x6808;&#x548C;&#x51FA;&#x6808;.&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. blx&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;bl&#x548C;blx&#x7684;&#x533A;&#x522B;?
+&#x7B54;:blx&#x6839;&#x636E;&#x60C5;&#x51B5;&#x4F1A;&#x5207;&#x6362;&#x5230;thumb.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;BX{cond} Rm&lt;/code&gt;&lt;br&gt;
+Rm is an ARM register containing the address to branchto.&lt;br&gt;
+Bit 0 of Rm is not used as part of the address. &#x4E0D;&#x7BA1;&#x662F;arm&#x6216;&#x8005;thumb&#x6A21;&#x5F0F;&#x4E0B;, bit 0&#x90FD;&#x4E0D;&#x7528;&#x4F5C;&#x5BFB;&#x5740;.&lt;br&gt;
+If bit 0 of Rm is set, the instruction sets the T flag in the CPSR, and the code at the destination is interpreted as Thumb code.  &#x5982;&#x679C;bit 0&#x88AB;&#x7F6E;&#x4F4D;, &#x90A3;&#x4E48;, &#x6307;&#x4EE4;&#x4F1A;&#x8BBE;&#x7F6E;CPSR&#x7684;T&#x6807;&#x5FD7;&#x4F4D;.&lt;br&gt;
+If bit 0 of Rm is clear, bit 1 must not be set.  &lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>generic_perform_write&#x6D41;&#x7A0B;</title>
+      <link>https://awakening-fong.github.io/posts/io/generic_perform_write</link>
+      <pubDate>2016-12-31</pubDate>
+      <description>&lt;pre&gt;&lt;code class="c"&gt;generic_perform_write
+{
+
+        /*
+        ==0==&#x8BA1;&#x7B97;&#x6CA1;&#x6709;&#x548C;PAGE_CACHE_SIZE&#x5BF9;&#x9F50;&#x7684;&#x90A3;&#x90E8;&#x5206;&#x7684;&#x5927;&#x5C0F;, &#x4EE3;&#x7801;&#x4E2D;&#x7684;bytes.
+
+        &#x6742;&#x95EE;&#x9898;:
+        &#x5047;&#x5B9A;PAGE_CACHE_SIZE&#x4E3A;4, pos&#x4E3A;5, iov_iter_count()&#x5927;&#x4E8E;2&#x4E2A;PAGE_CACHE_SIZE,
+        &#x5219;offset&#x4E3A;1, bytes&#x4E3A;3
+        &#x6240;&#x4EE5;, &#x4EE3;&#x7801;&#x4E2D;&#x7684;bytes&#x5C31;&#x662F;&#x793A;&#x610F;&#x56FE;&#x4E2D;|///|&#x90A3;&#x90E8;&#x5206;:
+      pos==0    pos==5
+        ^         ^
+        |         |
+        |----|  |-.---|  |----|
+                  |///|
+                  &#x8BFB;&#x53D6;
+        */
+        offset = (pos &amp;amp; (PAGE_CACHE_SIZE - 1));
+        bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+                        iov_iter_count(i));
+again:
+        /*
+        &#x5982;&#x4F55;&#x9632;&#x6B62;dead lock&#x53EF;&#x53C2;&#x8003;
+        https://lkml.org/lkml/2015/6/30/631
+        */
+        iov_iter_fault_in_readable(...);
+
+        /*
+        ==1==&#x51C6;&#x5907;page
+        &#x7B54;:
+        &#x5982;&#x679C;&#x5728;address_space&#x4E2D;&#x6CA1;&#x6709;&#x8BE5;pos&#x5BF9;&#x5E94;&#x7684;page, &#x5219;&#x5206;&#x914D;page&#x5E76;&#x6DFB;&#x52A0;&#x5230;address_space.
+        &#x5982;&#x679C;&#x6CA1;&#x6709;&#x5199;&#x5B8C;&#x6574;&#x7684;&#x4E00;&#x4E2A;sector, &#x5219;&#x9700;&#x8981;&#x5148;&#x4ECE;&#x78C1;&#x76D8;&#x8BFB;&#x51FA;&#x539F;sector.
+        */
+        status = a_ops-&amp;gt;write_begin(file, mapping, pos, bytes, flags,
+                        &amp;amp;page, &amp;amp;fsdata);
+
+        /*
+        ==2==&#x586B;&#x5145;page cache
+        */
+        /*
+        flush_dcache_page &#x89C1;https://awakening-fong.github.io/posts/flush_dcache_page
+        */
+        if (mapping_writably_mapped(mapping))
+            flush_dcache_page(page);
+        pagefault_disable();
+        copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+        pagefault_enable();
+        flush_dcache_page(page);
+        /*
+        ==3==&#x6807;&#x8BB0;&#x4E3A;dirty, &#x5904;&#x7406;short write
+        short wrtie&#x662F;&#x8BA9; copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);&#x590D;&#x5236;bytes, &#x7ED3;&#x679C;&#x5B9E;&#x9645;&#x53EA;&#x590D;&#x5236;copied. &#x82E5;&#x53D1;&#x751F;short write, &#x5219;&#x91CD;&#x6765;.
+        */
+        a_ops-&amp;gt;write_end(...);
+
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
       <title>address_space&#x548C;buffer_head&#x7684;&#x4E00;&#x4E9B;field</title>
-      <link>https://awakening-fong.github.io/posts/field_of_bh_and_address_space</link>
+      <link>https://awakening-fong.github.io/posts/io/field_of_bh_and_address_space</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -2099,7 +2099,7 @@ fsync_buffers_list
     </item>
     <item>
       <title>ext2 disk layout</title>
-      <link>https://awakening-fong.github.io/posts/ext2_layout</link>
+      <link>https://awakening-fong.github.io/posts/fs/ext2_layout</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt; 1.&#x76EE;&#x6807;/&#x4EFB;&#x52A1;&lt;/h4&gt;&lt;/h1&gt;
 
@@ -2877,7 +2877,7 @@ Group 8: (Blocks 65537-71679)
     </item>
     <item>
       <title>&#x8BFB;&#x5199;&#x51FD;&#x6570;&#x4E2D;&#x7684;lock_page</title>
-      <link>https://awakening-fong.github.io/posts/read_write_lock_page</link>
+      <link>https://awakening-fong.github.io/posts/io/read_write_lock_page</link>
       <pubDate>2016-12-30</pubDate>
       <description>&lt;div class="summary"&gt;
 do_generic_file_read&#x548C;generic_perform_write&#x4E2D;&#x5BF9;&#x9501;&#x7684;&#x5904;&#x7406;.  &lt;br&gt;  
