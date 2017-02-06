@@ -63,10 +63,19 @@
     
 <ul class="tag_box inline">
   <li>
+    <a href="/tags#ARM-ref">ARM <span>10</span></a>
+  </li>
+  <li>
+    <a href="/tags#页表-ref">页表 <span>4</span></a>
+  </li>
+  <li>
     <a href="/tags#assembly-ref">assembly <span>1</span></a>
   </li>
   <li>
-    <a href="/tags#ARM-ref">ARM <span>1</span></a>
+    <a href="/tags#exception-ref">exception <span>2</span></a>
+  </li>
+  <li>
+    <a href="/tags#qemu-ref">qemu <span>2</span></a>
   </li>
   <li>
     <a href="/tags#ext2-ref">ext2 <span>1</span></a>
@@ -99,14 +108,37 @@
     <a href="/tags#SLUB-ref">SLUB <span>4</span></a>
   </li>
   <li>
+    <a href="/tags#kthread-ref">kthread <span>2</span></a>
+  </li>
+  <li>
     <a href="/tags#scheduler-ref">scheduler <span>4</span></a>
   </li>
 </ul>
 
+  <h3 id="ARM-ref">ARM</h3>
+    <li><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a></li>
+    <li><a href="/posts/arm/arm_asm">ARM的一些汇编</a></li>
+    <li><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a></li>
+    <li><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a></li>
+    <li><a href="/posts/arm/arm_iounmap_master_table">arm linux的iounmap()如何处理主页表(master page table)的同步</a></li>
+    <li><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a></li>
+    <li><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a></li>
+    <li><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a></li>
+    <li><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a></li>
+    <li><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a></li>
+  <h3 id="页表-ref">页表</h3>
+    <li><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a></li>
+    <li><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a></li>
+    <li><a href="/posts/arm/arm_iounmap_master_table">arm linux的iounmap()如何处理主页表(master page table)的同步</a></li>
+    <li><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a></li>
   <h3 id="assembly-ref">assembly</h3>
     <li><a href="/posts/arm/arm_asm">ARM的一些汇编</a></li>
-  <h3 id="ARM-ref">ARM</h3>
-    <li><a href="/posts/arm/arm_asm">ARM的一些汇编</a></li>
+  <h3 id="exception-ref">exception</h3>
+    <li><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a></li>
+    <li><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a></li>
+  <h3 id="qemu-ref">qemu</h3>
+    <li><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a></li>
+    <li><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a></li>
   <h3 id="ext2-ref">ext2</h3>
     <li><a href="/posts/fs/ext2_layout">ext2 disk layout</a></li>
   <h3 id="iosched-ref">iosched</h3>
@@ -133,6 +165,9 @@
     <li><a href="/posts/mm/slub_partial">SLUB 03:partial和cpu partial</a></li>
     <li><a href="/posts/mm/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a></li>
     <li><a href="/posts/mm/slub_tid">SLUB 04:tid</a></li>
+  <h3 id="kthread-ref">kthread</h3>
+    <li><a href="/posts/other/arm_kthread_do_exit">关于arm linux中kthread()中的do_exit()</a></li>
+    <li><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a></li>
   <h3 id="scheduler-ref">scheduler</h3>
     <li><a href="/posts/scheduler/scheduler_00_implementation">调度器CFS的实现</a></li>
     <li><a href="/posts/scheduler/scheduler_01_lost_wake-up">调度器, 从lost wake-up problem说起</a></li>
