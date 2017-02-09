@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>page reclaim 02:实现</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>page reclaim 02:实现 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-07</strong>
+    </div>
+    <div class="content">
+      <p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG_MEMCG, 未开启CONFIG_SWAP.
+若无特别说明, 本文仅讨论ARM体系的情况.</p>
+
+<h1 id="toc_0"><h4>1. 数据结构</h4></h1>
+
+<p>per zone : active list, inactive list</p>
+
+<pre><code>struct zone {
+    struct lruvec       lruvec;
+};
+
+struct lruvec {
+    struct list_head lists[NR_LRU_LISTS];
+    ...
+};
+</code></pre>
+
+<p>per node :kswapd  </p>
+
+<pre><code>kswapd_init -&gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
+kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, &quot;kswapd%d&quot;, nid);
+</code></pre>
+
+<p>per cpu  :lru cache, 也就是struct pagevec</p>
+
+<h1 id="toc_1"><h4>2. 调用逻辑</h4></h1>
+
+<p>何时调用  shrink_active_list, 何时调用 shrink_inactive_list ?</p>
+
+<p>调用路径:  </p>
+
+<pre><code>shrink_zones
+|--shrink_zone -&gt; shrink_lruvec
+|    |--for_each_evictable_lru //顺序是INACTIVE_xx, ACTIVE_xx, ..
+|    |  |--shrink_list
+|    |  |   |--if active list, shrink_active_list 
+|    |  |   |--else shrink_inactive_list
+</code></pre>
+
+<p>由于 shrink_active_list 存在将page添加到inactive list的情况 , 若之后再 shrink_inactive_list 的话, 就是双重打击了,  故shrink_lruvec()会 先调用 shrink_inactive_list, 后调用shrink_active_list.   </p>
+
+<p>我们并不会总是shrink_active_list, 只有在inactive list的page相对比较少时才会shrink_active_list.</p>
+
+<p>问题:如果shrink_inactive_list中把page移到active list, 那么, shrink_active_list会不会又把该page挪到 inactive list?<br>
+答:我们是新添加到active list的, 队列是FIFO的方式, 所以, 只要nr_to_scan不是很大, 就可以避免短时间内被扫描到.</p>
+
+<p>由于page被回收, 相关页表项需要处理, 这部分需要rmap, 本文略去.</p>
+
+<h2 id="toc_2"><h4>3. shrink_active_list</h4></h2>
+
+<pre><code>shrink_active_list
+|--lru_add_drain
+|--isolate_lru_pages(, , &amp;l_hold, )
+|    |--__isolate_lru_page  isolate是让page还呆在lru上, 但清掉PG_lru
+|    |--list_move(&amp;page-&gt;lru, l_hold);  挪到链表(list_head) l_hold
+|--for each page in struct list_head l_hold
+|    |--page_referenced
+|    |    |--page_referenced_file -&gt; page_referenced_one -&gt; ptep_clear_flush_young_notify -&gt; pte_mkold
+|    |    |--page_test_and_clear_young  ARM体系是空操作
+|    |--ClearPageActive  and  list_add(&amp;page-&gt;lru, &amp;l_inactive);
+|    |--or list_add(&amp;page-&gt;lru, &amp;l_active) //不讨论
+|--move_active_pages_to_lru(lruvec, &amp;l_active, &amp;l_hold, lru);
+|--move_active_pages_to_lru(lruvec, &amp;l_inactive, &amp;l_hold, lru - LRU_ACTIVE);
+|    |--将l_inactive的page move到 lruvec-&gt;lists[lru - LRU_ACTIVE]中,
+|    |--put page, 如果为zero, 则__ClearPageActive + 从lru中移除 + 添加到l_hold中, 待后续执行free 
+|--free_hot_cold_page_list(&amp;l_hold, 1);
+</code></pre>
+
+<p>上面的流程忽略Compound page. 
+所以, 常见的流程是: 从active list中移除, 添加到inactive list中. 如果page count为0, 就不必添加到list中, 而是free掉page.
+对于可执行文件的page, 根据情况可重新放入active list.</p>
+
+<p>关于move_active_pages_to_lru中put后, page count为0:<br>
+linux-3.10.86/mm/vmscan.c</p>
+
+<pre><code>move_active_pages_to_lru
+{
+
+        /*
+        在buddy system中的page的_count为0.
+        从buddy system取下, page为1.
+        当前page还被isolate_lru_pages get.
+        所以, 如果if (put_page_testzero(page))成立, 那就可能发生下面的序列:
+        alloc page
+        isolate_lru_pages
+        free page
+        put_page_testzero
+        */
+        if (put_page_testzero(page)) {
+
+            list_add(&amp;page-&gt;lru, pages_to_free);
+
+        }
+
+}
+</code></pre>
+
+<h1 id="toc_3"><h4>4. shrink_inactive_list</h4></h1>
+
+<p>//忽略Compound Page</p>
+
+<pre><code>shrink_inactive_list(..., enum lru_list lru)
+|--lru_add_drain
+|--isolate_lru_pages(, &amp;page_list, ) //挑出的page放入链表page_list
+|--shrink_page_list(&amp;page_list, ) //尝试reclaim, 根据情况可能给page设置PG_active.
+|    |--VM_BUG_ON(PageActive(page));
+|    |--page_check_references //判断是否进行reclaim, 是否设置active等
+|    |  |--page_referenced
+|    |--case PAGEREF_ACTIVATE:  ...
+|    |--case PAGEREF_KEEP: ...
+|    |--case PAGEREF_RECLAIM or PAGEREF_RECLAIM_CLEAN: ...
+|--/*对page_list中的page, 根据page flag, 将其放入对应lru. 若-&gt;_count put后为0, 则放入链表, 后续free掉*/
+|--putback_inactive_pages(, &amp;page_list);
+|-- /*现page_list中存放的是 putback_inactive_pages()检测put_page_testzero()成立的page*/
+|--free_hot_cold_page_list(&amp;page_list, )
+</code></pre>
+
+<h2 id="toc_4"><h4>4.1 shrink_page_list</h4></h2>
+
+<p>[Professional Linux Kernel Architecture] p1072<br>
+shrink_page_list sends the page to the associated backing store (which means the page is synchronized, swapped out, or discarded)</p>
+
+<p>[Professional Linux Kernel Architecture]p1074<br>
+shrink_page_list returns the number of pages for which it succeeded to initiate writeout.</p>
+
+<pre><code>shrink_page_list
+{
+
+    if (PageWriteback(page)) {
+
+        如果允许等待的话, wait_on_page_writeback(page);
+    }
+
+    若可回收, try_to_unmap
+
+    if (PageDirty(page)) {
+    //较少发生, 这里不讨论
+    }
+
+    if (page_has_private(page)) {
+    //不是重点, 这里不讨论
+    }
+
+    free_hot_cold_page
+
+}
+</code></pre>
+
+<h1 id="toc_5"><h4>5. 常见问题</h4></h1>
+
+<p>direct reclaim可能导致堆栈overflow的问题<br>
+mm: vmscan: do not writeback filesystem pages in direct reclaim
+<a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ee72886d8ed5d9de3fa0ed3b99a7ca7702576a96">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ee72886d8ed5d9de3fa0ed3b99a7ca7702576a96</a></p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/reclaim_02_implement>https://awakening-fong.github.io/posts/mm/reclaim_02_implement</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理-ref">内存管理 <span>12</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#reclaim-ref">reclaim <span>7</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/mm/reclaim_04_parameter" title="page reclaim 04:参数">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/mm/reclaim_00_references" title="page reclaim 00:相关资料">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

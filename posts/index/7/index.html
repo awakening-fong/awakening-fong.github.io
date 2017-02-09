@@ -57,16 +57,141 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/read_write_lock_page">读写函数中的lock_page</a> <span class="date">2016-12-30</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_asm">ARM的一些汇编</a> <span class="date">2016-12-31</span></h3>
 
-        <div class="summary">
-do_generic_file_read和generic_perform_write中对锁的处理.  <br>  
-从磁盘读到RAM中的过程中, page需要处于lock状态.  <br>
-把用户的数据拷贝到page cahe, 该过程也要处理好lock page问题.
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. ^后缀</h4></h1>
+
+<p>ARM ® Developer Suite Version 1.2 Assembler Guide P128  </p>
+
+<blockquote>
+<p>4.2.4 LDM and STM<br>
+^ is an optional suffix. You must not use it in User mode or System mode.<br>
+It has two purposes:<br>
+    • If op is LDM and reglist contains the pc (r15), in addition to the normal multiple register transfer, the SPSR is copied into the CPSR. This is for returning from exception handlers. Use this only from exception modes.<br>
+    • Otherwise, data is transferred into or out of the User mode registers instead of the current mode registers.  </p>
+</blockquote>
+
+<p>例如</p>
+
+<ul>
+<li><p>只有当pop/LDM列表中有pc时, 才会cpsr:=spsr.
+例 <code>ldmia sp,{r0-pc}^</code>
+这里^表示 将spsr复制到cpsr.</p></li>
+<li><p><code>stmdb   r0, {sp, lr}^</code>
+这里^表示访问的是usr 模式下的寄存器</p></li>
+</ul>
+
 </div>
 
         <div class="more">
-          <a href="/posts/io/read_write_lock_page" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_asm" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/set_buffer_new">set_buffer_new</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary">
+本文主要解释BH_New的含义, 以及何时设置该标志.
+</div>
+
+        <div class="more">
+          <a href="/posts/io/set_buffer_new" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/arm_kthread_do_exit">关于arm linux中kthread()中的do_exit()</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
+
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
+
+<p>linux-3.10.86/kernel/kthread.c</p>
+
+<pre><code>static int kthread(void *_create)
+{
+...
+    /* we can't just return, we must preserve "self" on stack */
+    do_exit(ret);
+}
+</code></pre>
+
+<p>这里注释说不能省略do_exit(), why?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/arm_kthread_do_exit" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
+</p>
+
+<p><img src="/assets/media/park_unpark.jpg"></p>
+
+<p>上图为smpboot_register_percpu_thread(), kthread_create_on_cpu(), kthread_create_on_node(), kthreadd()和kthread()之间的关系.</p>
+
+<p><img src="/assets/media/cpu_hotplug.jpg"></p>
+
+<p>上图为cpu hotplug对内核线程的操作, 以smpboot_thread_fn()为例.</p>
+
+<p>内核启动时, smpboot_register_percpu_thread()创建,绑定并启动primary cpu的内核线程, 并挂到链表hotplug_threads上.</p>
+
+<p>linux-3.10.86/kernel/smpboot.c</p>
+
+<pre><code>smpboot_register_percpu_thread
+{
+    __smpboot_create_thread(plug_thread, cpu);
+    smpboot_unpark_thread(plug_thread, cpu);
+    list_add(&amp;plug_thread-&gt;list, &amp;hotplug_threads);
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/kthread_park_unpark" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. flush_dcache_page的实现</h4></h1>
+
+<p>问题:flush_dcache_page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
+
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+{
+    /*
+     * Writeback ...
+    */
+
+}
+</code></pre>
+
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -79,6 +204,7 @@ do_generic_file_read和generic_perform_write中对锁的处理.  <br>
           <li><a href="/posts/index/5">5</a></li>
           <li><a href="/posts/index/6">6</a></li>
           <li class="active"><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
       </ul>
     </div>
   </div>

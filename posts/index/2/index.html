@@ -57,44 +57,65 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972016226674429
-</p>
+<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
 
-<h1 id="toc_0"><h4>1. 主要流程</h4></h1>
+<p>本文不讨论 swapping (swap out to disk).  </p>
 
-<p>平台:versatilepb ARM Versatile/PB (ARM926EJ-S) 内核版本2.6.35.7</p>
+<p>If a seldom-used page is backed by a block device (e.g., memory mappings
+of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
+通过Writing back cached data即可将这些page释放.</p>
 
-<pre><code>paging_init
-|--devicemaps_init
-|   |--from VMALLOC_END, pmd_clear(pmd_off_k(addr))
-|   |--mdesc-&gt;map_io() =&gt; versatile_map_io  
-|   |   |--iotable_init
-|   |   |   |--create_mapping
-</code></pre>
+<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
 
-<h1 id="toc_1"><h4>2. 为何是 MT_DEVICE</h4></h1>
+<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
 
-<p>linux-2.6.35.7/arch/arm/mach-versatile/core.c</p>
+<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
 
-<pre><code>void __init versatile_map_io(void)
-{
-    iotable_init(versatile_io_desc, ARRAY_SIZE(versatile_io_desc));
-}
+<p>如何找到这些内存呢? 啥链表吗?<br>
+答:see add_to_page_cache_lru(), page_add_new_anon_rmap()</p>
 
-static struct map_desc versatile_io_desc[] __initdata = {
-    {
-        ...
-        .type       = MT_DEVICE
-    },
-    ...
-</code></pre>
+<p>方式1:
+add_to_page_cache_lru 把page添加到 both the page cache and the LRU cache. 
+Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_map_io" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>linux-3.10.86/mm/vmscan.c</p>
+
+<pre><code>static inline int is_page_cache_freeable(struct page *page)
+{
+
+    /*
+     * A freeable page cache page is referenced only by the caller
+     * that isolated the page, the page cache radix tree and
+     * optional buffer heads at page-&gt;private.
+     */
+    return page_count(page) - page_has_private(page) == 2;
+
+}
+</code></pre>
+
+<p>为何是== 2?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_05_page_count" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -229,87 +250,42 @@ t7   |                           |t7    |bne    1b
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 
-http://blog.163.com/awaken_ing/blog/static/12061319720157119242210
-</p>
+<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
 
-<h1 id="toc_0"><h4>1. __create_page_tables</h4></h1>
+<p>假定 CONFIG_MULTI_IRQ_HANDLER=y, handle_arch_irq 为 gic_handle_irq.<br>
+linux-3.10.86/arch/arm/kernel/setup.c</p>
 
-<pre><code>pgtbl r4 @ page table address
-</code></pre>
-
-<p>其中pgtbl为宏</p>
-
-<pre><code>.macro pgtbl, rd
-ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
-.endm
-</code></pre>
-
-<p>这里KERNEL_RAM_PADDR和zreladdr的值相等.</p>
-
-<h1 id="toc_1"><h4>1.1 identity mapping</h4></h1>
-
-<pre><code>/*
-* Create identity mapping for first MB of kernel to
-* cater for the MMU enable. This identity mapping
-* will be removed by paging_init(). We use our current program
-* counter to determine corresponding section base address.
-*/
-mov r6, pc
-mov r6, r6, lsr #20 @ start of kernel section
-orr r3, r7, r6, lsl #20 @ flags + kernel base
-str r3, [r4, r6, lsl #2] @ identity mapping
-@ 和arch\arm\boot\compressed\head.S类似
-@ r3内容:
-@ 31       20       19                 0  
-@  PC高12bit       __cpu_mm_mmu_flags
-@存放的地址:
-@   31          14           13            2                1 0  
-@  页表基址(0x4000)         页表index(pc高12bit)              00  
+<pre><code>__irq_svc @entry-armv.S
+|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
+|   |--irq_handler
+|   |   |--handle_arch_irq =&gt; gic_handle_irq
+|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
+|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
+|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
+|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--handle_irq_event
+|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
+|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--chip-&gt;irq_eoi
+|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
+|   |   |   |       |   |--if( ... ) invoke_softirq() 
+|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
+|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
+|   |   |   |       |   |    |    |--h-&gt;action(h)
+|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
+|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
+|   |--svc_exit r5, irq = 1  @entry-header.S
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
-
-        <div class="summary ellipsis">
-<p>本文假定没有打开CONFIG_SLUB_DEBUG, 没有配置CONFIG_NUMA.</p>
-
-<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
-
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
- *   on any list. It is not on any list. The processor that froze the slab is the one who can
- *   perform list operations on the page. Other processors may put objects
- *   onto the freelist but the processor that froze the slab is the only
- *   one that can retrieve the objects from the page's freelist.
-</code></pre>
-
-<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
-cpu02不能从该page中取obj, 只能把obj还给该page.</p>
-
-<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
-
-<p>linux-3.10.86/include/linux/slub_def.h</p>
-
-<pre><code>struct kmem_cache_cpu {
-...
-    struct page *partial;   /* Partially allocated frozen slabs */
-    ...
-};
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -322,6 +298,7 @@ cpu02不能从该page中取obj, 只能把obj还给该page.</p>
           <li><a href="/posts/index/5">5</a></li>
           <li><a href="/posts/index/6">6</a></li>
           <li><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
       </ul>
     </div>
   </div>
