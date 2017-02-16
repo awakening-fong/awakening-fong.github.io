@@ -57,6 +57,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. flush_dcache_page的实现</h4></h1>
+
+<p>问题:flush_dcache_page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
+
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+{
+    /*
+     * Writeback ...
+    */
+
+}
+</code></pre>
+
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/fs/ext2_layout">ext2 disk layout</a> <span class="date">2016-12-30</span></h3>
 
         <div class="summary">
