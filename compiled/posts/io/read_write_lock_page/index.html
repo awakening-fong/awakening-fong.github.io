@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>关于arm linux中kthread()中的do_exit()</title>
+    <title>读写函数中的lock_page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -56,89 +56,141 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>关于arm linux中kthread()中的do_exit() </h1>
+  <h1>读写函数中的lock_page </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2016-12-31</strong>
+      <span>2016-12-30</strong>
     </div>
     <div class="content">
-      <p>来自本人的旧博客:
-http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
+      <div class="summary">
+do_generic_file_read和generic_perform_write中对锁的处理.  <br>  
+从磁盘读到RAM中的过程中, page需要处于lock状态.  <br>
+把用户的数据拷贝到page cahe, 该过程也要处理好lock page问题.
+</div>
 
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
+<h1 id="toc_0"><h4>1. do_generic_file_read中的lock page</h4></h1>
 
-<p>linux-3.10.86/kernel/kthread.c</p>
+<p>linux-3.10.86/mm/filemap.c</p>
 
-<pre><code>static int kthread(void *_create)
+<pre><code class="c">do_generic_file_read
 {
+
+    if (!PageUptodate(page)) {
+
+        if ( ... || !mapping-&gt;a_ops-&gt;is_partially_uptodate)
+            goto page_not_up_to_date;
+
+        unlock_page(page);
+
+    }
+
+page_not_up_to_date:
+    error = lock_page_killable(page);
+
+page_not_up_to_date_locked:
 ...
-    /* we can&#39;t just return, we must preserve &quot;self&quot; on stack */
-    do_exit(ret);
+    /* Start the actual read. The read will unlock the page. */
+    error = mapping-&gt;a_ops-&gt;readpage(filp, page);
+
+    if (!PageUptodate(page)) {
+                /*
+                a_ops-&gt;readpage会立刻返回吗? 
+                答:是的, 通常是submit_bh或submit_bio后就返回了, 
+                所以, lock_page_killable()就是在
+                等a_ops-&gt;readpage中的设置的I/O completion handler的unlock.
+                比如end_buffer_async_read中的unlock_page();
+                */
+                error = lock_page_killable(page);
+                ...
+    }
+
 }
 </code></pre>
 
-<p>这里注释说不能省略do_exit(), why?</p>
+<ol>
+<li>读的发起者 lock_page<br></li>
+<li>读的发起者 a_ops-&gt;readpage()<br></li>
+<li>读的发起者不必unlock_page, 而是由io complete handler来完成.</li>
+</ol>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+<h1 id="toc_1"><h4>2. generic_perform_write 填充page cache</h4></h1>
 
-<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
+<pre><code class="c">generic_perform_write
+{
 
-<p>内核创建的部分流程为: __switch_to -&gt; ret_from_fork -&gt; kthread</p>
+    a_ops-&gt;write_begin(...); //这里面lock_page
+    ...
+    copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+    ...
+    a_ops-&gt;write_end(...); //这里面unlock_page
+}
 
-<p>linux-3.10.86/arch/arm/kernel/entry-common.S</p>
 
-<pre><code>/*
- * This is how we return from a fork.
- */
-ENTRY(ret_from_fork)
-    bl  schedule_tail
-    cmp r5, #0
-    movne   r0, r4
-    adrne   lr, BSYM(1f)
-    movne   pc, r5
-1:  get_thread_info tsk
-    b   ret_slow_syscall
-ENDPROC(ret_from_fork)
+block_write_begin
+{
+    page = grab_cache_page_write_begin(mapping, index, flags); //内有lock page
+
+}
+
+ext2_write_end -&gt; generic_write_end()
+{
+    ...
+    /* 填好page cache, 剩下是write back的事了*/
+    unlock_page(page);
+
+}
+
 </code></pre>
 
-<p>movne pc, r5 执行kthread()</p>
+<h1 id="toc_2"><h4>3. write_cache_pages 回写</h4></h1>
 
-<h1 id="toc_3"><h4>2.2 如果没有do_exit</h4></h1>
+<p>linux-3.10.86/mm/page-writeback.c</p>
 
-<p>linux-3.10.86/kernel/exit.c</p>
-
-<pre><code>void do_exit(long code) 
+<pre><code class="c">write_cache_pages
 {
-... 
-    schedule(); 
-    BUG(); 
-    /* Avoid &quot;noreturn function does return&quot;.  */
-    for (;;)
-        cpu_relax();    /* For when BUG is null */
+
+    while (...) {
+
+        nr_pages = pagevec_lookup_tag(&amp;pvec, mapping, &amp;index, tag,
+                  min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
+        if (nr_pages == 0)
+            break;
+
+        ...
+            lock_page(page);
+        ...
+            /*常见的有__mpage_writepage 或者 __writepage*/
+            ret = (*writepage)(page, wbc, data);
+
+
 }
 </code></pre>
 
-<p>do_exit()最后执行schedule(), 所以, 就不会调用到 ret_from_fork中的ret_slow_syscall. 看下ret_slow_syscall的汇编代码:</p>
+<pre><code class="c">__block_write_full_page
+{
 
-<pre><code>(gdb) disass ret_slow_syscall
-Dump of assembler code for function ret_to_user:
-...
-   0x8000e630 &lt;+16&gt;:     ldr   lr,[sp, #60]!    ; 0x3c   @get pc
-...
-   0x8000e63c &lt;+28&gt;:    ldmdb   sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr}^
-   0x8000e640 &lt;+32&gt;:    nop         ; (mov r0, r0)
-   0x8000e644 &lt;+36&gt;:    add sp, sp, #12
-   0x8000e648 &lt;+40&gt;:    movs    pc, lr
-End of assembler dump.
+    /*
+    问题:这个是和哪里对应的?
+    答:
+    write_cache_pages
+    |--lock_page
+    |--writepage -&gt; __writepage -&gt; ext2_writepage -&gt; block_write_full_page -&gt; block_write_full_page_endio -&gt; __block_write_full_page
+    */
+    unlock_page(page);
+}
+
+
 </code></pre>
 
-<p>内核线程可能是在内核启动过程中创建的, 并不是由用户态触发而创建的, 故不应该执行ldr lr,[sp, #60]! , ldmdb sp, {... }^以及movs pc, lr. 所以, 需要调用do_exit(). 这里也解释了内核线程的两种退出方式: call do_exit() directly or return when &#39;kthread_should_stop()&#39; . </p>
+<h1 id="toc_3"><h4>4. more ... </h4></h1>
+
+<p>Documentation/filesystems/Locking</p>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/other/arm_kthread_do_exit>https://awakening-fong.github.io/posts/other/arm_kthread_do_exit</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/io/read_write_lock_page>https://awakening-fong.github.io/posts/io/read_write_lock_page</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -148,23 +200,23 @@ End of assembler dump.
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#other-ref">other <span>2</span></a>
+        <a href="/categories#I/O-ref">I/O <span>9</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#kthread-ref">kthread <span>2</span></a>
+        <a href="/tags#lock_page-ref">lock_page <span>1</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/other/kthread_park_unpark" title="内核线程的park和unpark">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/field_of_bh_and_address_space" title="address_space和buffer_head的一些field">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/io/set_buffer_new" title="set_buffer_new">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/fs/ext2_layout" title="ext2 disk layout">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

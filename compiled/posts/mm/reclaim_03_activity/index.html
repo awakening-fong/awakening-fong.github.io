@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>page reclaim 03:活跃度的表示和状态转换</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>page reclaim 03:活跃度的表示和状态转换 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-07</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. page_referenced</h4></h1>
+
+<p>linux-3.10.86/mm/rmap.c</p>
+
+<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
+ * returns the number of ptes which referenced the page.
+这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
+
+ 问题:这个函数的用途?
+ 答:用来反应在inactive list中的page的活跃程度.
+ 返回数值1和返回数值2是有区别的, see page_check_references
+ {
+     referenced_ptes = page_referenced(...);
+     if (... || referenced_ptes &gt; 1)
+        return PAGEREF_ACTIVATE;
+
+ }
+ */
+int page_referenced(struct page *page,
+        int is_locked,
+        struct mem_cgroup *memcg,
+        unsigned long *vm_flags)
+</code></pre>
+
+<h1 id="toc_1"><h4>2. L_PTE_YOUNG和 mark_page_accessed, 用哪个呢?</h4></h1>
+
+<p>有些page是先kmap, 接着 __copy_to_user, 最后kunmap, 这种使用之后 page就被 unmap 掉, 如果是highmem, 通过pte young标记就没有意义, 故采用mark page accessed来提升活跃度.
+这种类型的page, 没有被进程引用, 回收时也无需修改页表.
+或者说, 该page没有和进程关联, 故不通过页表来标记活跃度.</p>
+
+<p>对于和进程关联的page, L_PTE_YOUNG没有置位时, 访问会发生异常, 在fault handler中会置位L_PTE_YOUNG, 完成活跃度的标记.
+被扫描到时, 判断活跃度信息后, 总是会被清掉L_PTE_YOUNG, 如果有L_PTE_YOUNG的话.</p>
+
+<h1 id="toc_2"><h4>3. page_check_references</h4></h1>
+
+<p>活跃程度 体现在 两个方面, 
+一个是  该page可能在多个进程/线程中被引用, 这些进程中该page的pte的young有所体现,<br>
+另一个是 struct page的flag PG_referenced, PG_active.</p>
+
+<p>shrink_inactive_list -&gt; shrink_page_list -&gt; page_check_references</p>
+
+<pre><code>static enum page_references page_check_references(struct page *page,
+                      struct scan_control *sc)
+{
+    int referenced_ptes, referenced_page;
+    unsigned long vm_flags;
+
+    referenced_ptes = page_referenced(page, 1, sc-&gt;target_mem_cgroup,
+                      &amp;vm_flags);
+    referenced_page = TestClearPageReferenced(page);
+
+
+    if (referenced_ptes) {
+            SetPageReferenced(page);
+
+        if (referenced_page || referenced_ptes &gt; 1)
+            return PAGEREF_ACTIVATE;
+        ...
+        return PAGEREF_KEEP;
+    }
+
+}
+</code></pre>
+
+<p>问题:如何理解这里的 SetPageReferenced?<br>
+答: page_referenced()总是会清掉pte的young, 如果这里(shrink_inactive_list -&gt; .. -&gt; page_check_references)不SetPageReferenced, 
+相当于一下子把较活跃的page的活跃度全部抹掉, 似乎并不合适, 故这里SetPageReferenced给page保留一点活跃度.</p>
+
+<h1 id="toc_3"><h4>4. mm: don&#39;t mark_page_accessed in fault path</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+<blockquote>
+<p>filemap_fault() is invoked via the vma operations vector for a
+mapped memory region to read in file data during a page fault.</p>
+</blockquote>
+
+<pre><code>filemap_fault  
+|--count_vm_event(PGMAJFAULT);  
+|--no_cached_page: page_cache_read(file, offset);  
+|   |--page_cache_alloc_cold  
+|   |--add_to_page_cache_lru -&gt; lru_cache_add_file  
+|   |   |--__lru_cache_add(page, LRU_INACTIVE_FILE)  
+|   |--mapping-&gt;a_ops-&gt;readpage  
+|--retry_find:  page = find_get_page(mapping, offset)  
+|--<del>mark_page_accessed</del>  
+</code></pre>
+
+<p>mm: don&#39;t mark_page_accessed in fault path 
+<a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0</a></p>
+
+<blockquote>
+<p>Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at unmap-time if the pte is young       has a number of problems.</p>
+</blockquote>
+
+<p>本补丁之前的方式是, 如果
+fault时mark_page_accessed, 然后, unmap时若pte young则SetPageReferenced, 
+这种方式会导致一些问题.</p>
+
+<blockquote>
+<p>So calling mark_page_accessed not only adds extra lru or PG_referenced manipulations for pages that are already going to have pte_young ptes anyway, but it also adds these references which are difficult to work with from the context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not wish to contribute to the page being referenced).</p>
+</blockquote>
+
+<p>我们反正就要给pte置位young了, 就不要再弄个额外的page flag了. 而且还会给 谁谁谁 添堵.</p>
+
+<blockquote>
+<p>Then, simply doing SetPageReferenced when zapping a pte and finding it is young, is not a really good solution either. SetPageReferenced does not correctly promote the page to the active list for example. So after removing mark_page_accessed from the fault path, several mmap()+touch+munmap() would have a very different result from several read(2) calls for example, which is not really desirable.</p>
+</blockquote>
+
+<p>之前的处理, 在第2回的 munmap会把上回的信息丢失掉, 故活跃度和 read的结果不同.</p>
+
+<h2 id="toc_4"><h4>4.1 unmap时的处理</h4></h2>
+
+<p>linux-3.10.86/mm/memory.c</p>
+
+<pre><code>zap_pte_range
+{
+    if (PageAnon(page))
+        ...
+    else{
+        if (pte_present(ptent)) {
+                if (pte_young(ptent) &amp;&amp;
+                    likely(!VM_SequentialReadHint(vma)))
+                    /*问题:我们是在unmap, 为何要mark accessed?*/
+                    mark_page_accessed(page);
+        }
+    }
+}
+</code></pre>
+
+<p>问题:我们是在unmap, 为何要mark accessed?<br>
+答:由于unmap, 导致原先通过young标记的活跃度信息将会消失, 故改用mark_page_accessed来反映该信息.</p>
+
+<p>这是 非if (PageAnon(page))的情况, 这样即使脱离pte, 还可通过radix tree找到该page,  进而使用之前的page内容, 这样, 标记活跃度才有意义.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/reclaim_03_activity>https://awakening-fong.github.io/posts/mm/reclaim_03_activity</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理-ref">内存管理 <span>12</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#reclaim-ref">reclaim <span>7</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/mm/reclaim_01_overview" title="page reclaim 01:概述">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/mm/reclaim_02_implement" title="page reclaim 02:实现">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
