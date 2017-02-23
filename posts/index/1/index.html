@@ -64,22 +64,22 @@
 
 <p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
 
-<h1 id="toc_1"><h4>2. 收敛?</h4></h1>
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
 
 <p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
 
 <p>hash应该也算这个类别.</p>
-
-<h1 id="toc_2"><h4>3. 吞吐量（Throughput）和时延（Latency）</h4></h1>
-
-<p>3.1  如果cpu频率比较高, 可以适当减小 sched_latency_ns</p>
-
-<p>类似的还有 HZ 设置为 250, 1000.</p>
-
-<p>3.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
-
-<h1 id="toc_3"><h4>4. 用空间换时间</h4></h1>
 
 </div>
 

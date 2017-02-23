@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>内核中常见的优化方法</title>
+    <title>generic_make_request</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -56,69 +56,95 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>内核中常见的优化方法 </h1>
+  <h1>generic_make_request </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-23</strong>
+      <span>2017-01-04</strong>
     </div>
     <div class="content">
-      <h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+      <p>linux-3.10.86/block/blk-core.c</p>
 
-<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+<p>先断章取义下:</p>
 
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+<pre><code class="c">void generic_make_request(struct bio *bio)
+{
 
-<p>2.1   HZ 设置为 250, 1000等.</p>
+    bio_list_init(&amp;bio_list_on_stack);
+    current-&gt;bio_list = &amp;bio_list_on_stack;
+    ...
+        /*
+        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
+        否则, 从哪里pop呢?
+        */
+    q-&gt;make_request_fn(q, bio);
+    bio = bio_list_pop(current-&gt;bio_list);
+    ...
+}
+</code></pre>
 
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+<p>上面的猜想是片面的, 还是来个全貌的:</p>
 
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+<pre><code class="c">void generic_make_request(struct bio *bio)
+{
+    struct bio_list bio_list_on_stack;
 
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+    if (!generic_make_request_checks(bio))
+        return;
 
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+    if (current-&gt;bio_list) {
+        bio_list_add(current-&gt;bio_list, bio);
+        return;
+    }
 
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+    BUG_ON(bio-&gt;bi_next);
+    bio_list_init(&amp;bio_list_on_stack);
+    current-&gt;bio_list = &amp;bio_list_on_stack;
+    do {
+        /*
+        while再次执行时, q (struct request_queue *)可能和上次循环时的q不一样了,
+        所以, 实现从一种设备到另一种设备的映射, 提交给新的块设备执行.
+        */
+        struct request_queue *q = bdev_get_queue(bio-&gt;bi_bdev);
+        q-&gt;make_request_fn(q, bio);
+        /*
+        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
+        否则, 从哪里pop呢?
+        当然也可以不往current-&gt;bio_list添加bio, 表示无需再经过转换了, 
+        这样, while也就结束了.
+        */
+        bio = bio_list_pop(current-&gt;bio_list);
+    } while (bio);
+    current-&gt;bio_list = NULL; /* deactivate */
+}
 
-<p>hash应该也算这个类别.</p>
+</code></pre>
 
-<h1 id="toc_4"><h4>5. 缓存</h4></h1>
+<p>假定经过1次转换, 那么, 调用大概是这样的:</p>
 
-<p>buddy system 一开始从zone的链表中分配, 释放时放到per cpu的pcp, 后续从pcp中取, 减少了锁的问题.</p>
+<pre><code>generic_make_request
+|-- q-&gt;make_request_fn
+|   |--...
+|   |--generic_make_request
+|   |   |--if (current-&gt;bio_list) { bio_list_add(current-&gt;bio_list, bio); return; }
+|-- bio = bio_list_pop(current-&gt;bio_list);
+|-- q-&gt;make_request_fn(q, bio);
+|   |--no call generic_make_request
+|--return
+</code></pre>
 
-<h1 id="toc_5"><h4>6. 锁的问题</h4></h1>
+<p>无需转换是这样:</p>
 
-<p>6.1 使用per cpu.
-比如 lru问题 per cpu的 pagevec.</p>
-
-<p>6.2<br>
-1. lock全局的链表,<br>
-2. 从全局的链表中挑选放入on a local list,<br>
-3. unlock 全局的链表<br>
-4. 对 local list进行相对比较耗时的操作</p>
-
-<p>这个比较常见, 比如 ...</p>
-
-<p>6.3 RCU的适用范围
-...</p>
-
-<p>6.4 把相关信息 挤到  int 中, 更新int是原子的, 就省掉了锁.
-比如, 
-strct page中有:</p>
-
-<pre><code>struct { /* SLUB */
-    unsigned inuse:16;
-    unsigned objects:15;
-    unsigned frozen:1; 
-};
+<pre><code>generic_make_request
+|-- q-&gt;make_request_fn  比如为 blk_queue_bio
+|   |--no call generic_make_request
+|--return
 </code></pre>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/other/optimize>https://awakening-fong.github.io/posts/other/optimize</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/io/generic_make_request>https://awakening-fong.github.io/posts/io/generic_make_request</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -128,23 +154,23 @@ strct page中有:</p>
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#other-ref">other <span>3</span></a>
+        <a href="/categories#I/O-ref">I/O <span>9</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#优化-ref">优化 <span>1</span></a>
+        <a href="/tags#tag_null_yet-ref">tag_null_yet <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/thread_start_sp" title="关于THREAD_START_SP">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/tag_towrie_livelock" title="tag TOWRITE to avoid livelocking?">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next disabled"><a>Next &rarr;</a>
+          <li class="next"><a href="/posts/io/deadline-iosched" title="deadline-iosched">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>
