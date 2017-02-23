@@ -4,7 +4,7 @@
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2017-02-16</pubDate>
+    <pubDate>2017-02-23</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -30,26 +30,29 @@
   &lt;h2&gt;2017&lt;/h2&gt;
     &lt;h3&gt;February&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_frozen"&gt;SLUB 02:frozen&lt;/a&gt;&lt;/li&gt;
@@ -67,12 +70,12 @@
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/generic_perform_write"&gt;generic_perform_write&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asm"&gt;ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/set_buffer_new"&gt;set_buffer_new&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/arm_kthread_do_exit"&gt;&#x5173;&#x4E8E;arm linux&#x4E2D;kthread()&#x4E2D;&#x7684;do_exit()&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/generic_perform_write"&gt;generic_perform_write&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/kthread_park_unpark"&gt;&#x5185;&#x6838;&#x7EBF;&#x7A0B;&#x7684;park&#x548C;unpark&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/flush_dcache_page"&gt;flush_dcache_page&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asm"&gt;ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/set_buffer_new"&gt;set_buffer_new&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/read_write_lock_page"&gt;&#x8BFB;&#x5199;&#x51FD;&#x6570;&#x4E2D;&#x7684;lock_page&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/field_of_bh_and_address_space"&gt;address_space&#x548C;buffer_head&#x7684;&#x4E00;&#x4E9B;field&lt;/a&gt;&lt;/li&gt;
@@ -97,10 +100,13 @@
     &lt;a href="/categories#I/O-ref"&gt;I/O &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; &lt;span&gt;12&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; &lt;span&gt;13&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#other-ref"&gt;other &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#other-ref"&gt;other &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#&#x8FDB;&#x7A0B;&#x8C03;&#x5EA6;-ref"&gt;&#x8FDB;&#x7A0B;&#x8C03;&#x5EA6; &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
@@ -140,7 +146,7 @@
       &lt;li&gt;&lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; (12)&lt;/h3&gt;
+  &lt;h3&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; (13)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/mm/flush_dcache_page"&gt;flush_dcache_page&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
@@ -154,11 +160,17 @@
       &lt;li&gt;&lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/slub_slab_alloc"&gt;SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;other (2)&lt;/h3&gt;
+  &lt;h3&gt;other (3)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/other/arm_kthread_do_exit"&gt;&#x5173;&#x4E8E;arm linux&#x4E2D;kthread()&#x4E2D;&#x7684;do_exit()&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/other/kthread_park_unpark"&gt;&#x5185;&#x6838;&#x7EBF;&#x7A0B;&#x7684;park&#x548C;unpark&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h3&gt;debug (1)&lt;/h3&gt;
+  &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
   &lt;h3&gt;&#x8FDB;&#x7A0B;&#x8C03;&#x5EA6; (4)&lt;/h3&gt;
   &lt;ul&gt;
@@ -173,6 +185,141 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt; &lt;span class="date"&gt;2017-02-23&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6279;&#x91CF;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;add_to_page_cache_lru,  &#x64CD;&#x4F5C;lru&#x7684;&#x8BDD;, &#x5148;&#x653E;&#x5230;per cpu&#x7684;lru cache (struct pagevec), &#x5F85;lru cache&#x5B58;&#x6EE1;&#x540E;drain.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6536;&#x655B;?&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;radix tree&#x7684;tag, &#x4E0D;&#x5FC5;&#x9010;&#x4E2A;&#x5224;&#x65AD;&#x8BE5;&#x8282;&#x70B9; &#x5B50;&#x6811; &#x4E0B;&#x7684;&#x53F6;&#x5B50;. &#x8FD9;&#x4E2A;&#x53EF;&#x80FD;&#x4E5F;&#x53EF;&#x4EE5;&#x5F52;&#x5230;  &#x7F13;&#x5B58; &#x4E2D;.&lt;/p&gt;
+
+&lt;p&gt;hash&#x5E94;&#x8BE5;&#x4E5F;&#x7B97;&#x8FD9;&#x4E2A;&#x7C7B;&#x522B;.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x541E;&#x5410;&#x91CF;&#xFF08;Throughput&#xFF09;&#x548C;&#x65F6;&#x5EF6;&#xFF08;Latency&#xFF09;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;3.1  &#x5982;&#x679C;cpu&#x9891;&#x7387;&#x6BD4;&#x8F83;&#x9AD8;, &#x53EF;&#x4EE5;&#x9002;&#x5F53;&#x51CF;&#x5C0F; sched_latency_ns&lt;/p&gt;
+
+&lt;p&gt;&#x7C7B;&#x4F3C;&#x7684;&#x8FD8;&#x6709; HZ &#x8BBE;&#x7F6E;&#x4E3A; 250, 1000.&lt;/p&gt;
+
+&lt;p&gt;3.2 
+&#x4E2D;&#x65AD;&#x7EBF;&#x7A0B;&#x5316;&#x540E;, &#x541E;&#x5410;&#x91CF;&#x53EF;&#x80FD;&#x4E0B;&#x964D;, &#x4F46;&#x7CFB;&#x7EDF;&#x5176;&#x5B83;&#x5730;&#x65B9;&#x7684;&#x65F6;&#x5EF6;&#x53EF;&#x80FD;&#x6539;&#x5584;.&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x7528;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/other/optimize" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt; &lt;span class="date"&gt;2017-02-23&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
+&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
+&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/mm/thread_start_sp" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt; &lt;span class="date"&gt;2017-02-23&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary"&gt;
+&lt;p&gt;&#x57FA;&#x4E8E; linux-2.6.35.7/drivers/char/mem.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#include &amp;lt;asm/ptrace.h&amp;gt;
+#include &amp;lt;asm/uaccess.h&amp;gt;
+
+static ssize_t kmsg_write(struct file *file, const char __user *buf,
+              size_t count, loff_t *ppos)
+{
+    char *tmp;
+    ssize_t ret;
+
+    tmp = kmalloc(count + 1, GFP_KERNEL);
+    if (tmp == NULL)
+        return -ENOMEM;
+    ret = -EFAULT;
+    if (!copy_from_user(tmp, buf, count)) {
+        tmp[count] = 0;
+        //add
+        #define STR_FOUND "sth_will_show_in_dmesg"
+        if(NULL!=strstr(tmp,STR_FOUND))
+        {
+            struct pt_regs *usr_regs; 
+            usr_regs=task_pt_regs(current); 
+            if(valid_user_regs(usr_regs))
+            {
+                int fd=usr_regs-&amp;gt;ARM_r0;
+                char *write_buf=usr_regs-&amp;gt;ARM_r1;
+                int len=usr_regs-&amp;gt;ARM_r2;
+                /*&#x7528;&#x6237;&#x6001;&#x7A0B;&#x5E8F;:
+                #define STR_TMP "sth_will_show_in_dmesg"
+                int fd=open("/dev/kmsg", O_WRONLY);
+                write(fd,STR_TMP,strlen(STR_TMP));
+                */
+
+                /*
+                &#x5185;&#x6838;&#x6253;&#x5370;:
+                kmsg_write(),969:3 0x6fee0 22
+                kmsg_write(),971:buf:sth_will_show_in_dmesg
+                &#x4E5F;&#x5C31;&#x662F;&#x6253;&#x5370;&#x51FA;&#x4E86; &#x7528;&#x6237;&#x6001;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;
+                */
+                tmp_print("%d 0x%x %d",fd,write_buf,len);
+                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
+                    tmp_print("buf:%s\n",write_buf);
+            }
+            else
+            {
+                tmp_print("not valid_user_regs\n");
+            }
+
+
+        }
+        //end add
+        ret = printk("%s", tmp);
+        if (ret &amp;gt; count)
+            /* printk can add a prefix */
+            ret = count;
+    }
+    kfree(tmp);
+    return ret;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/other/pt_regs_for_debug" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt; &lt;span class="date"&gt;2017-02-15&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -204,153 +351,42 @@ IIC&#x8D77;&#x59CB;&#x65F6;, SDA&#x7531;&#x9AD8;&#x8F6C;&#x4F4E;, &#x4E09;&#x678
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt; &lt;span class="date"&gt;2017-02-07&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt; &lt;span class="date"&gt;2017-02-07&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x672C;&#x6587;&#x7B80;&#x5316;&#x63CF;&#x8FF0;, &#x5FFD;&#x7565;compound page, &#x5FFD;&#x7565;HUGEPAGE, &#x672A;&#x5F00;&#x542F;CONFIG_MEMCG, &#x672A;&#x5F00;&#x542F;CONFIG_SWAP.
-&#x82E5;&#x65E0;&#x7279;&#x522B;&#x8BF4;&#x660E;, &#x672C;&#x6587;&#x4EC5;&#x8BA8;&#x8BBA;ARM&#x4F53;&#x7CFB;&#x7684;&#x60C5;&#x51B5;.&lt;/p&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced_one&#x5BF9;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x7684;&#x5F71;&#x54CD;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6570;&#x636E;&#x7ED3;&#x6784;&lt;/h4&gt;&lt;/h1&gt;
+&lt;p&gt;linux-3.10.86/include/asm-generic/pgtable.h&lt;/p&gt;
 
-&lt;p&gt;per zone : active list, inactive list&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct zone {
-    struct lruvec       lruvec;
-};
-
-struct lruvec {
-    struct list_head lists[NR_LRU_LISTS];
-    ...
-};
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;per node :kswapd  &lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;kswapd_init -&amp;gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
-kswapd_run -&amp;gt; pgdat-&amp;gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/reclaim_02_implement" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt; &lt;span class="date"&gt;2017-02-07&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/rmap.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; * Quick test_and_clear_referenced for all mappings to a page,
- * returns the number of ptes which referenced the page.
-&#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x8FC7;&#x65F6;&#x4E86;, &#x5B9E;&#x9645;&#x529F;&#x80FD;&#x5E76;&#x4E0D;&#x662F;&#x8FD4;&#x56DE;&#x6307;&#x5411;&#x8BE5;page&#x7684;pte&#x7684;&#x4E2A;&#x6570;. 
-
- &#x95EE;&#x9898;:&#x8FD9;&#x4E2A;&#x51FD;&#x6570;&#x7684;&#x7528;&#x9014;?
- &#x7B54;:&#x7528;&#x6765;&#x53CD;&#x5E94;&#x5728;inactive list&#x4E2D;&#x7684;page&#x7684;&#x6D3B;&#x8DC3;&#x7A0B;&#x5EA6;.
- &#x8FD4;&#x56DE;&#x6570;&#x503C;1&#x548C;&#x8FD4;&#x56DE;&#x6570;&#x503C;2&#x662F;&#x6709;&#x533A;&#x522B;&#x7684;, see page_check_references
- {
-     referenced_ptes = page_referenced(...);
-     if (... || referenced_ptes &amp;gt; 1)
-        return PAGEREF_ACTIVATE;
-
- }
- */
-int page_referenced(struct page *page,
-        int is_locked,
-        struct mem_cgroup *memcg,
-        unsigned long *vm_flags)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/reclaim_03_activity" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt; &lt;span class="date"&gt;2017-02-07&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x672C;&#x6587;&#x4E0D;&#x8BA8;&#x8BBA; swapping (swap out to disk).  &lt;/p&gt;
-
-&lt;p&gt;If a seldom-used page is backed by a block device (e.g., memory mappings
-of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
-&#x901A;&#x8FC7;Writing back cached data&#x5373;&#x53EF;&#x5C06;&#x8FD9;&#x4E9B;page&#x91CA;&#x653E;.&lt;/p&gt;
-
-&lt;p&gt;If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. &lt;/p&gt;
-
-&lt;p&gt;&#x5C06; &#x6682;&#x65F6;&#x4E0D;&#x7528;&#x7684; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528;&#x7684;  &#x5185;&#x5B58;&#x56DE;&#x7B3C;/&#x56DE;&#x6536;, &#x7ED9;&#x540E;&#x7EED;&#x5176;&#x4ED6;&#x4EBA;&#x4F7F;&#x7528;. &#x90A3;&#x4E48;, &#x5982;&#x4F55;&#x754C;&#x5B9A; &#x6682;&#x65F6;&#x4E0D;&#x7528; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528; &#x5462;? &#x8FD9;&#x4E9B;&#x5DF2;&#x5206;&#x914D;&#x51FA;&#x53BB;&#x7684;&#x5185;&#x5B58;&#x90FD;&#x6563;&#x843D;&#x5728;&#x54EA;&#x91CC;?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6563;&#x843D;&#x5728;&#x54EA;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5982;&#x4F55;&#x627E;&#x5230;&#x8FD9;&#x4E9B;&#x5185;&#x5B58;&#x5462;? &#x5565;&#x94FE;&#x8868;&#x5417;?&lt;br&gt;
-&#x7B54;:see add_to_page_cache_lru(), page_add_new_anon_rmap()&lt;/p&gt;
-
-&lt;p&gt;&#x65B9;&#x5F0F;1:
-add_to_page_cache_lru &#x628A;page&#x6DFB;&#x52A0;&#x5230; both the page cache and the LRU cache. 
-Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
-&#x5F53;&#x7136;, &#x5B9E;&#x9645;&#x662F;&#x5148;&#x6DFB;&#x52A0;&#x5230;per cpu&#x7684;struct pagevec&#x4E2D;, &#x7B49;&#x6EE1;&#x4E86;&#x518D;&#x8F6C;&#x79FB;&#x5230;global&#x7684;lru&#x4E2D;.&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/reclaim_01_overview" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt; &lt;span class="date"&gt;2017-02-07&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x672A;&#x5F00;&#x542F;CONFIG_MEMCG, CONFIG_SWAP.&lt;/p&gt;
-
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. scan_control&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct scan_control {
-
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
-
-    /* How many pages shrink_list() should reclaim 
-    &#x95EE;&#x9898;:nr_to_reclaim&#x548C;nr_scanned&#x7684;&#x5173;&#x7CFB;?
-    &#x7B54;:nr_to_reclaim&#x662F;&#x4E2A;setting data, nr_reclaimed&#x662F;runtime date.
-    &#x901A;&#x5E38;&#x662F;&#x5148;&#x7ED9;struct scan_control sc&#x8BBE;&#x7F6E;&#x597D;&#x8FD9;&#x4E2A;&#x76EE;&#x6807;, 
-    &#x7136;&#x540E;&#x542F;&#x52A8;&#x56DE;&#x6536;. 
-    &#x5728; sum of shrink_list() &amp;gt; nr_to_reclaim&#x540E;&#x4E2D;&#x65AD;&#x56DE;&#x6536;, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
-
-    /*
-    &#x8FD9;&#x91CC;&#x7684;may&#x7C7B;&#x4F3C;may I ..., may&#x7684;&#x610F;&#x601D;&#x662F; &#x662F;&#x5426;&#x53EF;&#x4EE5;, &#x662F;&#x5426;&#x5141;&#x8BB8;
-    */
-    int may_writepage;
-
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
-
-};
-
-get_scan_count
+&lt;pre&gt;&lt;code&gt;page_referenced_one -&amp;gt; ptep_clear_flush_young_notify -&amp;gt; ptep_clear_flush_young -&amp;gt; ptep_test_and_clear_young
 {
-        size = get_lru_size(lruvec, lru);
-        scan = size &amp;gt;&amp;gt; sc-&amp;gt;priority;
-        //&#x626B;&#x63CF;&#x7684;&#x91CF; &#x4E0E; list&#x7684;&#x5927;&#x5C0F; &#x6210;&#x6BD4;&#x4F8B;
+//pte_mkold &#x5B9E;&#x73B0;&#x4E0A;&#x662F;:PTE_BIT_FUNC(mkold,     &amp;amp;= ~L_PTE_YOUNG);
+set_pte_at(vma-&amp;gt;vm_mm, address, ptep, pte_mkold(pte));
 }
+&lt;/code&gt;&lt;/pre&gt;
 
-shrink_lruvec
-|--//1. &#x6839;&#x636E;&#x4F18;&#x5148;&#x7EA7;&#x7B49; &#x7ED9;&#x6570;&#x7EC4;nr[]&#x8D4B;&#x503C;
-|--get_scan_count(lruvec, sc, nr); 
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+                  pte_t *ptep, pte_t pteval)
+{
+    unsigned long ext = 0;
+
+    if (addr &amp;lt; TASK_SIZE &amp;amp;&amp;amp; pte_present_user(pteval)) {
+        __sync_icache_dcache(pteval);
+        ext |= PTE_EXT_NG;
+    }
+    /*
+    @pteval &#x662F;linux&#x7248;&#x7684;pte
+    &#x786C;&#x4EF6;&#x7248;&#x7684;&#x4F1A;&#x6839;&#x636E;ext&#x6765;&#x751F;&#x6210;
+    */
+    set_pte_ext(ptep, pteval, ext);
+}
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/reclaim_04_parameter" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -364,6 +400,7 @@ shrink_lruvec
       &lt;li&gt;&lt;a href="/posts/index/6"&gt;6&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/7"&gt;7&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/8"&gt;8&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/9"&gt;9&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -451,7 +488,19 @@ shrink_lruvec
     &lt;a href="/tags#SLUB-ref"&gt;SLUB &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#THREAD_START_SP-ref"&gt;THREAD_START_SP &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#THREAD_SIZE-ref"&gt;THREAD_SIZE &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#kthread-ref"&gt;kthread &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#&#x4F18;&#x5316;-ref"&gt;&#x4F18;&#x5316; &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#pt_regs-ref"&gt;pt_regs &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#scheduler-ref"&gt;scheduler &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
@@ -520,9 +569,17 @@ shrink_lruvec
     &lt;li&gt;&lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/slub_slab_alloc"&gt;SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="THREAD_START_SP-ref"&gt;THREAD_START_SP&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="THREAD_SIZE-ref"&gt;THREAD_SIZE&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="kthread-ref"&gt;kthread&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/other/arm_kthread_do_exit"&gt;&#x5173;&#x4E8E;arm linux&#x4E2D;kthread()&#x4E2D;&#x7684;do_exit()&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/kthread_park_unpark"&gt;&#x5185;&#x6838;&#x7EBF;&#x7A0B;&#x7684;park&#x548C;unpark&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="&#x4F18;&#x5316;-ref"&gt;&#x4F18;&#x5316;&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="pt_regs-ref"&gt;pt_regs&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="scheduler-ref"&gt;scheduler&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/scheduler/scheduler_00_implementation"&gt;&#x8C03;&#x5EA6;&#x5668;CFS&#x7684;&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/scheduler/scheduler_01_lost_wake-up"&gt;&#x8C03;&#x5EA6;&#x5668;, &#x4ECE;lost wake-up problem&#x8BF4;&#x8D77;&lt;/a&gt;&lt;/li&gt;

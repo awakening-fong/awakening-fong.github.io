@@ -61,6 +61,141 @@
 <div class="row-fluid">
   <div class="span12">
     <div class="post">
+  <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+<h1 id="toc_2"><h4>3. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>3.1  如果cpu频率比较高, 可以适当减小 sched_latency_ns</p>
+
+<p>类似的还有 HZ 设置为 250, 1000.</p>
+
+<p>3.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_3"><h4>4. 用空间换时间</h4></h1>
+
+</div>
+
+  <div class="more">
+    <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
+中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
+
+<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
+</code></pre>
+
+<p>为何要-8?  </p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<pre><code>static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<p>(图示中A点到B点  大小是8字节)<br>
+如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
+如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
+所以, 需要-8.</p>
+</div>
+
+  <div class="more">
+    <a href="/posts/mm/thread_start_sp" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
+
+  <div class="summary">
+<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
+
+<pre><code>#include &lt;asm/ptrace.h&gt;
+#include &lt;asm/uaccess.h&gt;
+
+static ssize_t kmsg_write(struct file *file, const char __user *buf,
+              size_t count, loff_t *ppos)
+{
+    char *tmp;
+    ssize_t ret;
+
+    tmp = kmalloc(count + 1, GFP_KERNEL);
+    if (tmp == NULL)
+        return -ENOMEM;
+    ret = -EFAULT;
+    if (!copy_from_user(tmp, buf, count)) {
+        tmp[count] = 0;
+        //add
+        #define STR_FOUND "sth_will_show_in_dmesg"
+        if(NULL!=strstr(tmp,STR_FOUND))
+        {
+            struct pt_regs *usr_regs; 
+            usr_regs=task_pt_regs(current); 
+            if(valid_user_regs(usr_regs))
+            {
+                int fd=usr_regs-&gt;ARM_r0;
+                char *write_buf=usr_regs-&gt;ARM_r1;
+                int len=usr_regs-&gt;ARM_r2;
+                /*用户态程序:
+                #define STR_TMP "sth_will_show_in_dmesg"
+                int fd=open("/dev/kmsg", O_WRONLY);
+                write(fd,STR_TMP,strlen(STR_TMP));
+                */
+
+                /*
+                内核打印:
+                kmsg_write(),969:3 0x6fee0 22
+                kmsg_write(),971:buf:sth_will_show_in_dmesg
+                也就是打印出了 用户态传递的参数
+                */
+                tmp_print("%d 0x%x %d",fd,write_buf,len);
+                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
+                    tmp_print("buf:%s\n",write_buf);
+            }
+            else
+            {
+                tmp_print("not valid_user_regs\n");
+            }
+
+
+        }
+        //end add
+        ret = printk("%s", tmp);
+        if (ret &gt; count)
+            /* printk can add a prefix */
+            ret = count;
+    }
+    kfree(tmp);
+    return ret;
+}
+</code></pre>
+</div>
+
+  <div class="more">
+    <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
   <h3 class="title"><a href="/posts/hw/iic">IIC相关内容的记忆</a> <span class="date">2017-02-15</span></h3>
 
   <div class="summary ellipsis">
@@ -92,153 +227,42 @@ IIC起始时, SDA由高转低, 三极管导通.<br>
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a> <span class="date">2017-02-07</span></h3>
+  <h3 class="title"><a href="/posts/mm/reclaim_06_arm_l_pte_young">page reclaim 06:ARM和L_PTE_YOUNG</a> <span class="date">2017-02-07</span></h3>
 
   <div class="summary ellipsis">
-<p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG_MEMCG, 未开启CONFIG_SWAP.
-若无特别说明, 本文仅讨论ARM体系的情况.</p>
+<h1 id="toc_0"><h4>1. page_referenced_one对硬件页表的影响</h4></h1>
 
-<h1 id="toc_0"><h4>1. 数据结构</h4></h1>
+<p>linux-3.10.86/include/asm-generic/pgtable.h</p>
 
-<p>per zone : active list, inactive list</p>
-
-<pre><code>struct zone {
-    struct lruvec       lruvec;
-};
-
-struct lruvec {
-    struct list_head lists[NR_LRU_LISTS];
-    ...
-};
-</code></pre>
-
-<p>per node :kswapd  </p>
-
-<pre><code>kswapd_init -&gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
-kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-</code></pre>
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/reclaim_02_implement" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a> <span class="date">2017-02-07</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. page_referenced</h4></h1>
-
-<p>linux-3.10.86/mm/rmap.c</p>
-
-<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
- * returns the number of ptes which referenced the page.
-这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
-
- 问题:这个函数的用途?
- 答:用来反应在inactive list中的page的活跃程度.
- 返回数值1和返回数值2是有区别的, see page_check_references
- {
-     referenced_ptes = page_referenced(...);
-     if (... || referenced_ptes &gt; 1)
-        return PAGEREF_ACTIVATE;
-
- }
- */
-int page_referenced(struct page *page,
-        int is_locked,
-        struct mem_cgroup *memcg,
-        unsigned long *vm_flags)
-</code></pre>
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/reclaim_03_activity" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
-
-<p>本文不讨论 swapping (swap out to disk).  </p>
-
-<p>If a seldom-used page is backed by a block device (e.g., memory mappings
-of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
-通过Writing back cached data即可将这些page释放.</p>
-
-<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
-
-<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
-
-<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
-
-<p>如何找到这些内存呢? 啥链表吗?<br>
-答:see add_to_page_cache_lru(), page_add_new_anon_rmap()</p>
-
-<p>方式1:
-add_to_page_cache_lru 把page添加到 both the page cache and the LRU cache. 
-Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
-当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
-
-  <div class="summary ellipsis">
-<p>未开启CONFIG_MEMCG, CONFIG_SWAP.</p>
-
-<h1 id="toc_0"><h4>1. scan_control</h4></h1>
-
-<p>linux-3.10.86/mm/vmscan.c</p>
-
-<pre><code>struct scan_control {
-
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
-
-    /* How many pages shrink_list() should reclaim 
-    问题:nr_to_reclaim和nr_scanned的关系?
-    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
-    通常是先给struct scan_control sc设置好这个目标, 
-    然后启动回收. 
-    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
-
-    /*
-    这里的may类似may I ..., may的意思是 是否可以, 是否允许
-    */
-    int may_writepage;
-
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
-
-};
-
-get_scan_count
+<pre><code>page_referenced_one -&gt; ptep_clear_flush_young_notify -&gt; ptep_clear_flush_young -&gt; ptep_test_and_clear_young
 {
-        size = get_lru_size(lruvec, lru);
-        scan = size &gt;&gt; sc-&gt;priority;
-        //扫描的量 与 list的大小 成比例
+//pte_mkold 实现上是:PTE_BIT_FUNC(mkold,     &amp;= ~L_PTE_YOUNG);
+set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
 }
+</code></pre>
 
-shrink_lruvec
-|--//1. 根据优先级等 给数组nr[]赋值
-|--get_scan_count(lruvec, sc, nr); 
+<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+                  pte_t *ptep, pte_t pteval)
+{
+    unsigned long ext = 0;
+
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) {
+        __sync_icache_dcache(pteval);
+        ext |= PTE_EXT_NG;
+    }
+    /*
+    @pteval 是linux版的pte
+    硬件版的会根据ext来生成
+    */
+    set_pte_ext(ptep, pteval, ext);
+}
 </code></pre>
 </div>
 
   <div class="more">
-    <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
+    <a href="/posts/mm/reclaim_06_arm_l_pte_young" class="btn btn-small">read more..</a>
   </div>
 </div>
 
@@ -252,6 +276,7 @@ shrink_lruvec
       <li><a href="/posts/index/6">6</a></li>
       <li><a href="/posts/index/7">7</a></li>
       <li><a href="/posts/index/8">8</a></li>
+      <li><a href="/posts/index/9">9</a></li>
   </ul>
 </div>
 
