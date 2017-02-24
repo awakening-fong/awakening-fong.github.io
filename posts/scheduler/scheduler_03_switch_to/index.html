@@ -128,6 +128,42 @@ do {    \
 
 <p>switch_to()的r0, 在  进程切换前后 进行传递, 用来告诉 切换后的进程  前面的struct task_struct 信息.</p>
 
+<h1 id="toc_0"><h4>附 进程的栈等信息是存储在哪?</h4></h1>
+
+<p>不好意思, 内核换到linux-3.10.86了. </p>
+
+<p>linux-3.10.86/arch/arm/kernel/entry-armv.S</p>
+
+<pre><code>ENTRY(__switch_to)
+ add    ip, r1, #TI_CPU_SAVE
+ ...
+ ARM(    stmia    ip!, {r4 - sl, fp, sp, lr} )    @ Store most regs on stack
+</code></pre>
+
+<p>所以, 要看看r1和TI_CPU_SAVE都是啥?
+注释中有</p>
+
+<blockquote>
+<ul>
+<li>r0 = previous task_struct, r1 = previous thread_info, r2 = next thread_info</li>
+</ul>
+</blockquote>
+
+<p>linux-3.10.86/arch/arm/kernel/asm-offsets.c</p>
+
+<pre><code>DEFINE(TI_CPU_SAVE, offsetof(struct thread_info, cpu_context));
+</code></pre>
+
+<p>所以, 是存储在  thread-&gt;cpu_context</p>
+
+<p>linux-3.10.86/arch/arm/include/asm/thread_info.h</p>
+
+<pre><code>struct thread_info {
+
+struct cpu_context_save    cpu_context;    /* cpu context */
+}
+</code></pre>
+
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/scheduler/scheduler_03_switch_to>https://awakening-fong.github.io/posts/scheduler/scheduler_03_switch_to</a>
 	  </p>

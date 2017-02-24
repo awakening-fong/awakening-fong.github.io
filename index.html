@@ -61,34 +61,82 @@
 <div class="row-fluid">
   <div class="span12">
     <div class="post">
-  <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+  <h3 class="title"><a href="/posts/mm/vmalloc">__vmalloc_area_node</a> <span class="date">2017-02-24</span></h3>
 
   <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+<h1 id="toc_0"><h4>1.__vmalloc_node()</h4></h1>
 
-<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+<pre><code>__vmalloc_node -&gt; __vmalloc_node_range
+ *  Allocate enough pages to cover @size from the page level
+ *  allocator with @gfp_mask flags.  Map them into contiguous
+ *  kernel virtual space, using a pagetable protection of @prot.
+ 所以, 我们需要
+1. 找一个可用的虚拟地址空间
+2. 把 够分量的@size, 可以物理地址上非连续的, 符合@gfp_mask的 page 分配出来
+3. 虚拟地址和 物理地址 关联上, 并设置相应的 权限@prot.
 
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+__vmalloc_node_range
+|--struct vm_struct *area=__get_vm_area_node
+|--__vmalloc_area_node
+|   |--alloc_page
+|   |--map_vm_area
+</code></pre>
 
-<p>2.1   HZ 设置为 250, 1000等.</p>
+<p>map_vm_area()将struct vm_struct和struct page关联起来.</p>
 
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+<pre><code>map_vm_area ==&gt; vmap_page_range
+|--vmap_page_range_noflush  改写页表, 但如函数名所说的, 不执行flush
+|--flush_cache_vmap
 
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+vmap_page_range_noflush
+|...
+|--vmap_pte_range
 
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
 
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
 
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+__vmalloc_area_node
+{
+    /*问题:为何这里是 减去PAGE_SIZE ? */
+    nr_pages = (area-&gt;size - PAGE_SIZE) &gt;&gt; PAGE_SHIFT;
+    ...
 
-<p>hash应该也算这个类别.</p>
+}
+</code></pre>
+</div>
+
+  <div class="more">
+    <a href="/posts/mm/vmalloc" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>摘自APUE:</p>
+
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
+
+<p>问题:哪里设置只读, 如何知道只读?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
+
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
 
 </div>
 
   <div class="more">
-    <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+    <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
@@ -122,6 +170,37 @@
 
   <div class="more">
     <a href="/posts/mm/thread_start_sp" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+</div>
+
+  <div class="more">
+    <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
@@ -193,76 +272,6 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 
   <div class="more">
     <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/hw/iic">IIC相关内容的记忆</a> <span class="date">2017-02-15</span></h3>
-
-  <div class="summary ellipsis">
-<p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
-
-<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
-
-<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.<br>
-SCL和SDA是线与逻辑. 为检测起始信号, 线与的结果可能是接到三极管上, 假定是NPN型, 接到发射极e, 逻辑值为0时导通状态,逻辑值为1时截止状态.<br>
-三极管截止状态下, 1 &amp; SCL == 1, 故SCL为1, 也就是IIC停止时, SCL为高电平.<br>
-IIC起始时, SDA由高转低, 三极管导通.<br>
-所以有下图:  </p>
-
-<p><img src="/assets/media/IIC_start_stop.jpg"></p>
-
-<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
-
-<p>假定是7bit地址的情况.
-先发送高位还是低位?<br>
-可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
-
-<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
-
-<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
-</div>
-
-  <div class="more">
-    <a href="/posts/hw/iic" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/reclaim_06_arm_l_pte_young">page reclaim 06:ARM和L_PTE_YOUNG</a> <span class="date">2017-02-07</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. page_referenced_one对硬件页表的影响</h4></h1>
-
-<p>linux-3.10.86/include/asm-generic/pgtable.h</p>
-
-<pre><code>page_referenced_one -&gt; ptep_clear_flush_young_notify -&gt; ptep_clear_flush_young -&gt; ptep_test_and_clear_young
-{
-//pte_mkold 实现上是:PTE_BIT_FUNC(mkold,     &amp;= ~L_PTE_YOUNG);
-set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
-}
-</code></pre>
-
-<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
-
-<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-                  pte_t *ptep, pte_t pteval)
-{
-    unsigned long ext = 0;
-
-    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) {
-        __sync_icache_dcache(pteval);
-        ext |= PTE_EXT_NG;
-    }
-    /*
-    @pteval 是linux版的pte
-    硬件版的会根据ext来生成
-    */
-    set_pte_ext(ptep, pteval, ext);
-}
-</code></pre>
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/reclaim_06_arm_l_pte_young" class="btn btn-small">read more..</a>
   </div>
 </div>
 

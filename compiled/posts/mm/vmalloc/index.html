@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>__vmalloc_area_node</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/pages">Pages</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>__vmalloc_area_node </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-24</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1.__vmalloc_node()</h4></h1>
+
+<pre><code>__vmalloc_node -&gt; __vmalloc_node_range
+ *  Allocate enough pages to cover @size from the page level
+ *  allocator with @gfp_mask flags.  Map them into contiguous
+ *  kernel virtual space, using a pagetable protection of @prot.
+ 所以, 我们需要
+1. 找一个可用的虚拟地址空间
+2. 把 够分量的@size, 可以物理地址上非连续的, 符合@gfp_mask的 page 分配出来
+3. 虚拟地址和 物理地址 关联上, 并设置相应的 权限@prot.
+
+__vmalloc_node_range
+|--struct vm_struct *area=__get_vm_area_node
+|--__vmalloc_area_node
+|   |--alloc_page
+|   |--map_vm_area
+</code></pre>
+
+<p>map_vm_area()将struct vm_struct和struct page关联起来.</p>
+
+<pre><code>map_vm_area ==&gt; vmap_page_range
+|--vmap_page_range_noflush  改写页表, 但如函数名所说的, 不执行flush
+|--flush_cache_vmap
+
+vmap_page_range_noflush
+|...
+|--vmap_pte_range
+
+
+
+__vmalloc_area_node
+{
+    /*问题:为何这里是 减去PAGE_SIZE ? */
+    nr_pages = (area-&gt;size - PAGE_SIZE) &gt;&gt; PAGE_SHIFT;
+    ...
+
+}
+</code></pre>
+
+<p>问题:为何这里是 减去PAGE_SIZE ?<br>
+答:</p>
+
+<pre><code>__get_vm_area_node
+{
+    size = PAGE_ALIGN(size);
+    /*
+     * We always allocate a guard page.
+     */
+    size += PAGE_SIZE;
+
+    alloc_vmap_area(size, ...);
+}
+</code></pre>
+
+<p>所以, 减去的是  guard page.<br>
+所以,  作为guard的page是虚拟地址是占用了, 不过page frame就不必分配了, 反正我们不是想存到guard page中去的.</p>
+
+<h1 id="toc_1"><h4>2. 递归</h4></h1>
+
+<pre><code>__vmalloc_area_node
+{
+
+    array_size = (nr_pages * sizeof(struct page *)); 
+
+    if (array_size &gt; PAGE_SIZE) {
+        pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
+                PAGE_KERNEL, node, caller);
+        area-&gt;flags |= VM_VPAGES;
+    } else {
+        pages = kmalloc_node(array_size, nested_gfp, node);
+    }
+}
+</code></pre>
+
+<p>这里分配的内存是用来存放 成员为struct page *的数组.
+我们很爱惜物理地址连续的内存, 如果 用来存储struct page *的超过一个物理页, 那么, 我们还是坚持尽量从order==0中来分配.</p>
+
+<p>这里递归了, 因为</p>
+
+<pre><code>vmalloc
+|--__vmalloc_node_flags -&gt; __vmalloc_node -&gt; __vmalloc_node_range
+|   |--__get_vm_area_node
+|   |--__vmalloc_area_node
+|   |   |--__vmalloc_node
+|   |   |   |--kmalloc_node
+</code></pre>
+
+<p>__vmalloc_node()调用了 __vmalloc_node().</p>
+
+<p>释放中对应地, 也有递归</p>
+
+<pre><code>__vunmap
+{
+    if (area-&gt;flags &amp; VM_VPAGES)
+        vfree(area-&gt;pages); //这里是递归 (先释放里面的, 再释放外面的)
+    else
+        kfree(area-&gt;pages);
+
+}
+</code></pre>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/vmalloc>https://awakening-fong.github.io/posts/mm/vmalloc</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理-ref">内存管理 <span>15</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#vmalloc-ref">vmalloc <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/mm/do_fork_cow" title="do_fork和COW">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
