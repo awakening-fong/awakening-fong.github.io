@@ -57,99 +57,42 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p>文来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159</p>
+<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
 
-<p>本篇只提问, 不解答, 祝开心.</p>
+<p>假定 CONFIG_MULTI_IRQ_HANDLER=y, handle_arch_irq 为 gic_handle_irq.<br>
+linux-3.10.86/arch/arm/kernel/setup.c</p>
 
-<p>如果读写锁是unlocked, 然后cpu 0和cpu 1都想获取写锁,
-如表格所示, CPU 0在t2时刻执行的是wfene, 这时, CPU 1执行的是ldrex, 然后是否会有cpu能够获取到锁?
-源码来自
-linux-3.10.86/arch/arm/include/asm/spinlock.h
-arch_write_lock()</p>
-
-<!--
-查看源码后, 将第1个<table>改为
-<table class="table table-bordered table-striped table-condensed">
-
-时间 | CPU0                      |时间  |CPU1
------|---------------------------|------|----
-t0/t6| 1:    ldrex    %0, [%1]   |      |
-t1/t7| teq    %0, #0             |      |
-t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
-t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
-t4   |teq    %0, #0              |t4    |WFE("ne")
-t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
-t6   |                           |t6    |teq    %0, #0
-t7   |                           |t7    |bne    1b
--->
-
-<table class="table table-bordered table-striped table-condensed">
-<thead>
-<tr>
-<th>时间</th>
-<th>CPU0</th>
-<th>时间</th>
-<th>CPU1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>t0/t6</td>
-<td>1:    ldrex    %0, [%1]</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>t1/t7</td>
-<td>teq    %0, #0</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>t2</td>
-<td>WFE("ne")</td>
-<td>t2</td>
-<td>1:    ldrex    %0, [%1]</td>
-</tr>
-<tr>
-<td>t3</td>
-<td>strexeq    %0, %2, [%1]</td>
-<td>t3</td>
-<td>teq    %0, #0</td>
-</tr>
-<tr>
-<td>t4</td>
-<td>teq    %0, #0</td>
-<td>t4</td>
-<td>WFE("ne")</td>
-</tr>
-<tr>
-<td>t5</td>
-<td>bne    1b</td>
-<td>t5</td>
-<td>strexeq    %0, %2, [%1]</td>
-</tr>
-<tr>
-<td>t6</td>
-<td></td>
-<td>t6</td>
-<td>teq    %0, #0</td>
-</tr>
-<tr>
-<td>t7</td>
-<td></td>
-<td>t7</td>
-<td>bne    1b</td>
-</tr>
-</tbody>
-</table>
+<pre><code>__irq_svc @entry-armv.S
+|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
+|   |--irq_handler
+|   |   |--handle_arch_irq =&gt; gic_handle_irq
+|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
+|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
+|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
+|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--handle_irq_event
+|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
+|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--chip-&gt;irq_eoi
+|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
+|   |   |   |       |   |--if( ... ) invoke_softirq() 
+|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
+|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
+|   |   |   |       |   |    |    |--h-&gt;action(h)
+|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
+|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
+|   |--svc_exit r5, irq = 1  @entry-header.S
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">

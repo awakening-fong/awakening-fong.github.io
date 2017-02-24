@@ -200,49 +200,198 @@ copy_one_pte
 </description>
     </item>
     <item>
-      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
-      <link>https://awakening-fong.github.io/posts/mm/thread_start_sp</link>
-      <pubDate>2017-02-23</pubDate>
+      <title>mmap&#x548C;fault handler</title>
+      <link>https://awakening-fong.github.io/posts/mm/mmap_fault</link>
+      <pubDate>2017-02-24</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
-&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
+&lt;p&gt;&#x6211;&#x4EEC;&#x60F3;&#x77E5;&#x9053;, &#x901A;&#x8FC7;mmap&#x6620;&#x5C04;&#x6587;&#x4EF6;, &#x7136;&#x540E;&#x8BFB;&#x53D6;, &#x662F;&#x5982;&#x4F55;&#x8BFB;&#x53D6;&#x5230;&#x6587;&#x4EF6;&#x7684;, &#x5176;&#x4E2D;&#x7684;fault handler&#x76F8;&#x5173;&#x7684;&#x5185;&#x5BB9;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
-&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. ftrace&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+&lt;pre&gt;&lt;code class="c"&gt;#include &amp;lt;stdlib.h&amp;gt;
+#include &amp;lt;stdio.h&amp;gt;
+#include &amp;lt;strings.h&amp;gt;
+#include &amp;lt;string.h&amp;gt;
+#include &amp;lt;sys/mman.h&amp;gt;
+#include &amp;lt;sys/stat.h&amp;gt;
+#include &amp;lt;sys/types.h&amp;gt;
+#include &amp;lt;fcntl.h&amp;gt;
+#include &amp;lt;unistd.h&amp;gt;
+#include &amp;lt;errno.h&amp;gt;
 
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+#define MEMSIZE 1024*4
+#define MPFILE &amp;quot;./.ash_history&amp;quot;
 
-&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+//#define ON_OFF //tracing_on
+
+void write_ftrace(char *path, char *val)
 {
-    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
-    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+    char ftrace_d[50]=&amp;quot;/sys/kernel/debug/tracing/&amp;quot;;
+    int len_d=strlen(ftrace_d);
+
+
+    int fd_trace=open(strcat(ftrace_d,path), O_RDWR|O_TRUNC);
+    if (fd_trace &amp;lt; 0) {
+        printf(&amp;quot;open %s:%s\n&amp;quot;,path,strerror(errno));
+        exit(1);
+    }
+
+    printf(&amp;quot;to write:%s %s\n&amp;quot;,path,val);
+
+    int ret=write(fd_trace, val, strlen(val));
+    if(ret&amp;lt;0)
+    {
+        printf(&amp;quot;write %s %s\n&amp;quot;,path,strerror(errno));
+        exit(1);
+    }
+
+
+    if (0==strncmp(&amp;quot;trace&amp;quot;,path, sizeof(&amp;quot;trace&amp;quot;)))
+    {
+        close(fd_trace);
+        return;
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd_trace, val_read, sizeof(val_read),0);
+    printf(&amp;quot;read val:%s\n&amp;quot;,val_read);
+    close(fd_trace);
+
 }
+
+void write_val(char *path, char *val)
+{
+    int fd=open(path, O_RDWR);
+    if (fd &amp;lt; 0) {
+        printf(&amp;quot;open %s:%s\n&amp;quot;,path,strerror(errno));
+        exit(1);
+    }
+
+    printf(&amp;quot;to write:%s %s\n&amp;quot;,path, val);
+    int ret=write(fd, val, strlen(val));
+    if(ret&amp;lt;0)
+    {
+        printf(&amp;quot;write %s %s\n&amp;quot;,path,strerror(errno));
+        exit(1);
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd, val_read, sizeof(val_read),0);
+    printf(&amp;quot;read val:%s\n&amp;quot;,val_read);
+    close(fd);
+}
+
+
+int main()
+{
+    char *ptr;
+    int fd;
+    int ret=-1;
+    int i=-1;
+
+    fd = open(MPFILE, O_RDWR);
+    if (fd &amp;lt; 0) {
+        perror(&amp;quot;open()&amp;quot;);
+        exit(1);
+    }
+
+    ptr = mmap(NULL, MEMSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == NULL) {
+        perror(&amp;quot;malloc()&amp;quot;);
+        exit(1);
+    }
+
+    /*&#x907F;&#x514D;page cache&#x5E72;&#x6270;*/
+    if( posix_fadvise(fd,0,4096,POSIX_FADV_DONTNEED) != 0) {  
+        printf(&amp;quot;Cache FADV_DONTNEED failed, %s\n&amp;quot;,strerror(errno));  
+    }  
+    else {  
+        printf(&amp;quot;Cache FADV_DONTNEED done\n&amp;quot;);  
+    }  
+
+    //mount -t debugfs nodev /sys/kernel/debug/
+    system(&amp;quot;mount -t debugfs nodev /sys/kernel/debug/&amp;quot;);
+
+
+
+    /*
+    ~ # echo 1 &amp;gt; /proc/sys/kernel/ftrace_enabled
+    */
+
+    write_val(&amp;quot;/proc/sys/kernel/ftrace_enabled&amp;quot;, &amp;quot;1&amp;quot;);
+
+    int pid_cur=getpid();
+    printf(&amp;quot;pid:%d\n&amp;quot;,pid_cur);
+    char str_pid[25];
+    memset(str_pid,0, sizeof(str_pid));
+    snprintf(str_pid, sizeof(str_pid),&amp;quot;%d&amp;quot;, pid_cur);
+    //  /sys/kernel/debug/tracing/set_ftrace_pid
+    write_ftrace(&amp;quot;set_ftrace_pid&amp;quot;, str_pid);
+
+
+    write_ftrace(&amp;quot;tracing_on&amp;quot;, &amp;quot;1&amp;quot;);
+
+
+    /*# can set other filtering here
+    echo function &amp;gt; ${ROOT_FTRACE}/current_tracer
+    */
+    write_ftrace(&amp;quot;current_tracer&amp;quot;, &amp;quot;function&amp;quot;);
+
+    write_ftrace(&amp;quot;trace&amp;quot;, &amp;quot;0&amp;quot;);
+
+    /*
+    #echo 0 &amp;gt; ${ROOT_FTRACE}/trace
+    echo start_trace_marker &amp;gt; ${ROOT_FTRACE}/trace_marker
+    exec $* 
+    */
+
+    //write_ftrace(&amp;quot;trace_marker&amp;quot;, &amp;quot;start_trace_marker&amp;quot;);
+
+   i=*ptr;  //&#x8FD9;&#x4E2A;&#x5C31;&#x662F;&#x6211;&#x4EEC;&#x8981;&#x8DDF;&#x8E2A;&#x7684;
+
+
+    /*
+    echo end_trace_marker &amp;gt; ${ROOT_FTRACE}/trace_marker
+    echo 0  &amp;gt; ${ROOT_FTRACE}/tracing_on  #stop record to buffer
+    */
+
+    //write_ftrace(&amp;quot;trace_marker&amp;quot;, &amp;quot;end_trace_marker&amp;quot;);
+
+    write_ftrace(&amp;quot;tracing_on&amp;quot;, &amp;quot;0&amp;quot;);
+    system(&amp;quot;cat /sys/kernel/debug/tracing/trace &amp;gt; mmap.ftrace&amp;quot;);
+
+    printf(&amp;quot;%x\n&amp;quot;, i);
+
+
+    munmap(ptr, MEMSIZE);
+    close(fd);
+
+    exit(1);
+}
+
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
-&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x7ED3;&#x679C;&#x5206;&#x6790;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
-                |    | A           |     |                  
-                8    |             |     |            ^     
-                |    |             |                  |     
-          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
-                     |             |     .            |     
-                     |             |     |            |     
-                     |             |     |            |     
-                     |             |     |            |     
-  thread_info ---&amp;gt;   |.C           |  ------          |     
-                     |             |                  |     
-                     |             |                  |     
-                     |             |                  |      
-                     |             |                        
-                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
+&lt;p&gt;ftrace&#x8F93;&#x51FA;&#x4E2D;&#x6709;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;do_DataAbort &amp;lt;-__dabt_usr
+do_page_fault &amp;lt;-do_DataAbort
+down_read_trylock &amp;lt;-do_page_fault
+_raw_spin_lock_irqsave &amp;lt;-__down_read_trylock
+_raw_spin_unlock_irqrestore &amp;lt;-__down_read_trylock
+find_vma &amp;lt;-do_page_fault
+handle_mm_fault &amp;lt;-do_page_fault
+handle_pte_fault &amp;lt;-handle_mm_fault
+__do_fault &amp;lt;-handle_pte_fault
+filemap_fault &amp;lt;-__do_fault
+find_get_page &amp;lt;-filemap_fault
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x5206;&#x6790;: &#x7565;&lt;/p&gt;
 </description>
     </item>
     <item>
@@ -299,6 +448,52 @@ strct page&#x4E2D;&#x6709;:&lt;/p&gt;
     unsigned objects:15;
     unsigned frozen:1; 
 };
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
+      <link>https://awakening-fong.github.io/posts/mm/thread_start_sp</link>
+      <pubDate>2017-02-23</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
+&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
+    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
+&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
+                |    | A           |     |                  
+                8    |             |     |            ^     
+                |    |             |                  |     
+          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
+                     |             |     .            |     
+                     |             |     |            |     
+                     |             |     |            |     
+                     |             |     |            |     
+  thread_info ---&amp;gt;   |.C           |  ------          |     
+                     |             |                  |     
+                     |             |                  |     
+                     |             |                  |      
+                     |             |                        
+                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -406,466 +601,6 @@ IIC&#x8D77;&#x59CB;&#x65F6;, SDA&#x7531;&#x9AD8;&#x8F6C;&#x4F4E;, &#x4E09;&#x678
 &lt;p&gt;ACK&#x8981;&#x80FD;&#x591F;&#x88AB;&#x68C0;&#x6D4B;&#x5230;, &#x6545;&#x4E0D;&#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x4E0D;&#x80FD;&#x53BB;&#x5E72;&#x6270;SDA, &#x6545;&#x4FDD;&#x6301;&#x9AD8;&#x7535;&#x4F4D;, &#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x62C9;&#x4F4E;SDA.&lt;/p&gt;
 
 &lt;p&gt;&#x5982;&#x679C; &#x4ECE;&#x673A;&#x63A5;&#x6536;&#x597D;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;(&#x542B;&#x54CD;&#x5E94;&#x4F4D;) &#x540E;,  &#x8981;&#x5B8C;&#x6210;&#x4E00;&#x4E9B;&#x5176;&#x4ED6;&#x529F;&#x80FD;&#x540E; (&#x4F8B;&#x5982;&#x4E00;&#x4E2A;&#x5185;&#x90E8;&#x4E2D;&#x65AD;&#x670D;&#x52A1;&#x7A0B;&#x5E8F;), &#x624D;&#x80FD;&#x63A5;&#x6536;&#x6216;&#x53D1;&#x9001;&#x4E0B;&#x4E00;&#x4E2A;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;, &#x53EF;&#x4EE5;&#x4F7F;&#x65F6;&#x949F;&#x7EBF; SCL &#x4FDD;&#x6301;&#x4F4E;&#x7535;&#x5E73;&#x8FEB;&#x4F7F;&#x4E3B;&#x673A;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x72B6;&#x6001;. &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 06:ARM&#x548C;L_PTE_YOUNG</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_06_arm_l_pte_young</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced_one&#x5BF9;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x7684;&#x5F71;&#x54CD;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/include/asm-generic/pgtable.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;page_referenced_one -&amp;gt; ptep_clear_flush_young_notify -&amp;gt; ptep_clear_flush_young -&amp;gt; ptep_test_and_clear_young
-{
-//pte_mkold &#x5B9E;&#x73B0;&#x4E0A;&#x662F;:PTE_BIT_FUNC(mkold,     &amp;amp;= ~L_PTE_YOUNG);
-set_pte_at(vma-&amp;gt;vm_mm, address, ptep, pte_mkold(pte));
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-                  pte_t *ptep, pte_t pteval)
-{
-    unsigned long ext = 0;
-
-    if (addr &amp;lt; TASK_SIZE &amp;amp;&amp;amp; pte_present_user(pteval)) {
-        __sync_icache_dcache(pteval);
-        ext |= PTE_EXT_NG;
-    }
-    /*
-    @pteval &#x662F;linux&#x7248;&#x7684;pte
-    &#x786C;&#x4EF6;&#x7248;&#x7684;&#x4F1A;&#x6839;&#x636E;ext&#x6765;&#x751F;&#x6210;
-    */
-    set_pte_ext(ptep, pteval, ext);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level-hwdef.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#define PTE_EXT_NG      (_AT(pteval_t, 1) &amp;lt;&amp;lt; 11)    /* v6 */    
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x4E2A;&#x540E;&#x7EED;&#x6CA1;&#x6709;&#x7528;&#x5230;, &#x5FFD;&#x7565;.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;set_pte_at -&amp;gt; set_pte_ext -&amp;gt; cpu_set_pte_ext -&amp;gt; cpu_v7_set_pte_ext&lt;/p&gt;
-
-&lt;p&gt;&#x6211;&#x4EEC;&#x60F3;&#x77E5;&#x9053;&#x7684;&#x662F;: ext&#x4E2D; L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x786C;&#x4EF6;&#x9875;&#x8868;&#x7684;&#x53D8;&#x5316;.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/mm/proc-v7-2level.S&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;ENTRY(cpu_v7_set_pte_ext)
-...
-@r1&#x662F;linux&#x7248;
-tst r1, #L_PTE_YOUNG
-tstne   r1, #L_PTE_VALID
-@#define L_PTE_NONE     (_AT(pteval_t, 1) &amp;lt;&amp;lt; 11)
-eorne   r1, r1, #L_PTE_NONE
-tstne   r1, #L_PTE_NONE
-moveq   r3, #0
-...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5F53;L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x8FD9;&#x91CC;&#x4F1A;&#x6267;&#x884C;moveq r3, #0, 
-&#x4E5F;&#x5C31;&#x662F;&#x9875;&#x8868;&#x9879;&#x4FEE;&#x6539;&#x4E3A;0, &#x7136;&#x540E;&#x5B58;&#x50A8;&#x5230;&#x786C;&#x4EF6;&#x7248;&#x9875;&#x8868;.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x540E;&#x7EED;&#x8BBF;&#x95EE;&#x76F8;&#x5173;page&#x4F1A;&#x5982;&#x4F55;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6267;&#x884C;page_referenced_one&#x4E4B;&#x540E;, &#x7531;&#x4E8E;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x88AB;&#x6E05;&#x96F6;, &#x540E;&#x7EED;&#x8BBF;&#x95EE;&#x5F15;&#x53D1;&#x5F02;&#x5E38;, &#x4F1A;&#x6267;&#x884C;&#x5230;handle_pte_fault.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/mm/memory.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;handle_pte_fault
-{
-    if (!pte_present(entry)) {
-
-        return ...
-    }
-    ...
-    entry = pte_mkyoung(entry);
-    ptep_set_access_flags() -&amp;gt;  set_pte_at()
-
-}   
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E0A;&#x9762;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x88AB;&#x6E05;&#x96F6;&#x4E86;, &#x4F46;&#x662F;linux&#x7248;&#x9875;&#x8868;&#x5E76;&#x6CA1;&#x6709;&#x6E05;&#x96F6;, &#x53EA;&#x6E05;&#x6389;L_PTE_YOUNG.
-&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x77E5;&#x9053;, if (!pte_present(entry))&#x662F;&#x5426;&#x4F1A;&#x6210;&#x7ACB;.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#define pte_present(pte)    (pte_isset((pte), L_PTE_PRESENT))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#define L_PTE_PRESENT       (_AT(pteval_t, 1) &amp;lt;&amp;lt; 0)
-#define L_PTE_YOUNG     (_AT(pteval_t, 1) &amp;lt;&amp;lt; 1)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4EE5;&#x901A;&#x8FC7;mmap&#x6765;&#x8BBF;&#x95EE;&#x6587;&#x4EF6;&#x4E3A;&#x4F8B;, &#x770B;&#x770B;&#x521B;&#x5EFA;&#x7684;linux&#x7684;pte.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;mmap_region
-|--vma-&amp;gt;vm_flags = vm_flags;
-|--vma-&amp;gt;vm_page_prot = vm_get_page_prot(vm_flags);
-
-vm_get_page_prot -&amp;gt; protection_map -&amp;gt; __PAGE_NONE
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#define __PAGE_NONE     __pgprot(_L_PTE_DEFAULT | ...&#x7701;&#x7565;...  )
-#define _L_PTE_DEFAULT  L_PTE_PRESENT | L_PTE_YOUNG
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;__PAGE_NONE &#x548C;&#x5176;&#x4ED6;&#x7684;__PAGE_xx &#x90FD;&#x542B;_L_PTE_DEFAULT.
-&#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x521B;&#x5EFA;&#x7684;linux&#x7248;pte&#x542B;&#x6709;L_PTE_PRESENT.&lt;/p&gt;
-
-&lt;p&gt;set_pte_at -&amp;gt; set_pte_ext -&amp;gt; cpu_set_pte_ext -&amp;gt; cpu_v7_set_pte_ext&lt;br&gt;
-cpu_v7_set_pte_ext&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5230;L_PTE_PRESENT.&lt;br&gt;
-&#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x540E;&#x7EED;&#x5F02;&#x5E38;&#x65F6;, L_PTE_PRESENT&#x662F;&#x7F6E;&#x4F4D;&#x72B6;&#x6001;&#x4E86;, &#x540E;&#x7EED;&#x82E5;&#x56E0;reclaim&#x7684;&#x626B;&#x63CF;, L_PTE_YOUNG&#x4F1A;&#x88AB;&#x6E05;&#x6389;, &#x786C;&#x4EF6;&#x9875;&#x8868;&#x4E5F;&#x88AB;&#x6E05;&#x96F6;, &#x82E5;&#x8BBF;&#x95EE;&#x8BE5;&#x9875;&#x8868;&#x76F8;&#x5173;&#x7684;page, &#x4E0D;&#x8D70;if (!pte_present(entry)), &#x800C;&#x662F;&#x4F1A;&#x7F6E;&#x4F4D;L_PTE_YOUNG, &#x5E76;&#x6839;&#x636E;&#x8FD9;&#x4E2A;&#x542B;&#x6709;L_PTE_YOUNG&#x7684;linux&#x9875;&#x8868; &#x91CD;&#x65B0;&#x8BBE;&#x7F6E;&#x786C;&#x4EF6;&#x9875;&#x8868;.&lt;/p&gt;
-
-&lt;p&gt;&#x7531;&#x4E8E;&#x8FD9;&#x4E2A;&#x5F02;&#x5E38;&#x53EA;&#x6709;&#x5728;&#x8BE5;page&#x88AB;reclaim&#x626B;&#x63CF;&#x5230;&#x540E;&#x624D;&#x4F1A;&#x53D1;&#x751F;, &#x6545;overhead&#x5E76;&#x4E0D;&#x4E25;&#x91CD;.  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_03_activity</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/rmap.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; * Quick test_and_clear_referenced for all mappings to a page,
- * returns the number of ptes which referenced the page.
-&#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x8FC7;&#x65F6;&#x4E86;, &#x5B9E;&#x9645;&#x529F;&#x80FD;&#x5E76;&#x4E0D;&#x662F;&#x8FD4;&#x56DE;&#x6307;&#x5411;&#x8BE5;page&#x7684;pte&#x7684;&#x4E2A;&#x6570;. 
-
- &#x95EE;&#x9898;:&#x8FD9;&#x4E2A;&#x51FD;&#x6570;&#x7684;&#x7528;&#x9014;?
- &#x7B54;:&#x7528;&#x6765;&#x53CD;&#x5E94;&#x5728;inactive list&#x4E2D;&#x7684;page&#x7684;&#x6D3B;&#x8DC3;&#x7A0B;&#x5EA6;.
- &#x8FD4;&#x56DE;&#x6570;&#x503C;1&#x548C;&#x8FD4;&#x56DE;&#x6570;&#x503C;2&#x662F;&#x6709;&#x533A;&#x522B;&#x7684;, see page_check_references
- {
-     referenced_ptes = page_referenced(...);
-     if (... || referenced_ptes &amp;gt; 1)
-        return PAGEREF_ACTIVATE;
-
- }
- */
-int page_referenced(struct page *page,
-        int is_locked,
-        struct mem_cgroup *memcg,
-        unsigned long *vm_flags)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. L_PTE_YOUNG&#x548C; mark_page_accessed, &#x7528;&#x54EA;&#x4E2A;&#x5462;?&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6709;&#x4E9B;page&#x662F;&#x5148;kmap, &#x63A5;&#x7740; __copy_to_user, &#x6700;&#x540E;kunmap, &#x8FD9;&#x79CD;&#x4F7F;&#x7528;&#x4E4B;&#x540E; page&#x5C31;&#x88AB; unmap &#x6389;, &#x5982;&#x679C;&#x662F;highmem, &#x901A;&#x8FC7;pte young&#x6807;&#x8BB0;&#x5C31;&#x6CA1;&#x6709;&#x610F;&#x4E49;, &#x6545;&#x91C7;&#x7528;mark page accessed&#x6765;&#x63D0;&#x5347;&#x6D3B;&#x8DC3;&#x5EA6;.
-&#x8FD9;&#x79CD;&#x7C7B;&#x578B;&#x7684;page, &#x6CA1;&#x6709;&#x88AB;&#x8FDB;&#x7A0B;&#x5F15;&#x7528;, &#x56DE;&#x6536;&#x65F6;&#x4E5F;&#x65E0;&#x9700;&#x4FEE;&#x6539;&#x9875;&#x8868;.
-&#x6216;&#x8005;&#x8BF4;, &#x8BE5;page&#x6CA1;&#x6709;&#x548C;&#x8FDB;&#x7A0B;&#x5173;&#x8054;, &#x6545;&#x4E0D;&#x901A;&#x8FC7;&#x9875;&#x8868;&#x6765;&#x6807;&#x8BB0;&#x6D3B;&#x8DC3;&#x5EA6;.&lt;/p&gt;
-
-&lt;p&gt;&#x5BF9;&#x4E8E;&#x548C;&#x8FDB;&#x7A0B;&#x5173;&#x8054;&#x7684;page, L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x8BBF;&#x95EE;&#x4F1A;&#x53D1;&#x751F;&#x5F02;&#x5E38;, &#x5728;fault handler&#x4E2D;&#x4F1A;&#x7F6E;&#x4F4D;L_PTE_YOUNG, &#x5B8C;&#x6210;&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x6807;&#x8BB0;.
-&#x88AB;&#x626B;&#x63CF;&#x5230;&#x65F6;, &#x5224;&#x65AD;&#x6D3B;&#x8DC3;&#x5EA6;&#x4FE1;&#x606F;&#x540E;, &#x603B;&#x662F;&#x4F1A;&#x88AB;&#x6E05;&#x6389;L_PTE_YOUNG, &#x5982;&#x679C;&#x6709;L_PTE_YOUNG&#x7684;&#x8BDD;.&lt;/p&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. page_check_references&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6D3B;&#x8DC3;&#x7A0B;&#x5EA6; &#x4F53;&#x73B0;&#x5728; &#x4E24;&#x4E2A;&#x65B9;&#x9762;, 
-&#x4E00;&#x4E2A;&#x662F;  &#x8BE5;page&#x53EF;&#x80FD;&#x5728;&#x591A;&#x4E2A;&#x8FDB;&#x7A0B;/&#x7EBF;&#x7A0B;&#x4E2D;&#x88AB;&#x5F15;&#x7528;, &#x8FD9;&#x4E9B;&#x8FDB;&#x7A0B;&#x4E2D;&#x8BE5;page&#x7684;pte&#x7684;young&#x6709;&#x6240;&#x4F53;&#x73B0;,&lt;br&gt;
-&#x53E6;&#x4E00;&#x4E2A;&#x662F; struct page&#x7684;flag PG_referenced, PG_active.&lt;/p&gt;
-
-&lt;p&gt;shrink_inactive_list -&amp;gt; shrink_page_list -&amp;gt; page_check_references&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static enum page_references page_check_references(struct page *page,
-                      struct scan_control *sc)
-{
-    int referenced_ptes, referenced_page;
-    unsigned long vm_flags;
-
-    referenced_ptes = page_referenced(page, 1, sc-&amp;gt;target_mem_cgroup,
-                      &amp;amp;vm_flags);
-    referenced_page = TestClearPageReferenced(page);
-
-
-    if (referenced_ptes) {
-            SetPageReferenced(page);
-
-        if (referenced_page || referenced_ptes &amp;gt; 1)
-            return PAGEREF_ACTIVATE;
-        ...
-        return PAGEREF_KEEP;
-    }
-
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x95EE;&#x9898;:&#x5982;&#x4F55;&#x7406;&#x89E3;&#x8FD9;&#x91CC;&#x7684; SetPageReferenced?&lt;br&gt;
-&#x7B54;: page_referenced()&#x603B;&#x662F;&#x4F1A;&#x6E05;&#x6389;pte&#x7684;young, &#x5982;&#x679C;&#x8FD9;&#x91CC;(shrink_inactive_list -&amp;gt; .. -&amp;gt; page_check_references)&#x4E0D;SetPageReferenced, 
-&#x76F8;&#x5F53;&#x4E8E;&#x4E00;&#x4E0B;&#x5B50;&#x628A;&#x8F83;&#x6D3B;&#x8DC3;&#x7684;page&#x7684;&#x6D3B;&#x8DC3;&#x5EA6;&#x5168;&#x90E8;&#x62B9;&#x6389;, &#x4F3C;&#x4E4E;&#x5E76;&#x4E0D;&#x5408;&#x9002;, &#x6545;&#x8FD9;&#x91CC;SetPageReferenced&#x7ED9;page&#x4FDD;&#x7559;&#x4E00;&#x70B9;&#x6D3B;&#x8DC3;&#x5EA6;.&lt;/p&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. mm: don&amp;#39;t mark_page_accessed in fault path&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/filemap.c&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;filemap_fault() is invoked via the vma operations vector for a
-mapped memory region to read in file data during a page fault.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;pre&gt;&lt;code&gt;filemap_fault  
-|--count_vm_event(PGMAJFAULT);  
-|--no_cached_page: page_cache_read(file, offset);  
-|   |--page_cache_alloc_cold  
-|   |--add_to_page_cache_lru -&amp;gt; lru_cache_add_file  
-|   |   |--__lru_cache_add(page, LRU_INACTIVE_FILE)  
-|   |--mapping-&amp;gt;a_ops-&amp;gt;readpage  
-|--retry_find:  page = find_get_page(mapping, offset)  
-|--&lt;del&gt;mark_page_accessed&lt;/del&gt;  
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;mm: don&amp;#39;t mark_page_accessed in fault path 
-&lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at unmap-time if the pte is young       has a number of problems.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x672C;&#x8865;&#x4E01;&#x4E4B;&#x524D;&#x7684;&#x65B9;&#x5F0F;&#x662F;, &#x5982;&#x679C;
-fault&#x65F6;mark_page_accessed, &#x7136;&#x540E;, unmap&#x65F6;&#x82E5;pte young&#x5219;SetPageReferenced, 
-&#x8FD9;&#x79CD;&#x65B9;&#x5F0F;&#x4F1A;&#x5BFC;&#x81F4;&#x4E00;&#x4E9B;&#x95EE;&#x9898;.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;So calling mark_page_accessed not only adds extra lru or PG_referenced manipulations for pages that are already going to have pte_young ptes anyway, but it also adds these references which are difficult to work with from the context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not wish to contribute to the page being referenced).&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x6211;&#x4EEC;&#x53CD;&#x6B63;&#x5C31;&#x8981;&#x7ED9;pte&#x7F6E;&#x4F4D;young&#x4E86;, &#x5C31;&#x4E0D;&#x8981;&#x518D;&#x5F04;&#x4E2A;&#x989D;&#x5916;&#x7684;page flag&#x4E86;. &#x800C;&#x4E14;&#x8FD8;&#x4F1A;&#x7ED9; &#x8C01;&#x8C01;&#x8C01; &#x6DFB;&#x5835;.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Then, simply doing SetPageReferenced when zapping a pte and finding it is young, is not a really good solution either. SetPageReferenced does not correctly promote the page to the active list for example. So after removing mark_page_accessed from the fault path, several mmap()+touch+munmap() would have a very different result from several read(2) calls for example, which is not really desirable.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x4E4B;&#x524D;&#x7684;&#x5904;&#x7406;, &#x5728;&#x7B2C;2&#x56DE;&#x7684; munmap&#x4F1A;&#x628A;&#x4E0A;&#x56DE;&#x7684;&#x4FE1;&#x606F;&#x4E22;&#x5931;&#x6389;, &#x6545;&#x6D3B;&#x8DC3;&#x5EA6;&#x548C; read&#x7684;&#x7ED3;&#x679C;&#x4E0D;&#x540C;.&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;4.1 unmap&#x65F6;&#x7684;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;linux-3.10.86/mm/memory.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;zap_pte_range
-{
-    if (PageAnon(page))
-        ...
-    else{
-        if (pte_present(ptent)) {
-                if (pte_young(ptent) &amp;amp;&amp;amp;
-                    likely(!VM_SequentialReadHint(vma)))
-                    /*&#x95EE;&#x9898;:&#x6211;&#x4EEC;&#x662F;&#x5728;unmap, &#x4E3A;&#x4F55;&#x8981;mark accessed?*/
-                    mark_page_accessed(page);
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x95EE;&#x9898;:&#x6211;&#x4EEC;&#x662F;&#x5728;unmap, &#x4E3A;&#x4F55;&#x8981;mark accessed?&lt;br&gt;
-&#x7B54;:&#x7531;&#x4E8E;unmap, &#x5BFC;&#x81F4;&#x539F;&#x5148;&#x901A;&#x8FC7;young&#x6807;&#x8BB0;&#x7684;&#x6D3B;&#x8DC3;&#x5EA6;&#x4FE1;&#x606F;&#x5C06;&#x4F1A;&#x6D88;&#x5931;, &#x6545;&#x6539;&#x7528;mark_page_accessed&#x6765;&#x53CD;&#x6620;&#x8BE5;&#x4FE1;&#x606F;.&lt;/p&gt;
-
-&lt;p&gt;&#x8FD9;&#x662F; &#x975E;if (PageAnon(page))&#x7684;&#x60C5;&#x51B5;, &#x8FD9;&#x6837;&#x5373;&#x4F7F;&#x8131;&#x79BB;pte, &#x8FD8;&#x53EF;&#x901A;&#x8FC7;radix tree&#x627E;&#x5230;&#x8BE5;page,  &#x8FDB;&#x800C;&#x4F7F;&#x7528;&#x4E4B;&#x524D;&#x7684;page&#x5185;&#x5BB9;, &#x8FD9;&#x6837;, &#x6807;&#x8BB0;&#x6D3B;&#x8DC3;&#x5EA6;&#x624D;&#x6709;&#x610F;&#x4E49;.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 05:page count</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_05_page_count</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static inline int is_page_cache_freeable(struct page *page)
-{
-
-    /*
-     * A freeable page cache page is referenced only by the caller
-     * that isolated the page, the page cache radix tree and
-     * optional buffer heads at page-&amp;gt;private.
-     */
-    return page_count(page) - page_has_private(page) == 2;
-
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E3A;&#x4F55;&#x662F;== 2?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x8C03;&#x7528;&#x8DEF;&#x5F84;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;shrink_inactive_list
-|--lru_add_drain
-|--isolate_lru_pages
-|   |--get_page_unless_zero  //&#x5F15;&#x7528;&#x8BA1;&#x6570;
-|--shrink_page_list   (shrink_page_list&#x4E0D;&#x4F1A;&#x88AB;shrink_active_list&#x8C03;&#x7528;.)
-|   |--pageout
-|   |   |--is_page_cache_freeable
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 isolated the page&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x7565;&lt;/p&gt;
-
-&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 buddy system&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x6CE8;&#x91CA;&#x4E2D;&#x63D0;&#x5230;&amp;quot;the page cache radix tree&amp;quot;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x5E76;&#x4E0D;&#x51C6;&#x786E;, &#x5E94;&#x8BE5;&#x662F;&#x4ECE;buddy system&#x5206;&#x914D;&#x4EA7;&#x751F;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;.&lt;/p&gt;
-
-&lt;p&gt;buddy system&#x7684;get:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
-|   |--get_page_from_freelist
-|   |   |--buffered_rmqueue 
-|   |   |   |--prep_new_page
-|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5E76;&#x4E0D;&#x662F;radix tree&#x7684;get&#x7684;&#x7406;&#x7531;&#x5982;&#x4E0B;:&lt;br&gt;
-&#x4EE5;do_generic_file_read &#x4E3A;&#x4F8B;, &#x770B;&#x4E0B;page cache&#x7684;get:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;do_generic_file_read
-|--no_cached_page: page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
-|   |--get_page_from_freelist
-|   |   |--buffered_rmqueue 
-|   |   |   |--prep_new_page
-|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
-|--add_to_page_cache_lru
-|   |--add_to_page_cache -&amp;gt; add_to_page_cache_locked
-|   |   |   |--page_cache_get //&#x5F15;&#x7528;&#x8BA1;&#x6570;A
-|   |   |   |--radix_tree_insert
-|   |--lru_cache_add_file -&amp;gt; __lru_cache_add
-|--readpage: mapping-&amp;gt;a_ops-&amp;gt;readpage(filp, page)
-|--ret = actor(desc, page, offset, nr);//&#x6BD4;&#x5982;file_read_actor()
-|--page_cache_release(page); //&#x5F15;&#x7528;&#x8BA1;&#x6570;B
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4F7F;&#x7528;&#x5B8C;&#x540E;, &#x4FEE;&#x6539;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x6545;&#x8FD9;&#x91CC;&#x5BF9;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x6CA1;&#x6709;&#x5F71;&#x54CD;.&lt;/p&gt;
-
-&lt;p&gt;lru&#x7684;&#x8BA1;&#x6570;&#x5462;?&lt;br&gt;
-&#x7B54;:&#x52A0;&#x5165;pagevec&#x4E2D;&#x4F1A;get page, &#x6E05;&#x7A7A;pagevec&#x653E;&#x5165;lru&#x65F6;, &#x4F1A;put page.&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 buffer_head&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x82E5;page_has_private()&#x8FD4;&#x56DE;1, &#x5219;page_count&#x4E3A;3&lt;/p&gt;
-
-&lt;p&gt;buffer_head&#x65F6;&#x7684;get page:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;grow_dev_page
-|--find_or_create_page
-|--alloc_page_buffers
-|--link_dev_buffers(page, bh) -&amp;gt; attach_page_buffers
-|   |--page_cache_get
-|   |--set_page_private
-|--page_cache_release(page);  //&#x548C;find_or_create_page&#x4E2D;&#x7684;get &#x5BF9;&#x5E94;
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_00_references</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;[Professional Linux Kernel Architecture]&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;Reducing Memory Access Latency by Satoru Moriya
-&lt;a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf"&gt;http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;[Understanding the Linux Kernel, 3rd Edition]&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 01:&#x6982;&#x8FF0;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_01_overview</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x672C;&#x6587;&#x4E0D;&#x8BA8;&#x8BBA; swapping (swap out to disk).  &lt;/p&gt;
-
-&lt;p&gt;If a seldom-used page is backed by a block device (e.g., memory mappings
-of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
-&#x901A;&#x8FC7;Writing back cached data&#x5373;&#x53EF;&#x5C06;&#x8FD9;&#x4E9B;page&#x91CA;&#x653E;.&lt;/p&gt;
-
-&lt;p&gt;If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. &lt;/p&gt;
-
-&lt;p&gt;&#x5C06; &#x6682;&#x65F6;&#x4E0D;&#x7528;&#x7684; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528;&#x7684;  &#x5185;&#x5B58;&#x56DE;&#x7B3C;/&#x56DE;&#x6536;, &#x7ED9;&#x540E;&#x7EED;&#x5176;&#x4ED6;&#x4EBA;&#x4F7F;&#x7528;. &#x90A3;&#x4E48;, &#x5982;&#x4F55;&#x754C;&#x5B9A; &#x6682;&#x65F6;&#x4E0D;&#x7528; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528; &#x5462;? &#x8FD9;&#x4E9B;&#x5DF2;&#x5206;&#x914D;&#x51FA;&#x53BB;&#x7684;&#x5185;&#x5B58;&#x90FD;&#x6563;&#x843D;&#x5728;&#x54EA;&#x91CC;?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6563;&#x843D;&#x5728;&#x54EA;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5982;&#x4F55;&#x627E;&#x5230;&#x8FD9;&#x4E9B;&#x5185;&#x5B58;&#x5462;? &#x5565;&#x94FE;&#x8868;&#x5417;?&lt;br&gt;
-&#x7B54;:see add_to_page_cache_lru(), page_add_new_anon_rmap()&lt;/p&gt;
-
-&lt;p&gt;&#x65B9;&#x5F0F;1:
-add_to_page_cache_lru &#x628A;page&#x6DFB;&#x52A0;&#x5230; both the page cache and the LRU cache. 
-Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
-&#x5F53;&#x7136;, &#x5B9E;&#x9645;&#x662F;&#x5148;&#x6DFB;&#x52A0;&#x5230;per cpu&#x7684;struct pagevec&#x4E2D;, &#x7B49;&#x6EE1;&#x4E86;&#x518D;&#x8F6C;&#x79FB;&#x5230;global&#x7684;lru&#x4E2D;.&lt;/p&gt;
-
-&lt;p&gt;&#x65B9;&#x5F0F;2:
-add_to_page_cache_lru &#x5C06;page&#x52A0;&#x5165;tree, &#x6545;&#x53EF;&#x8003;&#x8651;&#x4ECE;&#x5404;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x7684;inode&#x904D;&#x5386;&#x5404;page:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;drop_caches_sysctl_handler -&amp;gt; iterate_supers(drop_pagecache_sb, NULL)
-|--list_for_each_entry(inode, &amp;amp;sb-&amp;gt;s_inodes, i_sb_list)
-|   |--invalidate_mapping_pages(inode-&amp;gt;i_mapping, ...)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x5982;&#x4F55;&#x5224;&#x65AD;rarely used&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5982;&#x4E0A;&#x6240;&#x8FF0;, page&#x7EC4;&#x7EC7;&#x5728;&#x94FE;&#x8868;lru&#x4E2D;. &#x9996;&#x6B21;&#x8BBF;&#x95EE;page&#x4F1A;&#x5C06;page&#x653E;&#x5230;&#x94FE;&#x8868;&#x5F00;&#x5934;,  &#x4E0D;&#x8FC7;, &#x540E;&#x7EED;&#x8BBF;&#x95EE;page, &#x5E76;&#x4E0D;&#x4F1A;&#x628A;page&#x8C03;&#x6574;&#x5230;&#x94FE;&#x8868;lru&#x7684;&#x5F00;&#x5934;.
-&#x4E3A;&#x4E86;&#x533A;&#x5206;&#x4F7F;&#x7528;&#x9891;&#x7387;, &#x5185;&#x6838;&#x5C06;&#x8F83;&#x5C11;&#x4F7F;&#x7528;&#x7684;page&#x653E;&#x5165;inactive list&#x4E2D;. &#x5982;&#x679C;&#x4F7F;&#x7528;&#x76F8;&#x5BF9;&#x9891;&#x7E41;, &#x5219;&#x79FB;&#x52A8;&#x5230;active list&#x4E2D;.&lt;br&gt;
-&#x8FD9;&#x6837;, &#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x4ECE;&#x7279;&#x5B9A;&#x94FE;&#x8868;&#x4E2D;&#x5C1D;&#x8BD5;&#x5BF9;page&#x8FDB;&#x884C;&#x56DE;&#x6536;, &#x56E0;&#x4E3A;&#x8FD9;&#x4E9B;&#x94FE;&#x8868;&#x4E2D;&#x7684;page&#x76F8;&#x5BF9;&#x8F83;&#x5C11;&#x4F7F;&#x7528;.&lt;/p&gt;
-
-&lt;p&gt;&#x9996;&#x6B21;&#x6DFB;&#x52A0;&#x5230;lru&#x7684;&#x8BDD;, &#x901A;&#x5E38;&#x662F;&#x6DFB;&#x52A0;&#x5230;inactive&#x90A3;&#x8FB9;, &#x5BF9;&#x4E8E;&#x533F;&#x540D;&#x9875;&#x6DFB;&#x52A0;&#x5230;active list, see  __do_fault, do_anonymous_page, do_wp_page&lt;/p&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. PG_referenced&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;page&#x5728;active list&#x548C;inactive list&#x4E4B;&#x95F4;&#x8FC1;&#x79FB;, &#x53EF;&#x4EE5;&#x7406;&#x89E3;&#x4E3A;page&#x7684;&#x72B6;&#x6001;&#x8FC1;&#x79FB;&#x4E86;, &#x800C;&#x8FD9;&#x4E24;&#x8005;&#x7684;&#x8FC1;&#x79FB;&#x4EC5;&#x9700;&#x4E00;&#x6B65;, &#x5185;&#x6838;&#x8BA4;&#x4E3A;&#x8FD9;&#x4E2A;&#x4E0D;&#x5408;&#x9002;, &#x5F15;&#x5165;&#x4E86; PG_referenced. &lt;/p&gt;
-
-&lt;p&gt;PG_referenced &#x548C; PG_active &#x7684;&#x533A;&#x522B;&lt;br&gt;
-&#x5728;&#x5F15;&#x5165;PG_referenced&#x4E4B;&#x524D;, When the page is accessed, the flag is set, but when is it going to be removed again? Either the kernel does not remove it automatically, but then the page would remain in the active state forever even if it would only be used very little, or not at all anymore.   &lt;/p&gt;
-
-&lt;p&gt;&#x4E3A;&#x6B64;, &#x6211;&#x4EEC;&#x9700;&#x8981;&#x80FD;&#x591F;&#x8BA4;&#x51FA; &#x6807;&#x8BB0;&#x4E86;PG_active&#x4F46;&#x4E0D;&#x5E38;&#x8BBF;&#x95EE;&#x7684;page.
-&#x5F53;&#x524D;&#x7684;&#x65B9;&#x6CD5;&#x662F;&#x5F15;&#x5165;&#x4E86; PG_referenced &#x8FD9;&#x4E2A;&#x6807;&#x8BB0;.&lt;/p&gt;
-
-&lt;p&gt;page fault&#x4F1A;&#x5C06;page &#x8BBE;&#x7F6E;&#x4E3A;active, &#x90A3;&#x4E48;, &#x662F;&#x5426;&#x4F1A;&#x4E00;&#x76F4;&#x5446;&#x5728;&#x67D0;&#x4E2A;list&#x4E2D;&#x5462;?&lt;br&gt;
-&#x7B54;:&#x4E0D;&#x4F1A;, page_check_references &#x548C; mark_page_accessed &#x53CC;&#x65B9;&#x8FDB;&#x884C;&#x89D2;&#x9010;.&lt;/p&gt;
-
-&lt;p&gt;inactive&#x4E0D;&#x4F1A;&#x76F4;&#x63A5;&#x8F6C;&#x53D8;&#x4E3A;active, &#x8981;&#x5148;unreferenced&#x8F6C;&#x53D8;&#x4E3A;referenced.&lt;br&gt;
-&#x5982;&#x679C;D0&#x8868;&#x793A; PG_referenced , D1&#x8868;&#x793A; PG_active, &#x90A3;&#x4E48;, &#x72B6;&#x6001;&#x8F6C;&#x6362;&#x5373;&#x4E3A;:&lt;br&gt;
-0b00-&amp;gt;0b01-&amp;gt;0b10-&amp;gt;0b11&lt;/p&gt;
-
-&lt;p&gt;&#x5F15;&#x5165;&#x4E4B;&#x540E;, A highly active page has both PG_active and PG_referenced set.&lt;/p&gt;
-
-&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x4F55;&#x5904;&#x8C03;&#x7528; page_check_references &#x548C; mark_page_accessed&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x8C03;&#x7528;page_check_references&#x7684;&#x8DEF;&#x5F84;:  &lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;shrink_inactive_list -&amp;gt; shrink_page_list -&amp;gt; page_check_references
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5E38;&#x89C1;&#x7684;&#x8C03;&#x7528; mark_page_accessed&#x7684;&#x8DEF;&#x5F84;: &lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;touch_buffer -&amp;gt; mark_page_accessed(bh-&amp;gt;b_page)
-do_generic_file_read -&amp;gt; mark_page_accessed(page)
-generic_perform_write -&amp;gt; mark_page_accessed(page)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4F55;&#x65F6; shrink   PG_referenced, PG_active?&lt;br&gt;
-&#x7B54;: &#x5E38;&#x89C1;&#x7684;&#x6709;direct reclaim &#x548C; kswapd, &#x4EE5;&#x53CA;truncate&#x7B49;.&lt;/p&gt;
-
-&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x5982;&#x4F55;&#x56DE;&#x6536;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5982;&#x6807;&#x9898;1&#x4E2D;&#x7684;&#x5185;&#x5BB9;&#x6240;&#x8FF0;, &#x5BF9;&#x4E8E;&#x6709;&#x5757;&#x8BBE;&#x5907;&#x540E;&#x5907;&#x7684;page, &#x5728;reclaim&#x540E;, &#x82E5;&#x540E;&#x7EED;&#x9700;&#x8981;, &#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x91CD;&#x65B0;&#x8BFB;&#x5165;&#x6765;&#x6062;&#x590D;, &#x6240;&#x4EE5;, &#x53EF;&#x5C06;page&#x7684;&#x5185;&#x5BB9;&#x56DE;&#x5199;&#x5230;&#x540E;&#x5907;&#x8BBE;&#x5907;&#x4E2D;, &#x7136;&#x540E;&#x5F52;&#x8FD8;&#x7ED9;buddy system, see shrink_inactive_list().&lt;/p&gt;
-
-&lt;h1 id="toc_6"&gt;&lt;h4&gt;7. &#x6570;&#x636E;&#x7ED3;&#x6784;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;per zone : active list, inactive list&lt;br&gt;
-per node :kswapd&lt;br&gt;
-per cpu  :lru cache, &#x4E5F;&#x5C31;&#x662F; pagevec  &lt;/p&gt;
 </description>
     </item>
     <item>
@@ -1025,6 +760,466 @@ shrink_page_list returns the number of pages for which it succeeded to initiate 
 &lt;p&gt;direct reclaim&#x53EF;&#x80FD;&#x5BFC;&#x81F4;&#x5806;&#x6808;overflow&#x7684;&#x95EE;&#x9898;&lt;br&gt;
 mm: vmscan: do not writeback filesystem pages in direct reclaim
 &lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ee72886d8ed5d9de3fa0ed3b99a7ca7702576a96"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=ee72886d8ed5d9de3fa0ed3b99a7ca7702576a96&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 06:ARM&#x548C;L_PTE_YOUNG</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_06_arm_l_pte_young</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced_one&#x5BF9;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x7684;&#x5F71;&#x54CD;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/include/asm-generic/pgtable.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;page_referenced_one -&amp;gt; ptep_clear_flush_young_notify -&amp;gt; ptep_clear_flush_young -&amp;gt; ptep_test_and_clear_young
+{
+//pte_mkold &#x5B9E;&#x73B0;&#x4E0A;&#x662F;:PTE_BIT_FUNC(mkold,     &amp;amp;= ~L_PTE_YOUNG);
+set_pte_at(vma-&amp;gt;vm_mm, address, ptep, pte_mkold(pte));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+                  pte_t *ptep, pte_t pteval)
+{
+    unsigned long ext = 0;
+
+    if (addr &amp;lt; TASK_SIZE &amp;amp;&amp;amp; pte_present_user(pteval)) {
+        __sync_icache_dcache(pteval);
+        ext |= PTE_EXT_NG;
+    }
+    /*
+    @pteval &#x662F;linux&#x7248;&#x7684;pte
+    &#x786C;&#x4EF6;&#x7248;&#x7684;&#x4F1A;&#x6839;&#x636E;ext&#x6765;&#x751F;&#x6210;
+    */
+    set_pte_ext(ptep, pteval, ext);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level-hwdef.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define PTE_EXT_NG      (_AT(pteval_t, 1) &amp;lt;&amp;lt; 11)    /* v6 */    
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8FD9;&#x4E2A;&#x540E;&#x7EED;&#x6CA1;&#x6709;&#x7528;&#x5230;, &#x5FFD;&#x7565;.&lt;/p&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;set_pte_at -&amp;gt; set_pte_ext -&amp;gt; cpu_set_pte_ext -&amp;gt; cpu_v7_set_pte_ext&lt;/p&gt;
+
+&lt;p&gt;&#x6211;&#x4EEC;&#x60F3;&#x77E5;&#x9053;&#x7684;&#x662F;: ext&#x4E2D; L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x786C;&#x4EF6;&#x9875;&#x8868;&#x7684;&#x53D8;&#x5316;.&lt;/p&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/mm/proc-v7-2level.S&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ENTRY(cpu_v7_set_pte_ext)
+...
+@r1&#x662F;linux&#x7248;
+tst r1, #L_PTE_YOUNG
+tstne   r1, #L_PTE_VALID
+@#define L_PTE_NONE     (_AT(pteval_t, 1) &amp;lt;&amp;lt; 11)
+eorne   r1, r1, #L_PTE_NONE
+tstne   r1, #L_PTE_NONE
+moveq   r3, #0
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x5F53;L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x8FD9;&#x91CC;&#x4F1A;&#x6267;&#x884C;moveq r3, #0, 
+&#x4E5F;&#x5C31;&#x662F;&#x9875;&#x8868;&#x9879;&#x4FEE;&#x6539;&#x4E3A;0, &#x7136;&#x540E;&#x5B58;&#x50A8;&#x5230;&#x786C;&#x4EF6;&#x7248;&#x9875;&#x8868;.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x540E;&#x7EED;&#x8BBF;&#x95EE;&#x76F8;&#x5173;page&#x4F1A;&#x5982;&#x4F55;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x6267;&#x884C;page_referenced_one&#x4E4B;&#x540E;, &#x7531;&#x4E8E;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x88AB;&#x6E05;&#x96F6;, &#x540E;&#x7EED;&#x8BBF;&#x95EE;&#x5F15;&#x53D1;&#x5F02;&#x5E38;, &#x4F1A;&#x6267;&#x884C;&#x5230;handle_pte_fault.&lt;/p&gt;
+
+&lt;p&gt;linux-3.10.86/mm/memory.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;handle_pte_fault
+{
+    if (!pte_present(entry)) {
+
+        return ...
+    }
+    ...
+    entry = pte_mkyoung(entry);
+    ptep_set_access_flags() -&amp;gt;  set_pte_at()
+
+}   
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E0A;&#x9762;&#x786C;&#x4EF6;&#x9875;&#x8868;&#x88AB;&#x6E05;&#x96F6;&#x4E86;, &#x4F46;&#x662F;linux&#x7248;&#x9875;&#x8868;&#x5E76;&#x6CA1;&#x6709;&#x6E05;&#x96F6;, &#x53EA;&#x6E05;&#x6389;L_PTE_YOUNG.
+&#x8FD9;&#x91CC;&#x9700;&#x8981;&#x77E5;&#x9053;, if (!pte_present(entry))&#x662F;&#x5426;&#x4F1A;&#x6210;&#x7ACB;.&lt;/p&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define pte_present(pte)    (pte_isset((pte), L_PTE_PRESENT))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable-2level.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define L_PTE_PRESENT       (_AT(pteval_t, 1) &amp;lt;&amp;lt; 0)
+#define L_PTE_YOUNG     (_AT(pteval_t, 1) &amp;lt;&amp;lt; 1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4EE5;&#x901A;&#x8FC7;mmap&#x6765;&#x8BBF;&#x95EE;&#x6587;&#x4EF6;&#x4E3A;&#x4F8B;, &#x770B;&#x770B;&#x521B;&#x5EFA;&#x7684;linux&#x7684;pte.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mmap_region
+|--vma-&amp;gt;vm_flags = vm_flags;
+|--vma-&amp;gt;vm_page_prot = vm_get_page_prot(vm_flags);
+
+vm_get_page_prot -&amp;gt; protection_map -&amp;gt; __PAGE_NONE
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/pgtable.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define __PAGE_NONE     __pgprot(_L_PTE_DEFAULT | ...&#x7701;&#x7565;...  )
+#define _L_PTE_DEFAULT  L_PTE_PRESENT | L_PTE_YOUNG
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;__PAGE_NONE &#x548C;&#x5176;&#x4ED6;&#x7684;__PAGE_xx &#x90FD;&#x542B;_L_PTE_DEFAULT.
+&#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x521B;&#x5EFA;&#x7684;linux&#x7248;pte&#x542B;&#x6709;L_PTE_PRESENT.&lt;/p&gt;
+
+&lt;p&gt;set_pte_at -&amp;gt; set_pte_ext -&amp;gt; cpu_set_pte_ext -&amp;gt; cpu_v7_set_pte_ext&lt;br&gt;
+cpu_v7_set_pte_ext&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5230;L_PTE_PRESENT.&lt;br&gt;
+&#x4E5F;&#x5C31;&#x662F;&#x8BF4;, &#x540E;&#x7EED;&#x5F02;&#x5E38;&#x65F6;, L_PTE_PRESENT&#x662F;&#x7F6E;&#x4F4D;&#x72B6;&#x6001;&#x4E86;, &#x540E;&#x7EED;&#x82E5;&#x56E0;reclaim&#x7684;&#x626B;&#x63CF;, L_PTE_YOUNG&#x4F1A;&#x88AB;&#x6E05;&#x6389;, &#x786C;&#x4EF6;&#x9875;&#x8868;&#x4E5F;&#x88AB;&#x6E05;&#x96F6;, &#x82E5;&#x8BBF;&#x95EE;&#x8BE5;&#x9875;&#x8868;&#x76F8;&#x5173;&#x7684;page, &#x4E0D;&#x8D70;if (!pte_present(entry)), &#x800C;&#x662F;&#x4F1A;&#x7F6E;&#x4F4D;L_PTE_YOUNG, &#x5E76;&#x6839;&#x636E;&#x8FD9;&#x4E2A;&#x542B;&#x6709;L_PTE_YOUNG&#x7684;linux&#x9875;&#x8868; &#x91CD;&#x65B0;&#x8BBE;&#x7F6E;&#x786C;&#x4EF6;&#x9875;&#x8868;.&lt;/p&gt;
+
+&lt;p&gt;&#x7531;&#x4E8E;&#x8FD9;&#x4E2A;&#x5F02;&#x5E38;&#x53EA;&#x6709;&#x5728;&#x8BE5;page&#x88AB;reclaim&#x626B;&#x63CF;&#x5230;&#x540E;&#x624D;&#x4F1A;&#x53D1;&#x751F;, &#x6545;overhead&#x5E76;&#x4E0D;&#x4E25;&#x91CD;.  &lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 01:&#x6982;&#x8FF0;</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_01_overview</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x672C;&#x6587;&#x4E0D;&#x8BA8;&#x8BBA; swapping (swap out to disk).  &lt;/p&gt;
+
+&lt;p&gt;If a seldom-used page is backed by a block device (e.g., memory mappings
+of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
+&#x901A;&#x8FC7;Writing back cached data&#x5373;&#x53EF;&#x5C06;&#x8FD9;&#x4E9B;page&#x91CA;&#x653E;.&lt;/p&gt;
+
+&lt;p&gt;If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. &lt;/p&gt;
+
+&lt;p&gt;&#x5C06; &#x6682;&#x65F6;&#x4E0D;&#x7528;&#x7684; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528;&#x7684;  &#x5185;&#x5B58;&#x56DE;&#x7B3C;/&#x56DE;&#x6536;, &#x7ED9;&#x540E;&#x7EED;&#x5176;&#x4ED6;&#x4EBA;&#x4F7F;&#x7528;. &#x90A3;&#x4E48;, &#x5982;&#x4F55;&#x754C;&#x5B9A; &#x6682;&#x65F6;&#x4E0D;&#x7528; &#x6216; &#x5F88;&#x5C11;&#x4F7F;&#x7528; &#x5462;? &#x8FD9;&#x4E9B;&#x5DF2;&#x5206;&#x914D;&#x51FA;&#x53BB;&#x7684;&#x5185;&#x5B58;&#x90FD;&#x6563;&#x843D;&#x5728;&#x54EA;&#x91CC;?&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6563;&#x843D;&#x5728;&#x54EA;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5982;&#x4F55;&#x627E;&#x5230;&#x8FD9;&#x4E9B;&#x5185;&#x5B58;&#x5462;? &#x5565;&#x94FE;&#x8868;&#x5417;?&lt;br&gt;
+&#x7B54;:see add_to_page_cache_lru(), page_add_new_anon_rmap()&lt;/p&gt;
+
+&lt;p&gt;&#x65B9;&#x5F0F;1:
+add_to_page_cache_lru &#x628A;page&#x6DFB;&#x52A0;&#x5230; both the page cache and the LRU cache. 
+Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+&#x5F53;&#x7136;, &#x5B9E;&#x9645;&#x662F;&#x5148;&#x6DFB;&#x52A0;&#x5230;per cpu&#x7684;struct pagevec&#x4E2D;, &#x7B49;&#x6EE1;&#x4E86;&#x518D;&#x8F6C;&#x79FB;&#x5230;global&#x7684;lru&#x4E2D;.&lt;/p&gt;
+
+&lt;p&gt;&#x65B9;&#x5F0F;2:
+add_to_page_cache_lru &#x5C06;page&#x52A0;&#x5165;tree, &#x6545;&#x53EF;&#x8003;&#x8651;&#x4ECE;&#x5404;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x7684;inode&#x904D;&#x5386;&#x5404;page:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;drop_caches_sysctl_handler -&amp;gt; iterate_supers(drop_pagecache_sb, NULL)
+|--list_for_each_entry(inode, &amp;amp;sb-&amp;gt;s_inodes, i_sb_list)
+|   |--invalidate_mapping_pages(inode-&amp;gt;i_mapping, ...)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x5982;&#x4F55;&#x5224;&#x65AD;rarely used&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5982;&#x4E0A;&#x6240;&#x8FF0;, page&#x7EC4;&#x7EC7;&#x5728;&#x94FE;&#x8868;lru&#x4E2D;. &#x9996;&#x6B21;&#x8BBF;&#x95EE;page&#x4F1A;&#x5C06;page&#x653E;&#x5230;&#x94FE;&#x8868;&#x5F00;&#x5934;,  &#x4E0D;&#x8FC7;, &#x540E;&#x7EED;&#x8BBF;&#x95EE;page, &#x5E76;&#x4E0D;&#x4F1A;&#x628A;page&#x8C03;&#x6574;&#x5230;&#x94FE;&#x8868;lru&#x7684;&#x5F00;&#x5934;.
+&#x4E3A;&#x4E86;&#x533A;&#x5206;&#x4F7F;&#x7528;&#x9891;&#x7387;, &#x5185;&#x6838;&#x5C06;&#x8F83;&#x5C11;&#x4F7F;&#x7528;&#x7684;page&#x653E;&#x5165;inactive list&#x4E2D;. &#x5982;&#x679C;&#x4F7F;&#x7528;&#x76F8;&#x5BF9;&#x9891;&#x7E41;, &#x5219;&#x79FB;&#x52A8;&#x5230;active list&#x4E2D;.&lt;br&gt;
+&#x8FD9;&#x6837;, &#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x4ECE;&#x7279;&#x5B9A;&#x94FE;&#x8868;&#x4E2D;&#x5C1D;&#x8BD5;&#x5BF9;page&#x8FDB;&#x884C;&#x56DE;&#x6536;, &#x56E0;&#x4E3A;&#x8FD9;&#x4E9B;&#x94FE;&#x8868;&#x4E2D;&#x7684;page&#x76F8;&#x5BF9;&#x8F83;&#x5C11;&#x4F7F;&#x7528;.&lt;/p&gt;
+
+&lt;p&gt;&#x9996;&#x6B21;&#x6DFB;&#x52A0;&#x5230;lru&#x7684;&#x8BDD;, &#x901A;&#x5E38;&#x662F;&#x6DFB;&#x52A0;&#x5230;inactive&#x90A3;&#x8FB9;, &#x5BF9;&#x4E8E;&#x533F;&#x540D;&#x9875;&#x6DFB;&#x52A0;&#x5230;active list, see  __do_fault, do_anonymous_page, do_wp_page&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. PG_referenced&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;page&#x5728;active list&#x548C;inactive list&#x4E4B;&#x95F4;&#x8FC1;&#x79FB;, &#x53EF;&#x4EE5;&#x7406;&#x89E3;&#x4E3A;page&#x7684;&#x72B6;&#x6001;&#x8FC1;&#x79FB;&#x4E86;, &#x800C;&#x8FD9;&#x4E24;&#x8005;&#x7684;&#x8FC1;&#x79FB;&#x4EC5;&#x9700;&#x4E00;&#x6B65;, &#x5185;&#x6838;&#x8BA4;&#x4E3A;&#x8FD9;&#x4E2A;&#x4E0D;&#x5408;&#x9002;, &#x5F15;&#x5165;&#x4E86; PG_referenced. &lt;/p&gt;
+
+&lt;p&gt;PG_referenced &#x548C; PG_active &#x7684;&#x533A;&#x522B;&lt;br&gt;
+&#x5728;&#x5F15;&#x5165;PG_referenced&#x4E4B;&#x524D;, When the page is accessed, the flag is set, but when is it going to be removed again? Either the kernel does not remove it automatically, but then the page would remain in the active state forever even if it would only be used very little, or not at all anymore.   &lt;/p&gt;
+
+&lt;p&gt;&#x4E3A;&#x6B64;, &#x6211;&#x4EEC;&#x9700;&#x8981;&#x80FD;&#x591F;&#x8BA4;&#x51FA; &#x6807;&#x8BB0;&#x4E86;PG_active&#x4F46;&#x4E0D;&#x5E38;&#x8BBF;&#x95EE;&#x7684;page.
+&#x5F53;&#x524D;&#x7684;&#x65B9;&#x6CD5;&#x662F;&#x5F15;&#x5165;&#x4E86; PG_referenced &#x8FD9;&#x4E2A;&#x6807;&#x8BB0;.&lt;/p&gt;
+
+&lt;p&gt;page fault&#x4F1A;&#x5C06;page &#x8BBE;&#x7F6E;&#x4E3A;active, &#x90A3;&#x4E48;, &#x662F;&#x5426;&#x4F1A;&#x4E00;&#x76F4;&#x5446;&#x5728;&#x67D0;&#x4E2A;list&#x4E2D;&#x5462;?&lt;br&gt;
+&#x7B54;:&#x4E0D;&#x4F1A;, page_check_references &#x548C; mark_page_accessed &#x53CC;&#x65B9;&#x8FDB;&#x884C;&#x89D2;&#x9010;.&lt;/p&gt;
+
+&lt;p&gt;inactive&#x4E0D;&#x4F1A;&#x76F4;&#x63A5;&#x8F6C;&#x53D8;&#x4E3A;active, &#x8981;&#x5148;unreferenced&#x8F6C;&#x53D8;&#x4E3A;referenced.&lt;br&gt;
+&#x5982;&#x679C;D0&#x8868;&#x793A; PG_referenced , D1&#x8868;&#x793A; PG_active, &#x90A3;&#x4E48;, &#x72B6;&#x6001;&#x8F6C;&#x6362;&#x5373;&#x4E3A;:&lt;br&gt;
+0b00-&amp;gt;0b01-&amp;gt;0b10-&amp;gt;0b11&lt;/p&gt;
+
+&lt;p&gt;&#x5F15;&#x5165;&#x4E4B;&#x540E;, A highly active page has both PG_active and PG_referenced set.&lt;/p&gt;
+
+&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x4F55;&#x5904;&#x8C03;&#x7528; page_check_references &#x548C; mark_page_accessed&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x8C03;&#x7528;page_check_references&#x7684;&#x8DEF;&#x5F84;:  &lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;shrink_inactive_list -&amp;gt; shrink_page_list -&amp;gt; page_check_references
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x5E38;&#x89C1;&#x7684;&#x8C03;&#x7528; mark_page_accessed&#x7684;&#x8DEF;&#x5F84;: &lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;touch_buffer -&amp;gt; mark_page_accessed(bh-&amp;gt;b_page)
+do_generic_file_read -&amp;gt; mark_page_accessed(page)
+generic_perform_write -&amp;gt; mark_page_accessed(page)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4F55;&#x65F6; shrink   PG_referenced, PG_active?&lt;br&gt;
+&#x7B54;: &#x5E38;&#x89C1;&#x7684;&#x6709;direct reclaim &#x548C; kswapd, &#x4EE5;&#x53CA;truncate&#x7B49;.&lt;/p&gt;
+
+&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x5982;&#x4F55;&#x56DE;&#x6536;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5982;&#x6807;&#x9898;1&#x4E2D;&#x7684;&#x5185;&#x5BB9;&#x6240;&#x8FF0;, &#x5BF9;&#x4E8E;&#x6709;&#x5757;&#x8BBE;&#x5907;&#x540E;&#x5907;&#x7684;page, &#x5728;reclaim&#x540E;, &#x82E5;&#x540E;&#x7EED;&#x9700;&#x8981;, &#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x91CD;&#x65B0;&#x8BFB;&#x5165;&#x6765;&#x6062;&#x590D;, &#x6240;&#x4EE5;, &#x53EF;&#x5C06;page&#x7684;&#x5185;&#x5BB9;&#x56DE;&#x5199;&#x5230;&#x540E;&#x5907;&#x8BBE;&#x5907;&#x4E2D;, &#x7136;&#x540E;&#x5F52;&#x8FD8;&#x7ED9;buddy system, see shrink_inactive_list().&lt;/p&gt;
+
+&lt;h1 id="toc_6"&gt;&lt;h4&gt;7. &#x6570;&#x636E;&#x7ED3;&#x6784;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;per zone : active list, inactive list&lt;br&gt;
+per node :kswapd&lt;br&gt;
+per cpu  :lru cache, &#x4E5F;&#x5C31;&#x662F; pagevec  &lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_03_activity</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. page_referenced&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/mm/rmap.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; * Quick test_and_clear_referenced for all mappings to a page,
+ * returns the number of ptes which referenced the page.
+&#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x8FC7;&#x65F6;&#x4E86;, &#x5B9E;&#x9645;&#x529F;&#x80FD;&#x5E76;&#x4E0D;&#x662F;&#x8FD4;&#x56DE;&#x6307;&#x5411;&#x8BE5;page&#x7684;pte&#x7684;&#x4E2A;&#x6570;. 
+
+ &#x95EE;&#x9898;:&#x8FD9;&#x4E2A;&#x51FD;&#x6570;&#x7684;&#x7528;&#x9014;?
+ &#x7B54;:&#x7528;&#x6765;&#x53CD;&#x5E94;&#x5728;inactive list&#x4E2D;&#x7684;page&#x7684;&#x6D3B;&#x8DC3;&#x7A0B;&#x5EA6;.
+ &#x8FD4;&#x56DE;&#x6570;&#x503C;1&#x548C;&#x8FD4;&#x56DE;&#x6570;&#x503C;2&#x662F;&#x6709;&#x533A;&#x522B;&#x7684;, see page_check_references
+ {
+     referenced_ptes = page_referenced(...);
+     if (... || referenced_ptes &amp;gt; 1)
+        return PAGEREF_ACTIVATE;
+
+ }
+ */
+int page_referenced(struct page *page,
+        int is_locked,
+        struct mem_cgroup *memcg,
+        unsigned long *vm_flags)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. L_PTE_YOUNG&#x548C; mark_page_accessed, &#x7528;&#x54EA;&#x4E2A;&#x5462;?&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x6709;&#x4E9B;page&#x662F;&#x5148;kmap, &#x63A5;&#x7740; __copy_to_user, &#x6700;&#x540E;kunmap, &#x8FD9;&#x79CD;&#x4F7F;&#x7528;&#x4E4B;&#x540E; page&#x5C31;&#x88AB; unmap &#x6389;, &#x5982;&#x679C;&#x662F;highmem, &#x901A;&#x8FC7;pte young&#x6807;&#x8BB0;&#x5C31;&#x6CA1;&#x6709;&#x610F;&#x4E49;, &#x6545;&#x91C7;&#x7528;mark page accessed&#x6765;&#x63D0;&#x5347;&#x6D3B;&#x8DC3;&#x5EA6;.
+&#x8FD9;&#x79CD;&#x7C7B;&#x578B;&#x7684;page, &#x6CA1;&#x6709;&#x88AB;&#x8FDB;&#x7A0B;&#x5F15;&#x7528;, &#x56DE;&#x6536;&#x65F6;&#x4E5F;&#x65E0;&#x9700;&#x4FEE;&#x6539;&#x9875;&#x8868;.
+&#x6216;&#x8005;&#x8BF4;, &#x8BE5;page&#x6CA1;&#x6709;&#x548C;&#x8FDB;&#x7A0B;&#x5173;&#x8054;, &#x6545;&#x4E0D;&#x901A;&#x8FC7;&#x9875;&#x8868;&#x6765;&#x6807;&#x8BB0;&#x6D3B;&#x8DC3;&#x5EA6;.&lt;/p&gt;
+
+&lt;p&gt;&#x5BF9;&#x4E8E;&#x548C;&#x8FDB;&#x7A0B;&#x5173;&#x8054;&#x7684;page, L_PTE_YOUNG&#x6CA1;&#x6709;&#x7F6E;&#x4F4D;&#x65F6;, &#x8BBF;&#x95EE;&#x4F1A;&#x53D1;&#x751F;&#x5F02;&#x5E38;, &#x5728;fault handler&#x4E2D;&#x4F1A;&#x7F6E;&#x4F4D;L_PTE_YOUNG, &#x5B8C;&#x6210;&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x6807;&#x8BB0;.
+&#x88AB;&#x626B;&#x63CF;&#x5230;&#x65F6;, &#x5224;&#x65AD;&#x6D3B;&#x8DC3;&#x5EA6;&#x4FE1;&#x606F;&#x540E;, &#x603B;&#x662F;&#x4F1A;&#x88AB;&#x6E05;&#x6389;L_PTE_YOUNG, &#x5982;&#x679C;&#x6709;L_PTE_YOUNG&#x7684;&#x8BDD;.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. page_check_references&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x6D3B;&#x8DC3;&#x7A0B;&#x5EA6; &#x4F53;&#x73B0;&#x5728; &#x4E24;&#x4E2A;&#x65B9;&#x9762;, 
+&#x4E00;&#x4E2A;&#x662F;  &#x8BE5;page&#x53EF;&#x80FD;&#x5728;&#x591A;&#x4E2A;&#x8FDB;&#x7A0B;/&#x7EBF;&#x7A0B;&#x4E2D;&#x88AB;&#x5F15;&#x7528;, &#x8FD9;&#x4E9B;&#x8FDB;&#x7A0B;&#x4E2D;&#x8BE5;page&#x7684;pte&#x7684;young&#x6709;&#x6240;&#x4F53;&#x73B0;,&lt;br&gt;
+&#x53E6;&#x4E00;&#x4E2A;&#x662F; struct page&#x7684;flag PG_referenced, PG_active.&lt;/p&gt;
+
+&lt;p&gt;shrink_inactive_list -&amp;gt; shrink_page_list -&amp;gt; page_check_references&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;static enum page_references page_check_references(struct page *page,
+                      struct scan_control *sc)
+{
+    int referenced_ptes, referenced_page;
+    unsigned long vm_flags;
+
+    referenced_ptes = page_referenced(page, 1, sc-&amp;gt;target_mem_cgroup,
+                      &amp;amp;vm_flags);
+    referenced_page = TestClearPageReferenced(page);
+
+
+    if (referenced_ptes) {
+            SetPageReferenced(page);
+
+        if (referenced_page || referenced_ptes &amp;gt; 1)
+            return PAGEREF_ACTIVATE;
+        ...
+        return PAGEREF_KEEP;
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x95EE;&#x9898;:&#x5982;&#x4F55;&#x7406;&#x89E3;&#x8FD9;&#x91CC;&#x7684; SetPageReferenced?&lt;br&gt;
+&#x7B54;: page_referenced()&#x603B;&#x662F;&#x4F1A;&#x6E05;&#x6389;pte&#x7684;young, &#x5982;&#x679C;&#x8FD9;&#x91CC;(shrink_inactive_list -&amp;gt; .. -&amp;gt; page_check_references)&#x4E0D;SetPageReferenced, 
+&#x76F8;&#x5F53;&#x4E8E;&#x4E00;&#x4E0B;&#x5B50;&#x628A;&#x8F83;&#x6D3B;&#x8DC3;&#x7684;page&#x7684;&#x6D3B;&#x8DC3;&#x5EA6;&#x5168;&#x90E8;&#x62B9;&#x6389;, &#x4F3C;&#x4E4E;&#x5E76;&#x4E0D;&#x5408;&#x9002;, &#x6545;&#x8FD9;&#x91CC;SetPageReferenced&#x7ED9;page&#x4FDD;&#x7559;&#x4E00;&#x70B9;&#x6D3B;&#x8DC3;&#x5EA6;.&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. mm: don&amp;#39;t mark_page_accessed in fault path&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/mm/filemap.c&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;filemap_fault() is invoked via the vma operations vector for a
+mapped memory region to read in file data during a page fault.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code&gt;filemap_fault  
+|--count_vm_event(PGMAJFAULT);  
+|--no_cached_page: page_cache_read(file, offset);  
+|   |--page_cache_alloc_cold  
+|   |--add_to_page_cache_lru -&amp;gt; lru_cache_add_file  
+|   |   |--__lru_cache_add(page, LRU_INACTIVE_FILE)  
+|   |--mapping-&amp;gt;a_ops-&amp;gt;readpage  
+|--retry_find:  page = find_get_page(mapping, offset)  
+|--&lt;del&gt;mark_page_accessed&lt;/del&gt;  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;mm: don&amp;#39;t mark_page_accessed in fault path 
+&lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at unmap-time if the pte is young       has a number of problems.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&#x672C;&#x8865;&#x4E01;&#x4E4B;&#x524D;&#x7684;&#x65B9;&#x5F0F;&#x662F;, &#x5982;&#x679C;
+fault&#x65F6;mark_page_accessed, &#x7136;&#x540E;, unmap&#x65F6;&#x82E5;pte young&#x5219;SetPageReferenced, 
+&#x8FD9;&#x79CD;&#x65B9;&#x5F0F;&#x4F1A;&#x5BFC;&#x81F4;&#x4E00;&#x4E9B;&#x95EE;&#x9898;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;So calling mark_page_accessed not only adds extra lru or PG_referenced manipulations for pages that are already going to have pte_young ptes anyway, but it also adds these references which are difficult to work with from the context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not wish to contribute to the page being referenced).&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&#x6211;&#x4EEC;&#x53CD;&#x6B63;&#x5C31;&#x8981;&#x7ED9;pte&#x7F6E;&#x4F4D;young&#x4E86;, &#x5C31;&#x4E0D;&#x8981;&#x518D;&#x5F04;&#x4E2A;&#x989D;&#x5916;&#x7684;page flag&#x4E86;. &#x800C;&#x4E14;&#x8FD8;&#x4F1A;&#x7ED9; &#x8C01;&#x8C01;&#x8C01; &#x6DFB;&#x5835;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Then, simply doing SetPageReferenced when zapping a pte and finding it is young, is not a really good solution either. SetPageReferenced does not correctly promote the page to the active list for example. So after removing mark_page_accessed from the fault path, several mmap()+touch+munmap() would have a very different result from several read(2) calls for example, which is not really desirable.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&#x4E4B;&#x524D;&#x7684;&#x5904;&#x7406;, &#x5728;&#x7B2C;2&#x56DE;&#x7684; munmap&#x4F1A;&#x628A;&#x4E0A;&#x56DE;&#x7684;&#x4FE1;&#x606F;&#x4E22;&#x5931;&#x6389;, &#x6545;&#x6D3B;&#x8DC3;&#x5EA6;&#x548C; read&#x7684;&#x7ED3;&#x679C;&#x4E0D;&#x540C;.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;4.1 unmap&#x65F6;&#x7684;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;linux-3.10.86/mm/memory.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;zap_pte_range
+{
+    if (PageAnon(page))
+        ...
+    else{
+        if (pte_present(ptent)) {
+                if (pte_young(ptent) &amp;amp;&amp;amp;
+                    likely(!VM_SequentialReadHint(vma)))
+                    /*&#x95EE;&#x9898;:&#x6211;&#x4EEC;&#x662F;&#x5728;unmap, &#x4E3A;&#x4F55;&#x8981;mark accessed?*/
+                    mark_page_accessed(page);
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x95EE;&#x9898;:&#x6211;&#x4EEC;&#x662F;&#x5728;unmap, &#x4E3A;&#x4F55;&#x8981;mark accessed?&lt;br&gt;
+&#x7B54;:&#x7531;&#x4E8E;unmap, &#x5BFC;&#x81F4;&#x539F;&#x5148;&#x901A;&#x8FC7;young&#x6807;&#x8BB0;&#x7684;&#x6D3B;&#x8DC3;&#x5EA6;&#x4FE1;&#x606F;&#x5C06;&#x4F1A;&#x6D88;&#x5931;, &#x6545;&#x6539;&#x7528;mark_page_accessed&#x6765;&#x53CD;&#x6620;&#x8BE5;&#x4FE1;&#x606F;.&lt;/p&gt;
+
+&lt;p&gt;&#x8FD9;&#x662F; &#x975E;if (PageAnon(page))&#x7684;&#x60C5;&#x51B5;, &#x8FD9;&#x6837;&#x5373;&#x4F7F;&#x8131;&#x79BB;pte, &#x8FD8;&#x53EF;&#x901A;&#x8FC7;radix tree&#x627E;&#x5230;&#x8BE5;page,  &#x8FDB;&#x800C;&#x4F7F;&#x7528;&#x4E4B;&#x524D;&#x7684;page&#x5185;&#x5BB9;, &#x8FD9;&#x6837;, &#x6807;&#x8BB0;&#x6D3B;&#x8DC3;&#x5EA6;&#x624D;&#x6709;&#x610F;&#x4E49;.&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_00_references</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;[Professional Linux Kernel Architecture]&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Reducing Memory Access Latency by Satoru Moriya
+&lt;a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf"&gt;http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;[Understanding the Linux Kernel, 3rd Edition]&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 05:page count</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_05_page_count</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline int is_page_cache_freeable(struct page *page)
+{
+
+    /*
+     * A freeable page cache page is referenced only by the caller
+     * that isolated the page, the page cache radix tree and
+     * optional buffer heads at page-&amp;gt;private.
+     */
+    return page_count(page) - page_has_private(page) == 2;
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E3A;&#x4F55;&#x662F;== 2?&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x8C03;&#x7528;&#x8DEF;&#x5F84;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;shrink_inactive_list
+|--lru_add_drain
+|--isolate_lru_pages
+|   |--get_page_unless_zero  //&#x5F15;&#x7528;&#x8BA1;&#x6570;
+|--shrink_page_list   (shrink_page_list&#x4E0D;&#x4F1A;&#x88AB;shrink_active_list&#x8C03;&#x7528;.)
+|   |--pageout
+|   |   |--is_page_cache_freeable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 isolated the page&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x7565;&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 buddy system&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x6CE8;&#x91CA;&#x4E2D;&#x63D0;&#x5230;&amp;quot;the page cache radix tree&amp;quot;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x5E76;&#x4E0D;&#x51C6;&#x786E;, &#x5E94;&#x8BE5;&#x662F;&#x4ECE;buddy system&#x5206;&#x914D;&#x4EA7;&#x751F;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;.&lt;/p&gt;
+
+&lt;p&gt;buddy system&#x7684;get:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
+|   |--get_page_from_freelist
+|   |   |--buffered_rmqueue 
+|   |   |   |--prep_new_page
+|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x5E76;&#x4E0D;&#x662F;radix tree&#x7684;get&#x7684;&#x7406;&#x7531;&#x5982;&#x4E0B;:&lt;br&gt;
+&#x4EE5;do_generic_file_read &#x4E3A;&#x4F8B;, &#x770B;&#x4E0B;page cache&#x7684;get:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;do_generic_file_read
+|--no_cached_page: page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
+|   |--get_page_from_freelist
+|   |   |--buffered_rmqueue 
+|   |   |   |--prep_new_page
+|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
+|--add_to_page_cache_lru
+|   |--add_to_page_cache -&amp;gt; add_to_page_cache_locked
+|   |   |   |--page_cache_get //&#x5F15;&#x7528;&#x8BA1;&#x6570;A
+|   |   |   |--radix_tree_insert
+|   |--lru_cache_add_file -&amp;gt; __lru_cache_add
+|--readpage: mapping-&amp;gt;a_ops-&amp;gt;readpage(filp, page)
+|--ret = actor(desc, page, offset, nr);//&#x6BD4;&#x5982;file_read_actor()
+|--page_cache_release(page); //&#x5F15;&#x7528;&#x8BA1;&#x6570;B
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4F7F;&#x7528;&#x5B8C;&#x540E;, &#x4FEE;&#x6539;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x6545;&#x8FD9;&#x91CC;&#x5BF9;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x6CA1;&#x6709;&#x5F71;&#x54CD;.&lt;/p&gt;
+
+&lt;p&gt;lru&#x7684;&#x8BA1;&#x6570;&#x5462;?&lt;br&gt;
+&#x7B54;:&#x52A0;&#x5165;pagevec&#x4E2D;&#x4F1A;get page, &#x6E05;&#x7A7A;pagevec&#x653E;&#x5165;lru&#x65F6;, &#x4F1A;put page.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 buffer_head&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x82E5;page_has_private()&#x8FD4;&#x56DE;1, &#x5219;page_count&#x4E3A;3&lt;/p&gt;
+
+&lt;p&gt;buffer_head&#x65F6;&#x7684;get page:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;grow_dev_page
+|--find_or_create_page
+|--alloc_page_buffers
+|--link_dev_buffers(page, bh) -&amp;gt; attach_page_buffers
+|   |--page_cache_get
+|   |--set_page_private
+|--page_cache_release(page);  //&#x548C;find_or_create_page&#x4E2D;&#x7684;get &#x5BF9;&#x5E94;
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     <item>
@@ -1320,119 +1515,6 @@ static inline int tasklet_trylock(struct tasklet_struct *t)
         pending &amp;gt;&amp;gt;= 1;
     }while (pending);
 
-}
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;</title>
-      <link>https://awakening-fong.github.io/posts/arm/arm_smp_rwlock</link>
-      <pubDate>2017-01-18</pubDate>
-      <description>&lt;p&gt;&#x6587;&#x6765;&#x81EA;&#x672C;&#x4EBA;&#x7684;&#x65E7;&#x535A;&#x5BA2;: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159&lt;/p&gt;
-
-&lt;p&gt;&#x672C;&#x7BC7;&#x53EA;&#x63D0;&#x95EE;, &#x4E0D;&#x89E3;&#x7B54;, &#x795D;&#x5F00;&#x5FC3;.&lt;/p&gt;
-
-&lt;p&gt;&#x5982;&#x679C;&#x8BFB;&#x5199;&#x9501;&#x662F;unlocked, &#x7136;&#x540E;cpu 0&#x548C;cpu 1&#x90FD;&#x60F3;&#x83B7;&#x53D6;&#x5199;&#x9501;,
-&#x5982;&#x8868;&#x683C;&#x6240;&#x793A;, CPU 0&#x5728;t2&#x65F6;&#x523B;&#x6267;&#x884C;&#x7684;&#x662F;wfene, &#x8FD9;&#x65F6;, CPU 1&#x6267;&#x884C;&#x7684;&#x662F;ldrex, &#x7136;&#x540E;&#x662F;&#x5426;&#x4F1A;&#x6709;cpu&#x80FD;&#x591F;&#x83B7;&#x53D6;&#x5230;&#x9501;?
-&#x6E90;&#x7801;&#x6765;&#x81EA;
-linux-3.10.86/arch/arm/include/asm/spinlock.h
-arch_write_lock()&lt;/p&gt;
-
-&lt;!--
-&#x67E5;&#x770B;&#x6E90;&#x7801;&#x540E;, &#x5C06;&#x7B2C;1&#x4E2A;&lt;table&gt;&#x6539;&#x4E3A;
-&lt;table class="table table-bordered table-striped table-condensed"&gt;
-
-&#x65F6;&#x95F4; | CPU0                      |&#x65F6;&#x95F4;  |CPU1
------|---------------------------|------|----
-t0/t6| 1:    ldrex    %0, [%1]   |      |
-t1/t7| teq    %0, #0             |      |
-t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
-t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
-t4   |teq    %0, #0              |t4    |WFE("ne")
-t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
-t6   |                           |t6    |teq    %0, #0
-t7   |                           |t7    |bne    1b
---&gt;
-
-&lt;table class="table table-bordered table-striped table-condensed"&gt;&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;&#x65F6;&#x95F4;&lt;/th&gt;
-&lt;th&gt;CPU0&lt;/th&gt;
-&lt;th&gt;&#x65F6;&#x95F4;&lt;/th&gt;
-&lt;th&gt;CPU1&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;t0/t6&lt;/td&gt;
-&lt;td&gt;1:    ldrex    %0, [%1]&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t1/t7&lt;/td&gt;
-&lt;td&gt;teq    %0, #0&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t2&lt;/td&gt;
-&lt;td&gt;WFE(&amp;quot;ne&amp;quot;)&lt;/td&gt;
-&lt;td&gt;t2&lt;/td&gt;
-&lt;td&gt;1:    ldrex    %0, [%1]&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t3&lt;/td&gt;
-&lt;td&gt;strexeq    %0, %2, [%1]&lt;/td&gt;
-&lt;td&gt;t3&lt;/td&gt;
-&lt;td&gt;teq    %0, #0&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t4&lt;/td&gt;
-&lt;td&gt;teq    %0, #0&lt;/td&gt;
-&lt;td&gt;t4&lt;/td&gt;
-&lt;td&gt;WFE(&amp;quot;ne&amp;quot;)&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t5&lt;/td&gt;
-&lt;td&gt;bne    1b&lt;/td&gt;
-&lt;td&gt;t5&lt;/td&gt;
-&lt;td&gt;strexeq    %0, %2, [%1]&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t6&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;t6&lt;/td&gt;
-&lt;td&gt;teq    %0, #0&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;t7&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;t7&lt;/td&gt;
-&lt;td&gt;bne    1b&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;&lt;/table&gt;
-
-&lt;p&gt;CPU 0&#x548C;CPU 1&#x90FD;&#x62FF;&#x5230; &#x5199;&#x9501;? &#x4E24;&#x4E2A;CPU&#x90FD;&#x6B7B;&#x5FAA;&#x73AF;? &#x597D;&#x50CF;&#x4E0D;&#x5E94;&#x8BE5;&#x554A;?
-&#x672C;&#x7BC7;&#x53EA;&#x63D0;&#x95EE;, &#x4E0D;&#x89E3;&#x7B54;, &#x795D;&#x5F00;&#x5FC3;. ^_^&lt;/p&gt;
-
-&lt;p&gt;&#x9644; linux-3.10.86/arch/arm/include/asm/spinlock.h&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static inline void arch_write_lock(arch_rwlock_t *rw)
-{
-    unsigned long tmp;
-
-    __asm__ __volatile__(
-&amp;quot;1: ldrex   %0, [%1]\n&amp;quot;
-&amp;quot;   teq %0, #0\n&amp;quot;
-    WFE(&amp;quot;ne&amp;quot;)
-&amp;quot;   strexeq %0, %2, [%1]\n&amp;quot;
-&amp;quot;   teq %0, #0\n&amp;quot;
-&amp;quot;   bne 1b&amp;quot;
-    : &amp;quot;=&amp;amp;r&amp;quot; (tmp)
-    : &amp;quot;r&amp;quot; (&amp;amp;rw-&amp;gt;lock), &amp;quot;r&amp;quot; (0x80000000)
-    : &amp;quot;cc&amp;quot;);
-
-    smp_mb();
 }
 &lt;/code&gt;&lt;/pre&gt;
 </description>

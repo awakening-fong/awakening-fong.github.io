@@ -57,6 +57,38 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_asm">ARM的一些汇编</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. ^后缀</h4></h1>
+
+<p>ARM ® Developer Suite Version 1.2 Assembler Guide P128  </p>
+
+<blockquote>
+<p>4.2.4 LDM and STM<br>
+^ is an optional suffix. You must not use it in User mode or System mode.<br>
+It has two purposes:<br>
+    • If op is LDM and reglist contains the pc (r15), in addition to the normal multiple register transfer, the SPSR is copied into the CPSR. This is for returning from exception handlers. Use this only from exception modes.<br>
+    • Otherwise, data is transferred into or out of the User mode registers instead of the current mode registers.  </p>
+</blockquote>
+
+<p>例如</p>
+
+<ul>
+<li><p>只有当pop/LDM列表中有pc时, 才会cpsr:=spsr.
+例 <code>ldmia sp,{r0-pc}^</code>
+这里^表示 将spsr复制到cpsr.</p></li>
+<li><p><code>stmdb   r0, {sp, lr}^</code>
+这里^表示访问的是usr 模式下的寄存器</p></li>
+</ul>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_asm" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/io/set_buffer_new">set_buffer_new</a> <span class="date">2016-12-31</span></h3>
 
         <div class="summary">

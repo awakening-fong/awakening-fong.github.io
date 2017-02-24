@@ -136,36 +136,183 @@ linux-3.10.86/kernel/fork.c</p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/mmap_fault">mmap和fault handler</a> <span class="date">2017-02-24</span></h3>
 
         <div class="summary ellipsis">
 <h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
-<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
-中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
+<p>我们想知道, 通过mmap映射文件, 然后读取, 是如何读取到文件的, 其中的fault handler相关的内容.</p>
 
-<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
-</code></pre>
+<h1 id="toc_1"><h4>2. ftrace</h4></h1>
 
-<p>为何要-8?  </p>
+<pre><code class="c">#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;strings.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;errno.h&gt;
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+#define MEMSIZE 1024*4
+#define MPFILE "./.ash_history"
 
-<pre><code>static inline struct thread_info *current_thread_info(void)
+//#define ON_OFF //tracing_on
+
+void write_ftrace(char *path, char *val)
 {
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
-}
-</code></pre>
+    char ftrace_d[50]="/sys/kernel/debug/tracing/";
+    int len_d=strlen(ftrace_d);
 
-<p>(图示中A点到B点  大小是8字节)<br>
-如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
-如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
-所以, 需要-8.</p>
+
+    int fd_trace=open(strcat(ftrace_d,path), O_RDWR|O_TRUNC);
+    if (fd_trace &lt; 0) {
+        printf("open %s:%s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    printf("to write:%s %s\n",path,val);
+
+    int ret=write(fd_trace, val, strlen(val));
+    if(ret&lt;0)
+    {
+        printf("write %s %s\n",path,strerror(errno));
+        exit(1);
+    }
+
+
+    if (0==strncmp("trace",path, sizeof("trace")))
+    {
+        close(fd_trace);
+        return;
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd_trace, val_read, sizeof(val_read),0);
+    printf("read val:%s\n",val_read);
+    close(fd_trace);
+
+}
+
+void write_val(char *path, char *val)
+{
+    int fd=open(path, O_RDWR);
+    if (fd &lt; 0) {
+        printf("open %s:%s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    printf("to write:%s %s\n",path, val);
+    int ret=write(fd, val, strlen(val));
+    if(ret&lt;0)
+    {
+        printf("write %s %s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd, val_read, sizeof(val_read),0);
+    printf("read val:%s\n",val_read);
+    close(fd);
+}
+
+
+int main()
+{
+    char *ptr;
+    int fd;
+    int ret=-1;
+    int i=-1;
+
+    fd = open(MPFILE, O_RDWR);
+    if (fd &lt; 0) {
+        perror("open()");
+        exit(1);
+    }
+
+    ptr = mmap(NULL, MEMSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == NULL) {
+        perror("malloc()");
+        exit(1);
+    }
+
+    /*避免page cache干扰*/
+    if( posix_fadvise(fd,0,4096,POSIX_FADV_DONTNEED) != 0) {  
+        printf("Cache FADV_DONTNEED failed, %s\n",strerror(errno));  
+    }  
+    else {  
+        printf("Cache FADV_DONTNEED done\n");  
+    }  
+
+    //mount -t debugfs nodev /sys/kernel/debug/
+    system("mount -t debugfs nodev /sys/kernel/debug/");
+
+
+
+    /*
+    ~ # echo 1 &gt; /proc/sys/kernel/ftrace_enabled
+    */
+
+    write_val("/proc/sys/kernel/ftrace_enabled", "1");
+
+    int pid_cur=getpid();
+    printf("pid:%d\n",pid_cur);
+    char str_pid[25];
+    memset(str_pid,0, sizeof(str_pid));
+    snprintf(str_pid, sizeof(str_pid),"%d", pid_cur);
+    //  /sys/kernel/debug/tracing/set_ftrace_pid
+    write_ftrace("set_ftrace_pid", str_pid);
+
+
+    write_ftrace("tracing_on", "1");
+
+
+    /*# can set other filtering here
+    echo function &gt; ${ROOT_FTRACE}/current_tracer
+    */
+    write_ftrace("current_tracer", "function");
+
+    write_ftrace("trace", "0");
+
+    /*
+    #echo 0 &gt; ${ROOT_FTRACE}/trace
+    echo start_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
+    exec $* 
+    */
+
+    //write_ftrace("trace_marker", "start_trace_marker");
+
+   i=*ptr;  //这个就是我们要跟踪的
+
+
+    /*
+    echo end_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
+    echo 0  &gt; ${ROOT_FTRACE}/tracing_on  #stop record to buffer
+    */
+
+    //write_ftrace("trace_marker", "end_trace_marker");
+
+    write_ftrace("tracing_on", "0");
+    system("cat /sys/kernel/debug/tracing/trace &gt; mmap.ftrace");
+
+    printf("%x\n", i);
+
+
+    munmap(ptr, MEMSIZE);
+    close(fd);
+
+    exit(1);
+}
+
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/thread_start_sp" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -200,74 +347,36 @@ linux-3.10.86/kernel/fork.c</p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
 
-        <div class="summary">
-<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
+<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
+中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
 
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
+<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
+</code></pre>
+
+<p>为何要-8?  </p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<pre><code>static inline struct thread_info *current_thread_info(void)
 {
-    char *tmp;
-    ssize_t ret;
-
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND "sth_will_show_in_dmesg"
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP "sth_will_show_in_dmesg"
-                int fd=open("/dev/kmsg", O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
-
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print("%d 0x%x %d",fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print("buf:%s\n",write_buf);
-            }
-            else
-            {
-                tmp_print("not valid_user_regs\n");
-            }
-
-
-        }
-        //end add
-        ret = printk("%s", tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
 }
 </code></pre>
+
+<p>(图示中A点到B点  大小是8字节)<br>
+如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
+如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
+所以, 需要-8.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/thread_start_sp" class="btn btn-small">read more..</a>
         </div>
       </div>
     

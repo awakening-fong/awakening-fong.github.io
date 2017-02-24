@@ -57,6 +57,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_00_implementation">调度器CFS的实现</a> <span class="date">2017-01-10</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 概述</h4></h1>
+
+<p>主要视角是, 考虑要多久才能轮到某个进程的运行, (称之为targeted preemption latency) 而不是每个进程分配多少份的时间片.</p>
+
+<p>对单个进程 达到 时间段t1内被至少调度一次到, 对所有的进程都达到的话, 就是, 时间段t1内所有进程都跑一遍.
+the interval during which every runnable task should run at least once.
+这个时间段t1我们成为 one latency period.</p>
+
+<p>本文仅讨论SCHED_NORMAL.
+且没有使能CONFIG_FAIR_GROUP_SCHED. 内核版本3.10.</p>
+
+<h1 id="toc_1"><h4>2. 时间的计算</h4></h1>
+
+<p>等了多久, 具体如何量化?<br>
+每次计算时间, 若是逐个给每个TASK_RUNNING进程计算, 这样势必低效,
+所以, 实现上, 不应该是逐个进程判断等待的时间.<br>
+当前的实现是, 记录各进程运行所占用的时间, 运行占用时间的另一面, 就是 没有运行. 一个进程运行时间久, 其他进程没有运行或者等待的时间就久. 故可以仅记录运行时间来反应等待时间, 这个运行的时间记为vruntime.</p>
+
+<h3 id="toc_2"><h4>2.1 vruntime</h4></h3>
+
+<p>virtual run time, 运行时间经加权后的数据, 加权方法为</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_00_implementation" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/io/deadline-iosched">deadline-iosched</a> <span class="date">2017-01-06</span></h3>
 
         <div class="summary ellipsis">
@@ -165,40 +196,6 @@ generic_file_aio_read -&gt; do_generic_file_read -&gt;  page_cache_async_readahe
 
         <div class="more">
           <a href="/posts/io/readahead" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/io/writeback_routine">回写路径</a> <span class="date">2017-01-01</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>方式1. 前期tag dirty</h4></h1>
-
-<p>linux-3.10.86/mm/page-writeback.c</p>
-
-<pre><code class="c">
-write_cache_pages
-{
-
-    while (...) {
-
-        nr_pages = pagevec_lookup_tag(&amp;pvec, mapping, &amp;index, tag,
-                  min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
-        if (nr_pages == 0)
-            break;
-
-        ...
-            lock_page(page);
-        ...
-            /*常见的有__mpage_writepage 或者 __writepage*/
-            ret = (*writepage)(page, wbc, data);
-
-
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/io/writeback_routine" class="btn btn-small">read more..</a>
         </div>
       </div>
     
