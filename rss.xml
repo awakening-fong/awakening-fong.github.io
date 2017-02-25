@@ -4,7 +4,7 @@
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2017-02-24</pubDate>
+    <pubDate>2017-02-25</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -30,35 +30,35 @@
   &lt;h2&gt;2017&lt;/h2&gt;
     &lt;h3&gt;February&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_frozen"&gt;SLUB 02:frozen&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-12&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_slab_alloc"&gt;SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-11&lt;/span&gt; &amp;raquo; &lt;a href="/posts/scheduler/scheduler_02_preempt"&gt;&#x4EC5;&#x68C0;&#x67E5;TIF_NEED_RESCHED,&#x4E0D;&#x68C0;&#x67E5;preempt_count?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-11&lt;/span&gt; &amp;raquo; &lt;a href="/posts/scheduler/scheduler_01_lost_wake-up"&gt;&#x8C03;&#x5EA6;&#x5668;, &#x4ECE;lost wake-up problem&#x8BF4;&#x8D77;&lt;/a&gt;&lt;/li&gt;
@@ -66,22 +66,22 @@
       &lt;li&gt;&lt;span&gt;2017-01-10&lt;/span&gt; &amp;raquo; &lt;a href="/posts/scheduler/scheduler_00_implementation"&gt;&#x8C03;&#x5EA6;&#x5668;CFS&#x7684;&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-06&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/deadline-iosched"&gt;deadline-iosched&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-04&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/generic_make_request"&gt;generic_make_request&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/readahead"&gt;do_generic_file_read&#x4E2D;&#x7684;readahead&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
     &lt;h3&gt;December&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/arm_kthread_do_exit"&gt;&#x5173;&#x4E8E;arm linux&#x4E2D;kthread()&#x4E2D;&#x7684;do_exit()&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/generic_perform_write"&gt;generic_perform_write&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/kthread_park_unpark"&gt;&#x5185;&#x6838;&#x7EBF;&#x7A0B;&#x7684;park&#x548C;unpark&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/generic_perform_write"&gt;generic_perform_write&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/set_buffer_new"&gt;set_buffer_new&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/flush_dcache_page"&gt;flush_dcache_page&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asm"&gt;ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/set_buffer_new"&gt;set_buffer_new&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-31&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/arm_kthread_do_exit"&gt;&#x5173;&#x4E8E;arm linux&#x4E2D;kthread()&#x4E2D;&#x7684;do_exit()&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/read_write_lock_page"&gt;&#x8BFB;&#x5199;&#x51FD;&#x6570;&#x4E2D;&#x7684;lock_page&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/field_of_bh_and_address_space"&gt;address_space&#x548C;buffer_head&#x7684;&#x4E00;&#x4E9B;field&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2016-12-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
 </description>
     </item>
@@ -91,7 +91,7 @@
       <description>
 &lt;ul class="tag_box inline"&gt;
   &lt;li&gt;
-    &lt;a href="/categories#ARM-ref"&gt;ARM &lt;span&gt;10&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#ARM-ref"&gt;ARM &lt;span&gt;11&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -103,7 +103,10 @@
     &lt;a href="/categories#I/O-ref"&gt;I/O &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; &lt;span&gt;16&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;/features-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406;/features &lt;span&gt;11&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#other-ref"&gt;other &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
@@ -116,7 +119,7 @@
   &lt;/li&gt;
 &lt;/ul&gt;
 
-  &lt;h3&gt;ARM (10)&lt;/h3&gt;
+  &lt;h3&gt;ARM (11)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/arm/arm_asm"&gt;ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;&lt;/a&gt;&lt;/li&gt;
@@ -128,6 +131,7 @@
       &lt;li&gt;&lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
   &lt;h3&gt;file system (1)&lt;/h3&gt;
   &lt;ul&gt;
@@ -149,11 +153,15 @@
       &lt;li&gt;&lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; (16)&lt;/h3&gt;
+  &lt;h3&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; (4)&lt;/h3&gt;
   &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/flush_dcache_page"&gt;flush_dcache_page&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h3&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406;/features (11)&lt;/h3&gt;
+  &lt;ul&gt;
       &lt;li&gt;&lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
@@ -165,8 +173,6 @@
       &lt;li&gt;&lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/slub_slab_alloc"&gt;SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
   &lt;h3&gt;other (3)&lt;/h3&gt;
   &lt;ul&gt;
@@ -191,6 +197,37 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt; &lt;span class="date"&gt;2017-02-24&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x6458;&#x81EA;APUE:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x7531;&#x4E8E;&#x5728;fork&#x4E4B;&#x540E;&#x8FDB;&#x7A0B;&#x8DDF;&#x968F;&#x7740;exec, &#x6240;&#x4EE5;&#x73B0;&#x5728;&#x7684;&#x5F88;&#x591A;&#x5B9E;&#x73B0;&#x5E76;&#x4E0D;&#x6267;&#x884C;&#x4E00;&#x4E2A;&#x7236;&#x8FDB;&#x7A0B;&#x6570;&#x636E;&#x6BB5;, &#x6808;&#x548C;&#x5806;&#x7684;&#x5B8C;&#x5168;&#x590D;&#x5236;. &#x4F5C;&#x4E3A;&#x66FF;&#x4EE3;, &#x4F7F;&#x7528;&#x4E86;COW&#x6280;&#x672F;. &#x8FD9;&#x4E9B;&#x533A;&#x57DF;&#x7531;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x5171;&#x4EAB;, &#x800C;&#x4E14;&#x5185;&#x6838;&#x5C06;&#x5B83;&#x4EEC;&#x7684;&#x8BBF;&#x95EE;&#x6743;&#x9650;&#x6539;&#x53D8;&#x4E3A;&#x53EA;&#x8BFB;&#x7684;. &#x5982;&#x679C;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x4E2D;&#x7684;&#x4EFB;&#x4E00;&#x4E2A;&#x8BD5;&#x56FE;&#x4FEE;&#x6539;&#x8FD9;&#x4E9B;&#x533A;&#x57DF;, &#x5219;&#x5185;&#x6838;&#x53EA;&#x4E3A;&#x4FEE;&#x6539;&#x533A;&#x57DF;&#x7684;&#x90A3;&#x5757;&#x5185;&#x5B58;&#x5236;&#x4F5C;&#x4E00;&#x4E2A;&#x526F;&#x672C;, &#x901A;&#x5E38;&#x662F;&#x865A;&#x62DF;&#x5B58;&#x50A8;&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4E00;"&#x9875;".  &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&#x95EE;&#x9898;:&#x54EA;&#x91CC;&#x8BBE;&#x7F6E;&#x53EA;&#x8BFB;, &#x5982;&#x4F55;&#x77E5;&#x9053;&#x53EA;&#x8BFB;?&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5FEB;&#x901F;tips:&lt;br&gt;
+PTE entry is marked as un-writeable.&lt;br&gt;
+But VMA is marked as writeable.  &lt;/p&gt;
+
+&lt;p&gt;copy_one_pte()&#x4F1A;&#x8C03;&#x7528; ptep_set_wrprotect()&lt;/p&gt;
+
+&lt;p&gt;&#x8FD8;&#x662F;&#x5148;&#x4ECE;dup_mm()&#x5F00;&#x59CB;&#x770B;&#x5427;.&lt;br&gt;
+linux-3.10.86/kernel/fork.c&lt;/p&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/mm/do_fork_cow" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt; &lt;span class="date"&gt;2017-02-24&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -236,37 +273,6 @@ __vmalloc_area_node
 
   &lt;div class="more"&gt;
     &lt;a href="/posts/mm/vmalloc" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt; &lt;span class="date"&gt;2017-02-24&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6458;&#x81EA;APUE:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;&#x7531;&#x4E8E;&#x5728;fork&#x4E4B;&#x540E;&#x8FDB;&#x7A0B;&#x8DDF;&#x968F;&#x7740;exec, &#x6240;&#x4EE5;&#x73B0;&#x5728;&#x7684;&#x5F88;&#x591A;&#x5B9E;&#x73B0;&#x5E76;&#x4E0D;&#x6267;&#x884C;&#x4E00;&#x4E2A;&#x7236;&#x8FDB;&#x7A0B;&#x6570;&#x636E;&#x6BB5;, &#x6808;&#x548C;&#x5806;&#x7684;&#x5B8C;&#x5168;&#x590D;&#x5236;. &#x4F5C;&#x4E3A;&#x66FF;&#x4EE3;, &#x4F7F;&#x7528;&#x4E86;COW&#x6280;&#x672F;. &#x8FD9;&#x4E9B;&#x533A;&#x57DF;&#x7531;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x5171;&#x4EAB;, &#x800C;&#x4E14;&#x5185;&#x6838;&#x5C06;&#x5B83;&#x4EEC;&#x7684;&#x8BBF;&#x95EE;&#x6743;&#x9650;&#x6539;&#x53D8;&#x4E3A;&#x53EA;&#x8BFB;&#x7684;. &#x5982;&#x679C;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x4E2D;&#x7684;&#x4EFB;&#x4E00;&#x4E2A;&#x8BD5;&#x56FE;&#x4FEE;&#x6539;&#x8FD9;&#x4E9B;&#x533A;&#x57DF;, &#x5219;&#x5185;&#x6838;&#x53EA;&#x4E3A;&#x4FEE;&#x6539;&#x533A;&#x57DF;&#x7684;&#x90A3;&#x5757;&#x5185;&#x5B58;&#x5236;&#x4F5C;&#x4E00;&#x4E2A;&#x526F;&#x672C;, &#x901A;&#x5E38;&#x662F;&#x865A;&#x62DF;&#x5B58;&#x50A8;&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4E00;"&#x9875;".  &lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x95EE;&#x9898;:&#x54EA;&#x91CC;&#x8BBE;&#x7F6E;&#x53EA;&#x8BFB;, &#x5982;&#x4F55;&#x77E5;&#x9053;&#x53EA;&#x8BFB;?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5FEB;&#x901F;tips:&lt;br&gt;
-PTE entry is marked as un-writeable.&lt;br&gt;
-But VMA is marked as writeable.  &lt;/p&gt;
-
-&lt;p&gt;copy_one_pte()&#x4F1A;&#x8C03;&#x7528; ptep_set_wrprotect()&lt;/p&gt;
-
-&lt;p&gt;&#x8FD8;&#x662F;&#x5148;&#x4ECE;dup_mm()&#x5F00;&#x59CB;&#x770B;&#x5427;.&lt;br&gt;
-linux-3.10.86/kernel/fork.c&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/do_fork_cow" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
@@ -481,36 +487,74 @@ int main()
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt; &lt;span class="date"&gt;2017-02-23&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt; &lt;span class="date"&gt;2017-02-23&lt;/span&gt;&lt;/h3&gt;
 
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+  &lt;div class="summary"&gt;
+&lt;p&gt;&#x57FA;&#x4E8E; linux-2.6.35.7/drivers/char/mem.c&lt;/p&gt;
 
-&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
-&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#include &amp;lt;asm/ptrace.h&amp;gt;
+#include &amp;lt;asm/uaccess.h&amp;gt;
 
-&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+static ssize_t kmsg_write(struct file *file, const char __user *buf,
+              size_t count, loff_t *ppos)
 {
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+    char *tmp;
+    ssize_t ret;
+
+    tmp = kmalloc(count + 1, GFP_KERNEL);
+    if (tmp == NULL)
+        return -ENOMEM;
+    ret = -EFAULT;
+    if (!copy_from_user(tmp, buf, count)) {
+        tmp[count] = 0;
+        //add
+        #define STR_FOUND "sth_will_show_in_dmesg"
+        if(NULL!=strstr(tmp,STR_FOUND))
+        {
+            struct pt_regs *usr_regs; 
+            usr_regs=task_pt_regs(current); 
+            if(valid_user_regs(usr_regs))
+            {
+                int fd=usr_regs-&amp;gt;ARM_r0;
+                char *write_buf=usr_regs-&amp;gt;ARM_r1;
+                int len=usr_regs-&amp;gt;ARM_r2;
+                /*&#x7528;&#x6237;&#x6001;&#x7A0B;&#x5E8F;:
+                #define STR_TMP "sth_will_show_in_dmesg"
+                int fd=open("/dev/kmsg", O_WRONLY);
+                write(fd,STR_TMP,strlen(STR_TMP));
+                */
+
+                /*
+                &#x5185;&#x6838;&#x6253;&#x5370;:
+                kmsg_write(),969:3 0x6fee0 22
+                kmsg_write(),971:buf:sth_will_show_in_dmesg
+                &#x4E5F;&#x5C31;&#x662F;&#x6253;&#x5370;&#x51FA;&#x4E86; &#x7528;&#x6237;&#x6001;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;
+                */
+                tmp_print("%d 0x%x %d",fd,write_buf,len);
+                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
+                    tmp_print("buf:%s\n",write_buf);
+            }
+            else
+            {
+                tmp_print("not valid_user_regs\n");
+            }
+
+
+        }
+        //end add
+        ret = printk("%s", tmp);
+        if (ret &amp;gt; count)
+            /* printk can add a prefix */
+            ret = count;
+    }
+    kfree(tmp);
+    return ret;
 }
 &lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
-&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/thread_start_sp" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/other/pt_regs_for_debug" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -564,16 +608,19 @@ int main()
     &lt;a href="/tags#ARM-ref"&gt;ARM &lt;span&gt;11&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#&#x9875;&#x8868;-ref"&gt;&#x9875;&#x8868; &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#&#x9875;&#x8868;-ref"&gt;&#x9875;&#x8868; &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#assembly-ref"&gt;assembly &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#exception-ref"&gt;exception &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#exception-ref"&gt;exception &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#qemu-ref"&gt;qemu &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#thread_info-ref"&gt;thread_info &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#ext2-ref"&gt;ext2 &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -615,12 +662,6 @@ int main()
     &lt;a href="/tags#SLUB-ref"&gt;SLUB &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#THREAD_START_SP-ref"&gt;THREAD_START_SP &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#THREAD_SIZE-ref"&gt;THREAD_SIZE &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
     &lt;a href="/tags#vmalloc-ref"&gt;vmalloc &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -654,16 +695,20 @@ int main()
     &lt;li&gt;&lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="assembly-ref"&gt;assembly&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_asm"&gt;ARM&#x7684;&#x4E00;&#x4E9B;&#x6C47;&#x7F16;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="exception-ref"&gt;exception&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="qemu-ref"&gt;qemu&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="thread_info-ref"&gt;thread_info&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ext2-ref"&gt;ext2&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="IIC-ref"&gt;IIC&lt;/h3&gt;
@@ -702,10 +747,6 @@ int main()
     &lt;li&gt;&lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/slub_slab_alloc"&gt;SLUB 01:the SLUB allocator&#x7684;&#x76F8;&#x5173;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x548C;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="THREAD_START_SP-ref"&gt;THREAD_START_SP&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="THREAD_SIZE-ref"&gt;THREAD_SIZE&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/mm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="vmalloc-ref"&gt;vmalloc&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/mm/vmalloc"&gt;__vmalloc_area_node&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="kthread-ref"&gt;kthread&lt;/h3&gt;

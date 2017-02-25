@@ -10,5 +10,5 @@ navigation :
   - archive
   - tags
   - categories
-  - pages
+#  - pages
   - about-me

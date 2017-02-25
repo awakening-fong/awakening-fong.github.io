@@ -41,9 +41,6 @@
                 <li><a href="/categories">Categories</a></li>
               
               
-                <li><a href="/pages">Pages</a></li>
-              
-              
                 <li><a href="/about-me">About Me</a></li>
               
           </ul>
@@ -66,16 +63,19 @@
     <a href="/tags#ARM-ref">ARM <span>11</span></a>
   </li>
   <li>
-    <a href="/tags#页表-ref">页表 <span>4</span></a>
+    <a href="/tags#页表-ref">页表 <span>5</span></a>
   </li>
   <li>
     <a href="/tags#assembly-ref">assembly <span>1</span></a>
   </li>
   <li>
-    <a href="/tags#exception-ref">exception <span>4</span></a>
+    <a href="/tags#exception-ref">exception <span>5</span></a>
   </li>
   <li>
     <a href="/tags#qemu-ref">qemu <span>2</span></a>
+  </li>
+  <li>
+    <a href="/tags#thread_info-ref">thread_info <span>1</span></a>
   </li>
   <li>
     <a href="/tags#ext2-ref">ext2 <span>1</span></a>
@@ -117,12 +117,6 @@
     <a href="/tags#SLUB-ref">SLUB <span>4</span></a>
   </li>
   <li>
-    <a href="/tags#THREAD_START_SP-ref">THREAD_START_SP <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#THREAD_SIZE-ref">THREAD_SIZE <span>1</span></a>
-  </li>
-  <li>
     <a href="/tags#vmalloc-ref">vmalloc <span>1</span></a>
   </li>
   <li>
@@ -156,16 +150,20 @@
     <li><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a></li>
     <li><a href="/posts/arm/arm_iounmap_master_table">arm linux的iounmap()如何处理主页表(master page table)的同步</a></li>
     <li><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a></li>
+    <li><a href="/posts/mm/do_fork_cow">do_fork和COW</a></li>
   <h3 id="assembly-ref">assembly</h3>
     <li><a href="/posts/arm/arm_asm">ARM的一些汇编</a></li>
   <h3 id="exception-ref">exception</h3>
     <li><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a></li>
     <li><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a></li>
+    <li><a href="/posts/mm/do_fork_cow">do_fork和COW</a></li>
     <li><a href="/posts/mm/mmap_fault">mmap和fault handler</a></li>
     <li><a href="/posts/mm/reclaim_06_arm_l_pte_young">page reclaim 06:ARM和L_PTE_YOUNG</a></li>
   <h3 id="qemu-ref">qemu</h3>
     <li><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a></li>
     <li><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a></li>
+  <h3 id="thread_info-ref">thread_info</h3>
+    <li><a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a></li>
   <h3 id="ext2-ref">ext2</h3>
     <li><a href="/posts/fs/ext2_layout">ext2 disk layout</a></li>
   <h3 id="IIC-ref">IIC</h3>
@@ -204,10 +202,6 @@
     <li><a href="/posts/mm/slub_partial">SLUB 03:partial和cpu partial</a></li>
     <li><a href="/posts/mm/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a></li>
     <li><a href="/posts/mm/slub_tid">SLUB 04:tid</a></li>
-  <h3 id="THREAD_START_SP-ref">THREAD_START_SP</h3>
-    <li><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a></li>
-  <h3 id="THREAD_SIZE-ref">THREAD_SIZE</h3>
-    <li><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a></li>
   <h3 id="vmalloc-ref">vmalloc</h3>
     <li><a href="/posts/mm/vmalloc">__vmalloc_area_node</a></li>
   <h3 id="kthread-ref">kthread</h3>

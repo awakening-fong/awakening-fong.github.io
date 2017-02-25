@@ -41,9 +41,6 @@
                 <li><a href="/categories">Categories</a></li>
               
               
-                <li><a href="/pages">Pages</a></li>
-              
-              
                 <li><a href="/about-me">About Me</a></li>
               
           </ul>
@@ -61,6 +58,37 @@
 <div class="row-fluid">
   <div class="span12">
     <div class="post">
+  <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>摘自APUE:</p>
+
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
+
+<p>问题:哪里设置只读, 如何知道只读?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
+
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
+
+</div>
+
+  <div class="more">
+    <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
   <h3 class="title"><a href="/posts/mm/vmalloc">__vmalloc_area_node</a> <span class="date">2017-02-24</span></h3>
 
   <div class="summary ellipsis">
@@ -106,37 +134,6 @@ __vmalloc_area_node
 
   <div class="more">
     <a href="/posts/mm/vmalloc" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
   </div>
 </div>
 <div class="post">
@@ -351,36 +348,74 @@ int main()
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/mm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+  <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
 
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+  <div class="summary">
+<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
 
-<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
-中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
+<pre><code>#include &lt;asm/ptrace.h&gt;
+#include &lt;asm/uaccess.h&gt;
 
-<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
-</code></pre>
-
-<p>为何要-8?  </p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<pre><code>static inline struct thread_info *current_thread_info(void)
+static ssize_t kmsg_write(struct file *file, const char __user *buf,
+              size_t count, loff_t *ppos)
 {
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+    char *tmp;
+    ssize_t ret;
+
+    tmp = kmalloc(count + 1, GFP_KERNEL);
+    if (tmp == NULL)
+        return -ENOMEM;
+    ret = -EFAULT;
+    if (!copy_from_user(tmp, buf, count)) {
+        tmp[count] = 0;
+        //add
+        #define STR_FOUND "sth_will_show_in_dmesg"
+        if(NULL!=strstr(tmp,STR_FOUND))
+        {
+            struct pt_regs *usr_regs; 
+            usr_regs=task_pt_regs(current); 
+            if(valid_user_regs(usr_regs))
+            {
+                int fd=usr_regs-&gt;ARM_r0;
+                char *write_buf=usr_regs-&gt;ARM_r1;
+                int len=usr_regs-&gt;ARM_r2;
+                /*用户态程序:
+                #define STR_TMP "sth_will_show_in_dmesg"
+                int fd=open("/dev/kmsg", O_WRONLY);
+                write(fd,STR_TMP,strlen(STR_TMP));
+                */
+
+                /*
+                内核打印:
+                kmsg_write(),969:3 0x6fee0 22
+                kmsg_write(),971:buf:sth_will_show_in_dmesg
+                也就是打印出了 用户态传递的参数
+                */
+                tmp_print("%d 0x%x %d",fd,write_buf,len);
+                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
+                    tmp_print("buf:%s\n",write_buf);
+            }
+            else
+            {
+                tmp_print("not valid_user_regs\n");
+            }
+
+
+        }
+        //end add
+        ret = printk("%s", tmp);
+        if (ret &gt; count)
+            /* printk can add a prefix */
+            ret = count;
+    }
+    kfree(tmp);
+    return ret;
 }
 </code></pre>
-
-<p>(图示中A点到B点  大小是8字节)<br>
-如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
-如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
-所以, 需要-8.</p>
 </div>
 
   <div class="more">
-    <a href="/posts/mm/thread_start_sp" class="btn btn-small">read more..</a>
+    <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
   </div>
 </div>
 
