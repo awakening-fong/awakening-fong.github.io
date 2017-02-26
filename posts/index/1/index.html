@@ -54,82 +54,68 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+        <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
 
-<p>摘自APUE:</p>
+<p>linux-3.10.86/arch/arm/mm/fault.c</p>
 
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
+<pre><code>static int __kprobes
+do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+{
 
-<p>问题:哪里设置只读, 如何知道只读?</p>
+    if (!user_mode(regs))
+        goto no_context;
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
 
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
+no_context:
+    __do_kernel_fault(mm, addr, fsr, regs);
+    return 0;
+}
+</code></pre>
 
-<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
+<p>所以,  用户态(user_mode(regs))发起的 读或写 , 
+copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup_exception的.
+(fixup_exception 仅会被 __do_kernel_fault调用.)</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/vmalloc">__vmalloc_area_node</a> <span class="date">2017-02-24</span></h3>
+        <h3 class="title"><a href="/posts/mm/vmalloc_ds">vmalloc的数据组织</a> <span class="date">2017-02-25</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1.__vmalloc_node()</h4></h1>
+<h1 id="toc_0"><h4>1. vm_struct和vmap_area</h4></h1>
 
-<pre><code>__vmalloc_node -&gt; __vmalloc_node_range
- *  Allocate enough pages to cover @size from the page level
- *  allocator with @gfp_mask flags.  Map them into contiguous
- *  kernel virtual space, using a pagetable protection of @prot.
- 所以, 我们需要
-1. 找一个可用的虚拟地址空间
-2. 把 够分量的@size, 可以物理地址上非连续的, 符合@gfp_mask的 page 分配出来
-3. 虚拟地址和 物理地址 关联上, 并设置相应的 权限@prot.
+<p>vmalloc分配出来的区间  用 vm_struct 表示.</p>
 
-__vmalloc_node_range
-|--struct vm_struct *area=__get_vm_area_node
-|--__vmalloc_area_node
-|   |--alloc_page
-|   |--map_vm_area
+<p>linux-3.10.86/include/linux/vmalloc.h</p>
+
+<pre><code>struct vm_struct {
+    struct vm_struct    *next;
+    ...
+};
 </code></pre>
 
-<p>map_vm_area()将struct vm_struct和struct page关联起来.</p>
+<p>vm_struct 是通过单向链表把vmalloc区域串起来的, 
+但要找寻一个区域的话, 单向链表的效率就太低了, 所以, 
+有struct vmap_area, 且用红黑树vmap_area_root来管理.</p>
 
-<pre><code>map_vm_area ==&gt; vmap_page_range
-|--vmap_page_range_noflush  改写页表, 但如函数名所说的, 不执行flush
-|--flush_cache_vmap
-
-vmap_page_range_noflush
-|...
-|--vmap_pte_range
-
-
-
-__vmalloc_area_node
+<pre><code>struct vm_struct * __get_vm_area_node(...)
 {
-    /*问题:为何这里是 减去PAGE_SIZE ? */
-    nr_pages = (area-&gt;size - PAGE_SIZE) &gt;&gt; PAGE_SHIFT;
-    ...
-
+    alloc_vmap_area
+    {
+        搜索 vmap_area_root
+    }
 }
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/vmalloc" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/vmalloc_ds" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -313,105 +299,82 @@ int main()
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/vmalloc">__vmalloc_area_node</a> <span class="date">2017-02-24</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+<h1 id="toc_0"><h4>1.__vmalloc_node()</h4></h1>
 
-<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+<pre><code>__vmalloc_node -&gt; __vmalloc_node_range
+ *  Allocate enough pages to cover @size from the page level
+ *  allocator with @gfp_mask flags.  Map them into contiguous
+ *  kernel virtual space, using a pagetable protection of @prot.
+ 所以, 我们需要
+1. 找一个可用的虚拟地址空间
+2. 把 够分量的@size, 可以物理地址上非连续的, 符合@gfp_mask的 page 分配出来
+3. 虚拟地址和 物理地址 关联上, 并设置相应的 权限@prot.
 
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+__vmalloc_node_range
+|--struct vm_struct *area=__get_vm_area_node
+|--__vmalloc_area_node
+|   |--alloc_page
+|   |--map_vm_area
+</code></pre>
 
-<p>2.1   HZ 设置为 250, 1000等.</p>
+<p>map_vm_area()将struct vm_struct和struct page关联起来.</p>
 
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+<pre><code>map_vm_area ==&gt; vmap_page_range
+|--vmap_page_range_noflush  改写页表, 但如函数名所说的, 不执行flush
+|--flush_cache_vmap
 
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+vmap_page_range_noflush
+|...
+|--vmap_pte_range
 
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
 
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
 
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
-
-<p>hash应该也算这个类别.</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
-
-        <div class="summary">
-<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
-
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
-
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
+__vmalloc_area_node
 {
-    char *tmp;
-    ssize_t ret;
+    /*问题:为何这里是 减去PAGE_SIZE ? */
+    nr_pages = (area-&gt;size - PAGE_SIZE) &gt;&gt; PAGE_SHIFT;
+    ...
 
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND "sth_will_show_in_dmesg"
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP "sth_will_show_in_dmesg"
-                int fd=open("/dev/kmsg", O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
-
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print("%d 0x%x %d",fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print("buf:%s\n",write_buf);
-            }
-            else
-            {
-                tmp_print("not valid_user_regs\n");
-            }
-
-
-        }
-        //end add
-        ret = printk("%s", tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
 }
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/vmalloc" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>摘自APUE:</p>
+
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
+
+<p>问题:哪里设置只读, 如何知道只读?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
+
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -426,6 +389,7 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
           <li><a href="/posts/index/7">7</a></li>
           <li><a href="/posts/index/8">8</a></li>
           <li><a href="/posts/index/9">9</a></li>
+          <li><a href="/posts/index/10">10</a></li>
       </ul>
     </div>
   </div>

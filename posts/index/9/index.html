@@ -54,6 +54,70 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
+</p>
+
+<p><img src="/assets/media/park_unpark.jpg"></p>
+
+<p>上图为smpboot_register_percpu_thread(), kthread_create_on_cpu(), kthread_create_on_node(), kthreadd()和kthread()之间的关系.</p>
+
+<p><img src="/assets/media/cpu_hotplug.jpg"></p>
+
+<p>上图为cpu hotplug对内核线程的操作, 以smpboot_thread_fn()为例.</p>
+
+<p>内核启动时, smpboot_register_percpu_thread()创建,绑定并启动primary cpu的内核线程, 并挂到链表hotplug_threads上.</p>
+
+<p>linux-3.10.86/kernel/smpboot.c</p>
+
+<pre><code>smpboot_register_percpu_thread
+{
+    __smpboot_create_thread(plug_thread, cpu);
+    smpboot_unpark_thread(plug_thread, cpu);
+    list_add(&amp;plug_thread-&gt;list, &amp;hotplug_threads);
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/kthread_park_unpark" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. flush_dcache_page的实现</h4></h1>
+
+<p>问题:flush_dcache_page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
+
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+{
+    /*
+     * Writeback ...
+    */
+
+}
+</code></pre>
+
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/arm/arm_asm">ARM的一些汇编</a> <span class="date">2016-12-31</span></h3>
 
         <div class="summary ellipsis">
@@ -117,19 +181,6 @@ http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/read_write_lock_page">读写函数中的lock_page</a> <span class="date">2016-12-30</span></h3>
-
-        <div class="summary">
-do_generic_file_read和generic_perform_write中对锁的处理.  <br>  
-从磁盘读到RAM中的过程中, page需要处于lock状态.  <br>
-把用户的数据拷贝到page cahe, 该过程也要处理好lock page问题.
-</div>
-
-        <div class="more">
-          <a href="/posts/io/read_write_lock_page" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/io/field_of_bh_and_address_space">address_space和buffer_head的一些field</a> <span class="date">2016-12-30</span></h3>
 
         <div class="summary ellipsis">
@@ -160,21 +211,6 @@ sync_mapping_buffers(struct address_space *mapping)
           <a href="/posts/io/field_of_bh_and_address_space" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/fs/ext2_layout">ext2 disk layout</a> <span class="date">2016-12-30</span></h3>
-
-        <div class="summary">
-主要为了验证对ext2的 Disk Organization的理解, 诸如Block Group Descriptor, Inode Table之类.<br>
-
-给定一个ext2镜像, 遍历其所有文件, 并显示文件内容.<br>
-
-假定该镜像的文件大小都比较小, 不需要indirect pointer.
-</div>
-
-        <div class="more">
-          <a href="/posts/fs/ext2_layout" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -187,6 +223,7 @@ sync_mapping_buffers(struct address_space *mapping)
           <li><a href="/posts/index/7">7</a></li>
           <li><a href="/posts/index/8">8</a></li>
           <li class="active"><a href="/posts/index/9">9</a></li>
+          <li><a href="/posts/index/10">10</a></li>
       </ul>
     </div>
   </div>

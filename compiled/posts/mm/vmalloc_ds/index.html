@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>vmalloc的数据组织</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>vmalloc的数据组织 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-25</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. vm_struct和vmap_area</h4></h1>
+
+<p>vmalloc分配出来的区间  用 vm_struct 表示.</p>
+
+<p>linux-3.10.86/include/linux/vmalloc.h</p>
+
+<pre><code>struct vm_struct {
+    struct vm_struct    *next;
+    ...
+};
+</code></pre>
+
+<p>vm_struct 是通过单向链表把vmalloc区域串起来的, 
+但要找寻一个区域的话, 单向链表的效率就太低了, 所以, 
+有struct vmap_area, 且用红黑树vmap_area_root来管理.</p>
+
+<pre><code>struct vm_struct * __get_vm_area_node(...)
+{
+    alloc_vmap_area
+    {
+        搜索 vmap_area_root
+    }
+}
+</code></pre>
+
+<p>我们找到一个区间vmap_area, 并有个对应的struct vm_struct:</p>
+
+<pre><code>__get_vm_area_node
+{
+
+    struct vm_struct *area=kzalloc_node();
+    struct vmap_area *va = alloc_vmap_area();
+    setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va, ...)
+    {
+        vm-&gt;addr = (void *)va-&gt;va_start;
+        vm-&gt;size = va-&gt;va_end - va-&gt;va_start;
+        va-&gt;vm = vm;
+        va-&gt;flags |= VM_VM_AREA;
+    }
+}
+</code></pre>
+
+<p>我们只通过va来得到vm, 不从vm得到va. (纲领是va)</p>
+
+<p>问题: struct vm_struct 和struct vmap_area
+两者有重复的信息, 为何不考虑 两个合成一个结构体呢?<br>
+答:
+可能是生命周期不一样的:<br>
+1. 对 struct vmap_area 的释放 采取的lazy的方式,<br>
+2. struct vm_struct 却是立刻释放.  </p>
+
+<h1 id="toc_1"><h4>2. 移除</h4></h1>
+
+<p>看下移除的时候, 如何处理vmap_area和vm_struct:</p>
+
+<pre><code>vfree(const void *addr)
+|--__vunmap(const void *addr, ...)
+|   |--struct vm_struct *area = remove_vm_area
+|   |--free 该区间的page frame
+|   |--kfree(area)
+
+
+remove_vm_area
+{
+    struct vmap_area *va= find_vmap_area(...);
+    spin_lock(&amp;vmap_area_lock);
+    /*并没有从红黑树上移除哦, 
+    只是和 struct vmap_area 和 struct vm_struct 断了联系.
+    struct vm_struct内无field来得知对应的vmap_area的.
+    */
+    va-&gt;vm = NULL;
+    va-&gt;flags &amp;= ~VM_VM_AREA;
+    spin_unlock(&amp;vmap_area_lock);
+
+    free_unmap_vmap_area(va);
+}
+
+free_unmap_vmap_area
+|--free_unmap_vmap_area_noflush
+|   |--unmap_vmap_area //页表相关
+|   |--free_vmap_area_noflush
+
+
+static void free_vmap_area_noflush(struct vmap_area *va)
+{
+    va-&gt;flags |= VM_LAZY_FREE;  //通过此标志来得知, 该区域未 purge, 待集中处理.
+    atomic_add((va-&gt;va_end - va-&gt;va_start) &gt;&gt; PAGE_SHIFT, &amp;vmap_lazy_nr);
+    if (unlikely(atomic_read(&amp;vmap_lazy_nr) &gt; lazy_max_pages()))
+        try_purge_vmap_area_lazy();
+}
+
+try_purge_vmap_area_lazy -&gt; __purge_vmap_area_lazy
+|--__free_vmap_area
+|   |-- list_del_rcu(&amp;va-&gt;list);
+</code></pre>
+
+<h1 id="toc_2"><h4>3. 数据组织</h4></h1>
+
+<p>__insert_vmap_area()一方面将节点添加到rbtree上, 另一方面, 也将节点按地址大小串成链表 vmap_area_list.</p>
+
+<pre><code>__insert_vmap_area
+{
+    /* address-sort this list 
+    之所以这里统一写成list_add_rcu(&amp;va-&gt;list, &amp;vmap_area_list);
+    是因为 在双向链表vmap_area_list上, 我们也要address-sort (按地址大小排序)
+    */
+    /*
+    第1个节点添加到 vmap_area_list后, 后面的自然也都在vmap_area_list了.
+    */
+    ...
+    list_add_rcu(&amp;va-&gt;list, &amp;vmap_area_list);
+}
+</code></pre>
+
+<h1 id="toc_3"><h4>4.struct vm_area_struct 和 vm_struct的区别 </h4></h1>
+
+<p>vm_area_struct是进程的虚拟地址区间.<br>
+vm_struct 用来表示 vmalloc分配出来的区间.<br>
+两者在区间的数值上也就存在差别, 一个0~3g, 另一个VMALLOC_START ~ VMALLOC_END.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/vmalloc_ds>https://awakening-fong.github.io/posts/mm/vmalloc_ds</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理-ref">内存管理 <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#vmalloc-ref">vmalloc <span>2</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/mm/mmap_fault" title="mmap和fault handler">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/mm/fixup_exception" title="fixup_exception">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
