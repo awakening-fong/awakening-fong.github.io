@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>内核中 通过 struct pt_regs 来获取  用户传递的参数</title>
+    <title>generic_make_request</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -53,79 +53,95 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>内核中 通过 struct pt_regs 来获取  用户传递的参数 </h1>
+  <h1>generic_make_request </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-23</strong>
+      <span>2017-01-04</strong>
     </div>
     <div class="content">
-      <p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
+      <p>linux-3.10.86/block/blk-core.c</p>
 
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
+<p>先断章取义下:</p>
 
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
+<pre><code class="c">void generic_make_request(struct bio *bio)
 {
-    char *tmp;
-    ssize_t ret;
 
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND &quot;sth_will_show_in_dmesg&quot;
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP &quot;sth_will_show_in_dmesg&quot;
-                int fd=open(&quot;/dev/kmsg&quot;, O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
-
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print(&quot;%d 0x%x %d&quot;,fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print(&quot;buf:%s\n&quot;,write_buf);
-            }
-            else
-            {
-                tmp_print(&quot;not valid_user_regs\n&quot;);
-            }
-
-
-        }
-        //end add
-        ret = printk(&quot;%s&quot;, tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
+    bio_list_init(&amp;bio_list_on_stack);
+    current-&gt;bio_list = &amp;bio_list_on_stack;
+    ...
+        /*
+        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
+        否则, 从哪里pop呢?
+        */
+    q-&gt;make_request_fn(q, bio);
+    bio = bio_list_pop(current-&gt;bio_list);
+    ...
 }
 </code></pre>
 
+<p>上面的猜想是片面的, 还是来个全貌的:</p>
+
+<pre><code class="c">void generic_make_request(struct bio *bio)
+{
+    struct bio_list bio_list_on_stack;
+
+    if (!generic_make_request_checks(bio))
+        return;
+
+    if (current-&gt;bio_list) {
+        bio_list_add(current-&gt;bio_list, bio);
+        return;
+    }
+
+    BUG_ON(bio-&gt;bi_next);
+    bio_list_init(&amp;bio_list_on_stack);
+    current-&gt;bio_list = &amp;bio_list_on_stack;
+    do {
+        /*
+        while再次执行时, q (struct request_queue *)可能和上次循环时的q不一样了,
+        所以, 实现从一种设备到另一种设备的映射, 提交给新的块设备执行.
+        */
+        struct request_queue *q = bdev_get_queue(bio-&gt;bi_bdev);
+        q-&gt;make_request_fn(q, bio);
+        /*
+        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
+        否则, 从哪里pop呢?
+        当然也可以不往current-&gt;bio_list添加bio, 表示无需再经过转换了, 
+        这样, while也就结束了.
+        */
+        bio = bio_list_pop(current-&gt;bio_list);
+    } while (bio);
+    current-&gt;bio_list = NULL; /* deactivate */
+}
+
+</code></pre>
+
+<p>假定经过1次转换, 那么, 调用大概是这样的:</p>
+
+<pre><code>generic_make_request
+|-- q-&gt;make_request_fn
+|   |--...
+|   |--generic_make_request
+|   |   |--if (current-&gt;bio_list) { bio_list_add(current-&gt;bio_list, bio); return; }
+|-- bio = bio_list_pop(current-&gt;bio_list);
+|-- q-&gt;make_request_fn(q, bio);
+|   |--no call generic_make_request
+|--return
+</code></pre>
+
+<p>无需转换是这样:</p>
+
+<pre><code>generic_make_request
+|-- q-&gt;make_request_fn  比如为 blk_queue_bio
+|   |--no call generic_make_request
+|--return
+</code></pre>
+
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/other/pt_regs_for_debug>https://awakening-fong.github.io/posts/other/pt_regs_for_debug</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/io/generic_make_request>https://awakening-fong.github.io/posts/io/generic_make_request</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -135,23 +151,23 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#debug-ref">debug <span>1</span></a>
+        <a href="/categories#I/O-ref">I/O <span>9</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#pt_regs-ref">pt_regs <span>3</span></a>
+        <a href="/tags#tag_null_yet-ref">tag_null_yet <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/arm/thread_start_sp" title="关于THREAD_START_SP">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/tag_towrie_livelock" title="tag TOWRITE to avoid livelocking?">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/vmalloc" title="__vmalloc_area_node">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/io/deadline-iosched" title="deadline-iosched">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

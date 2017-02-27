@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>flush_dcache_page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>flush_dcache_page </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2016-12-31</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. flush_dcache_page的实现</h4></h1>
+
+<p>问题:flush_dcache_page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
+
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+{
+    /*
+     * Writeback ...
+    */
+
+}
+</code></pre>
+
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+<pre><code class="c">do_generic_file_read
+{
+
+page_ok:  /*page是uptodate状态*/
+
+        ...
+        /* If users can be writing to this page using arbitrary
+         * virtual addresses, take care about potential aliasing
+         * before reading the page on the kernel side.
+
+        可能是应对这样的场景:
+        1. 用户发起 读
+        2. 磁盘驱动开始工作, 传送内容到page
+        3. 用户写 page
+        4. 本函数的flush_dcache_page
+        5. actor()
+
+
+         */
+        if (mapping_writably_mapped(mapping))
+            flush_dcache_page(page);
+        ...
+        ret = actor(desc, page, offset, nr);//比如file_read_actor()
+
+}
+</code></pre>
+
+<pre><code class="c">generic_perform_write
+{
+
+
+        /*
+        1. 问题:既然接下来要从用户态那边拷贝数据到page, 这里flush有啥意义?
+        答:    存在cache alias的可能, 会导致后续不知道那个才是latest的, 故拷贝前先flush掉,
+        这样就不会不知道用哪个cache line了.
+
+        2. 场景:
+        cache alias in mmap + write
+        https://lkml.org/lkml/2010/1/20/60
+
+        3.  可以考虑改写 2中的程序, 让数据的大小 大于 一个cache line, 这样就可以知道, 
+        flush_dcache_page是不是clean and invalid了
+
+        */
+        if (mapping_writably_mapped(mapping))
+            flush_dcache_page(page);
+
+        iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+        ...
+        /*
+        问题:这里flush的原因是?
+        答:iov_iter_copy_from_user_atomic()中对page的访问是使用kmap_atomic, 
+        映射到内核地址, 这是一个值大于3G的地址, 
+
+        而用户态对该page的访问, 是通过一个小于3G的地址 (map的话, 解决了权限问题), 
+        这是两个值不同的虚拟地址, 对应同一个物理RAM, 好了, D-cache aliasing.
+
+        场景是:
+        1. 用户发起写
+        2. 内核iov_iter_copy_from_user_atomic
+        3. 用户写page
+        4. flush_dcache_page
+
+        */
+        flush_dcache_page(page);
+
+        a_ops-&gt;write_end(...); //比如ext2_write_end -&gt; generic_write_end()
+
+
+}
+</code></pre>
+
+<pre><code>generic_write_end -&gt; block_write_end
+{
+    /*
+    如果调用路径是generic_write_end -&gt; block_write_end的话,
+    对于ext2, 大概是没有必要, 但其他文件系统是需要的.
+
+    另外, 还有其他调用路径, 不单单被generic_write_end调用, 不分析了.
+    都一个套路, 填page cache后, flush之.
+    */
+    flush_dcache_page(page);
+}
+</code></pre>
+
+<h1 id="toc_2"><h4>3. 总结</h4></h1>
+
+<p>大致就这样, 总结下:</p>
+
+<p>linux-3.10.86/Documentation/cachetlb.txt</p>
+
+<pre><code>  void flush_dcache_page(struct page *page)
+    Any time the kernel writes to a page cache page, _OR_
+    the kernel is about to read from a page cache page and
+    user space shared/writable mappings of this page potentially
+    exist, this routine is called.
+    NOTE: This routine need only be called for page cache pages which can potentially ever be mapped into the address
+          space of a user process.  So for example, VFS layer code
+          handling vfs symlinks in the page cache need not call
+          this interface at all.
+    The phrase &quot;kernel writes to a page cache page&quot; means,
+    specifically, that the kernel executes store instructions
+    that dirty data in that page at the page-&gt;virtual mapping
+    of that page.  It is important to flush here to handle
+    D-cache aliasing, to make sure these kernel stores are
+    visible to user space mappings of that page.
+    The corollary case is just as important, if there are users
+    which have shared+writable mappings of this file, we must make
+    sure that kernel reads of these pages will see the most recent
+    stores done by the user. 
+</code></pre>
+
+<p>问题:是写page cache之前调用flush_dcache_page, 还是写page cache之后调用?<br>
+答:上面有:</p>
+
+<pre><code>... to make sure these kernel stores are visible to user space mappings of that page.
+</code></pre>
+
+<p>所以, 是写page cache之后.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/flush_dcache_page>https://awakening-fong.github.io/posts/mm/flush_dcache_page</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理-ref">内存管理 <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#flush_dcache_page-ref">flush_dcache_page <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/arm/arm_asm" title="ARM的一些汇编">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/io/generic_perform_write" title="generic_perform_write流程">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

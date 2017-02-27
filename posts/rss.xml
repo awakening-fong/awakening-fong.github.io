@@ -4,7 +4,7 @@
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2017-02-26</pubDate>
+    <pubDate>2017-02-27</pubDate>
     <item>
       <title>&#x4FE1;&#x53F7;</title>
       <link>https://awakening-fong.github.io/posts/other/signal</link>
@@ -155,7 +155,7 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;ol&gt;
-&lt;li&gt;&#x4FEE;&#x6539;pt_regs&#x7684;pc, &#x8BA9;&#x4FE1;&#x53F7;handler&#x8FD0;&#x884C;, &#x800C;&#x4E0D;&#x662F; the normal program code.
+&lt;li&gt;&#x4FEE;&#x6539;pt_regs&#x7684;pc, &#x8FD9;&#x6837;&#x540E;&#x7EED;&#x8BA9;&#x4FE1;&#x53F7;handler&#x8FD0;&#x884C;, &#x800C;&#x4E0D;&#x662F; the normal program code.
 &#x5728;&#x6B64;&#x4E4B;&#x524D;, &#x8981;&#x5907;&#x4EFD;pt_regs.&lt;/li&gt;
 &lt;/ol&gt;
 
@@ -410,9 +410,10 @@ copy to/from user&#x7B49;*&#x4E0D;&#x4F1A;*&#x8C03;&#x7528;&#x5230; __do_kernel_
 
 &lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x4F8B;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;h1 id="toc_4"&gt;&lt;h4&gt;4.1 &#x65AD;&#x70B9;&lt;/h4&gt;&lt;/h1&gt;
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;4.1 &#x65AD;&#x70B9;&lt;/h4&gt;&lt;/h2&gt;
 
-&lt;p&gt;&#x4E0B;&#x65AD;&#x70B9;, &#x770B;&#x770B; &#x53D1;&#x751F;fixup_exception&#x7684;&#x4E0A;&#x4E0B;&#x6587;.&lt;/p&gt;
+&lt;p&gt;&#x4E0B;&#x65AD;&#x70B9;, &#x770B;&#x770B; &#x53D1;&#x751F;fixup_exception&#x7684;&#x4E0A;&#x4E0B;&#x6587;.
+&#x6211;&#x4EEC;&#x9700;&#x8981;&#x4EC5;&#x5728;fixup_exception()&#x4E2D;if (fixup) &#x6210;&#x7ACB;&#x65F6;&#x7684;&#x65AD;&#x70B9;.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;(gdb) disass fixup_exception
 Dump of assembler code for function fixup_exception:
@@ -431,11 +432,6 @@ Dump of assembler code for function fixup_exception:
    0xc001cf70 &amp;lt;+48&amp;gt;:    movne   r0, #1  ; fixup != NULL
    0xc001cf74 &amp;lt;+52&amp;gt;:    ldm sp, {r3, r4, r11, sp, pc}
 End of assembler dump
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6240;&#x4EE5;, &#x65AD;&#x70B9;&#x8BBE;&#x7F6E;&#x5728; 0xc001cf70 &amp;lt;+48&amp;gt;:   movne   r0, #1 &lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(gdb) b *0xc001cf70
 
 (gdb) bt
 #0  0xc001cf70 in fixup_exception (regs=0xc05706e8)
@@ -451,11 +447,10 @@ End of assembler dump
 #5  0xc000e9d8 in __dabt_svc () at arch/arm/kernel/entry-armv.S:194
 ---Type &amp;lt;return&amp;gt; to continue, or q &amp;lt;return&amp;gt; to quit--- 
 Backtrace stopped: frame did not save the PC
-&lt;/code&gt;&lt;/pre&gt;
 
-&lt;h2 id="toc_5"&gt;&lt;h4&gt;4.2 &#x5F02;&#x5E38;&#x53D1;&#x751F;&#x524D;&lt;/h4&gt;&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code&gt;0xc001cf64 &amp;lt;+36&amp;gt;:   ldrne   r3, [r0, #4]
+
+0xc001cf64 &amp;lt;+36&amp;gt;:   ldrne   r3, [r0, #4]
 0xc001cf68 &amp;lt;+40&amp;gt;:   strne   r3, [r4, #60]   ; 0x3c
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -463,8 +458,13 @@ Backtrace stopped: frame did not save the PC
 &#x8FD9;&#x6837;&#x624D;&#x80FD;&#x901A;&#x8FC7;pt_regs&#x77E5;&#x9053;&#x5F02;&#x5E38;&#x53D1;&#x751F;&#x524D; &#x53D1;&#x751F;&#x4E86;&#x4EC0;&#x4E48;.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;(gdb) b *0xc001cf68
+&lt;/code&gt;&lt;/pre&gt;
 
-(gdb) disass $pc
+&lt;h2 id="toc_5"&gt;&lt;h4&gt;4.2 &#x5F02;&#x5E38;&#x53D1;&#x751F;&#x524D;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;b *0xc001cf68 &#x505C;&#x4E0B;&#x6765;&#x540E;, &lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(gdb) disass $pc
 Dump of assembler code for function fixup_exception:
    0xc001cf40 &amp;lt;+0&amp;gt;: mov r12, sp
    0xc001cf44 &amp;lt;+4&amp;gt;: push    {r3, r4, r11, r12, lr, pc}
@@ -475,7 +475,6 @@ Dump of assembler code for function fixup_exception:
    0xc001cf58 &amp;lt;+24&amp;gt;:    ldr r0, [r0, #60]   ; 0x3c
    0xc001cf5c &amp;lt;+28&amp;gt;:    bl  0xc00475c4 &amp;lt;search_exception_tables&amp;gt;
    0xc001cf60 &amp;lt;+32&amp;gt;:    cmp r0, #0
----Type &amp;lt;return&amp;gt; to continue, or q &amp;lt;return&amp;gt; to quit---
    0xc001cf64 &amp;lt;+36&amp;gt;:    ldrne   r3, [r0, #4]
 =&amp;gt; 0xc001cf68 &amp;lt;+40&amp;gt;:    strne   r3, [r4, #60]   ; 0x3c
    0xc001cf6c &amp;lt;+44&amp;gt;:    subs    r0, r0, #0
@@ -557,7 +556,7 @@ Dump of assembler code for function cmpxchg_futex_value_locked:
 End of assembler dump.
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&#x7EFC;&#x5408;&#x4E0A;&#x9762;&#x6765;&#x770B;, pt_regs&#x4E2D;&#x7684;pc&#x503C;&#x662F;&#x5DF2;&#x7ECF;&#x4FEE;&#x6B63;&#x8FC7;(&#x6839;&#x636E;&#x60C5;&#x51B5;-8 -4)&#x7684;&#x503C;&#x4E86;.&lt;/p&gt;
+&lt;p&gt;&#x7EFC;&#x5408;&#x4E0A;&#x9762;&#x6765;&#x770B;, pt_regs&#x4E2D;&#x7684;pc&#x503C;&#x662F;&#x5DF2;&#x7ECF;&#x4FEE;&#x6B63;&#x8FC7;(&#x6839;&#x636E;&#x60C5;&#x51B5;-8 -4)&#x7684;&#x503C;&#x4E86;, &#x5BF9;&#x5417;?&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;cmpxchg_futex_value_locked -&amp;gt; futex_atomic_cmpxchg_inatomic
 {
@@ -593,6 +592,51 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
 
 &lt;p&gt;r5&#x662F;-EFAULT, r4&#x662F;ret,&lt;br&gt;
 &#x8BBE;&#x7F6E;&#x8FD4;&#x56DE;&#x503C;&#x4E3A;-EFAULT, &#x4E24; dmb  sy &#x4E4B;&#x95F4;&#x7684;&#x4EE3;&#x7801;&#x5C31;&#x4E0D;&#x6267;&#x884C;&#x4E86;. &lt;/p&gt;
+
+&lt;h2 id="toc_7"&gt;&lt;h4&gt;4.4 &#x770B;&#x4E0B;__ex_table&#x7684;&#x8BBE;&#x7F6E;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/include/asm/futex.h&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;futex_atomic_cmpxchg_inatomic
+{
+    ...
+    smp_mb();
+    __asm__ __volatile__(&amp;quot;@futex_atomic_cmpxchg_inatomic\n&amp;quot;
+    &amp;quot;1: ldrex   %1, [%4]\n&amp;quot;
+    &amp;quot;   teq %1, %2\n&amp;quot;
+    &amp;quot;   ite eq  @ explicit IT needed for the 2b label\n&amp;quot;
+    &amp;quot;2: strexeq %0, %3, [%4]\n&amp;quot;
+    &amp;quot;   movne   %0, #0\n&amp;quot;
+    &amp;quot;   teq %0, #0\n&amp;quot;
+    &amp;quot;   bne 1b\n&amp;quot;
+    __futex_atomic_ex_table(&amp;quot;%5&amp;quot;)
+    : &amp;quot;=&amp;amp;r&amp;quot; (ret), &amp;quot;=&amp;amp;r&amp;quot; (val)
+    : &amp;quot;r&amp;quot; (oldval), &amp;quot;r&amp;quot; (newval), &amp;quot;r&amp;quot; (uaddr), &amp;quot;Ir&amp;quot; (-EFAULT)
+    : &amp;quot;cc&amp;quot;, &amp;quot;memory&amp;quot;);
+    smp_mb();
+...
+}
+
+
+#define __futex_atomic_ex_table(err_reg)            \
+    &amp;quot;3:\n&amp;quot;                          \
+    &amp;quot;   .pushsection __ex_table,\&amp;quot;a\&amp;quot;\n&amp;quot;        \
+    &amp;quot;   .align  3\n&amp;quot;                    \
+    &amp;quot;   .long   1b, 4f, 2b, 4f\n&amp;quot;           \
+    &amp;quot;   .popsection\n&amp;quot;                  \
+    &amp;quot;   .pushsection .fixup,\&amp;quot;ax\&amp;quot;\n&amp;quot;           \
+    &amp;quot;   .align  2\n&amp;quot;                    \
+    &amp;quot;4: mov %0, &amp;quot; err_reg &amp;quot;\n&amp;quot;          \
+    &amp;quot;   b   3b\n&amp;quot;                   \
+    &amp;quot;   .popsection&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8FD9;&#x91CC;1b, 4f,&lt;br&gt;
+1b&#x6307;&#x7684;&#x662F;1:   ldrex   %1, [%4], &#x4E5F;&#x5C31;&#x662F;&#x5F15;&#x53D1;&#x5F02;&#x5E38;&#x7684;ldrex r6, [r1].&lt;br&gt;
+4f&#x662F;4: mov %0, %5  &#x548C;       b 3b&lt;br&gt;
+&#x4E5F;&#x5C31;&#x662F;mov    r4, r5 &#x548C; b    0xc006e5f4 &lt;/p&gt;
+
+&lt;h2 id="toc_8"&gt;&lt;h4&gt;4.5 &#x5C0F;&#x7ED3;&lt;/h4&gt;&lt;/h2&gt;
 
 &lt;p&gt;linux-3.10.86/kernel/futex.c&lt;/p&gt;
 

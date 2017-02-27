@@ -53,101 +53,78 @@
       <div class="content">
         <div class="row-fluid">
   <div class="span12">
-      <div class="_root">
-        <h3 class="title"><a href="/tags">Tags</a> <span class="date"></span></h3>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/fs/ext2_layout">ext2 disk layout</a> <span class="date">2016-12-30</span></h3>
 
-        <div class="summary ellipsis">
-<ul class="tag_box inline">
-  <li>
-    <a href="/tags#ARM-ref">ARM <span>11</span></a>
-  </li>
-  <li>
-    <a href="/tags#%E9%A1%B5%E8%A1%A8-ref">页表 <span>5</span></a>
-  </li>
-  <li>
-    <a href="/tags#assembly-ref">assembly <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#exception-ref">exception <span>6</span></a>
-  </li>
-  <li>
-    <a href="/tags#pt_regs-ref">pt_regs <span>3</span></a>
-  </li>
-  <li>
-    <a href="/tags#qemu-ref">qemu <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#thread_info-ref">thread_info <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#ext2-ref">ext2 <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#IIC-ref">IIC <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#iosched-ref">iosched <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#buffer_head-ref">buffer_head <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#address_space-ref">address_space <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#tag_null_yet-ref">tag_null_yet <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#readahead-ref">readahead <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#lock_page-ref">lock_page <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#writeback-ref">writeback <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#COW-ref">COW <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#flush_dcache_page-ref">flush_dcache_page <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#ftrace-ref">ftrace <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#reclaim-ref">reclaim <span>7</span></a>
-  </li>
-  <li>
-    <a href="/tags#SLUB-ref">SLUB <span>4</span></a>
-  </li>
-  <li>
-    <a href="/tags#vmalloc-ref">vmalloc <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#kthread-ref">kthread <span>2</span></a>
-  </li>
-  <li>
-    <a href="/tags#%E4%BC%98%E5%8C%96-ref">优化 <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#signal-ref">signal <span>1</span></a>
-  </li>
-  <li>
-    <a href="/tags#scheduler-ref">scheduler <span>4</span></a>
-  </li>
-</ul>
+        <div class="summary">
+主要为了验证对ext2的 Disk Organization的理解, 诸如Block Group Descriptor, Inode Table之类.<br>
+
+给定一个ext2镜像, 遍历其所有文件, 并显示文件内容.<br>
+
+假定该镜像的文件大小都比较小, 不需要indirect pointer.
 </div>
 
         <div class="more">
-          <a href="/tags" class="btn btn-small">read more..</a>
+          <a href="/posts/fs/ext2_layout" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/read_write_lock_page">读写函数中的lock_page</a> <span class="date">2016-12-30</span></h3>
+
+        <div class="summary">
+do_generic_file_read和generic_perform_write中对锁的处理.  <br>  
+从磁盘读到RAM中的过程中, page需要处于lock状态.  <br>
+把用户的数据拷贝到page cahe, 该过程也要处理好lock page问题.
+</div>
+
+        <div class="more">
+          <a href="/posts/io/read_write_lock_page" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/field_of_bh_and_address_space">address_space和buffer_head的一些field</a> <span class="date">2016-12-30</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>这里从一个地址空间 到另一个地址空间, 是为啥?</p>
+
+<pre><code class="c">generic_file_fsync
+{
+    struct inode *inode = file-&gt;f_mapping-&gt;host;
+    ret = sync_mapping_buffers(inode-&gt;i_mapping);
+
+}
+
+sync_mapping_buffers(struct address_space *mapping)
+{
+    struct address_space *buffer_mapping = mapping-&gt;private_data;
+
+}
+</code></pre>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>linux-3.10.86/include/linux/fs.h</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/io/field_of_bh_and_address_space" class="btn btn-small">read more..</a>
         </div>
       </div>
     
     <div class="pagination">
       <ul>
-          <li><a href="/index/1">1</a></li>
-          <li class="active"><a href="/index/2">2</a></li>
+          <li><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
+          <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
+          <li><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
+          <li><a href="/posts/index/9">9</a></li>
+          <li class="active"><a href="/posts/index/10">10</a></li>
       </ul>
     </div>
   </div>

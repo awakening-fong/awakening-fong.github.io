@@ -208,7 +208,7 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
 </code></pre>
 
 <ol>
-<li>修改pt_regs的pc, 让信号handler运行, 而不是 the normal program code.
+<li>修改pt_regs的pc, 这样后续让信号handler运行, 而不是 the normal program code.
 在此之前, 要备份pt_regs.</li>
 </ol>
 
@@ -251,6 +251,9 @@ do_work_pending(struct pt_regs *regs, unsigned int thread_flags, int syscall)
       <li><i class="icon-tags"></i></li>
       <li>
         <a href="/tags#signal-ref">signal <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#pt_regs-ref">pt_regs <span>3</span></a>
       </li>
     </ul>
     <hr>

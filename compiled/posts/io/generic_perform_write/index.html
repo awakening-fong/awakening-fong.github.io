@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>内核中 通过 struct pt_regs 来获取  用户传递的参数</title>
+    <title>generic_perform_write流程</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -53,79 +53,75 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>内核中 通过 struct pt_regs 来获取  用户传递的参数 </h1>
+  <h1>generic_perform_write流程 </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-23</strong>
+      <span>2016-12-31</strong>
     </div>
     <div class="content">
-      <p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
-
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
-
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
+      <pre><code class="c">generic_perform_write
 {
-    char *tmp;
-    ssize_t ret;
 
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND &quot;sth_will_show_in_dmesg&quot;
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP &quot;sth_will_show_in_dmesg&quot;
-                int fd=open(&quot;/dev/kmsg&quot;, O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
+        /*
+        ==0==计算没有和PAGE_CACHE_SIZE对齐的那部分的大小, 代码中的bytes.
 
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print(&quot;%d 0x%x %d&quot;,fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print(&quot;buf:%s\n&quot;,write_buf);
-            }
-            else
-            {
-                tmp_print(&quot;not valid_user_regs\n&quot;);
-            }
+        杂问题:
+        假定PAGE_CACHE_SIZE为4, pos为5, iov_iter_count()大于2个PAGE_CACHE_SIZE,
+        则offset为1, bytes为3
+        所以, 代码中的bytes就是示意图中|///|那部分:
+      pos==0    pos==5
+        ^         ^
+        |         |
+        |----|  |-.---|  |----|
+                  |///|
+                  读取
+        */
+        offset = (pos &amp; (PAGE_CACHE_SIZE - 1));
+        bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+                        iov_iter_count(i));
+again:
+        /*
+        如何防止dead lock可参考
+        https://lkml.org/lkml/2015/6/30/631
+        */
+        iov_iter_fault_in_readable(...);
 
+        /*
+        ==1==准备page
+        答:
+        如果在address_space中没有该pos对应的page, 则分配page并添加到address_space.
+        如果没有写完整的一个sector, 则需要先从磁盘读出原sector.
+        */
+        status = a_ops-&gt;write_begin(file, mapping, pos, bytes, flags,
+                        &amp;page, &amp;fsdata);
 
-        }
-        //end add
-        ret = printk(&quot;%s&quot;, tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
+        /*
+        ==2==填充page cache
+        */
+        /*
+        flush_dcache_page 见https://awakening-fong.github.io/posts/flush_dcache_page
+        */
+        if (mapping_writably_mapped(mapping))
+            flush_dcache_page(page);
+        pagefault_disable();
+        copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
+        pagefault_enable();
+        flush_dcache_page(page);
+        /*
+        ==3==标记为dirty, 处理short write
+        short wrtie是让 copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);复制bytes, 结果实际只复制copied. 若发生short write, 则重来.
+        */
+        a_ops-&gt;write_end(...);
+
 }
+
 </code></pre>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/other/pt_regs_for_debug>https://awakening-fong.github.io/posts/other/pt_regs_for_debug</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/io/generic_perform_write>https://awakening-fong.github.io/posts/io/generic_perform_write</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -135,23 +131,23 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#debug-ref">debug <span>1</span></a>
+        <a href="/categories#I/O-ref">I/O <span>9</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#pt_regs-ref">pt_regs <span>3</span></a>
+        <a href="/tags#tag_null_yet-ref">tag_null_yet <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/arm/thread_start_sp" title="关于THREAD_START_SP">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/flush_dcache_page" title="flush_dcache_page">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/vmalloc" title="__vmalloc_area_node">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/other/arm_kthread_do_exit" title="关于arm linux中kthread()中的do_exit()">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>
