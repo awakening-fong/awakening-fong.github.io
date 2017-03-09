@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>IIC相关内容的记忆</title>
+    <title>__vmalloc_area_node</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -53,48 +53,118 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>IIC相关内容的记忆 </h1>
+  <h1>__vmalloc_area_node </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-15</strong>
+      <span>2017-02-24</strong>
     </div>
     <div class="content">
-      <p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
+      <h1 id="toc_0"><h4>1.__vmalloc_node()</h4></h1>
 
-<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
+<pre><code>__vmalloc_node -&gt; __vmalloc_node_range
+ *  Allocate enough pages to cover @size from the page level
+ *  allocator with @gfp_mask flags.  Map them into contiguous
+ *  kernel virtual space, using a pagetable protection of @prot.
+ 所以, 我们需要
+1. 找一个可用的虚拟地址空间
+2. 把 够分量的@size, 可以物理地址上非连续的, 符合@gfp_mask的 page 分配出来
+3. 虚拟地址和 物理地址 关联上, 并设置相应的 权限@prot.
 
-<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.
-在时钟为高时, SDA若表示数据, 需维持稳定, 否则, 其表示起始或停止.</p>
+__vmalloc_node_range
+|--struct vm_struct *area=__get_vm_area_node
+|--__vmalloc_area_node
+|   |--alloc_page
+|   |--map_vm_area
+</code></pre>
 
-<p><img src="/assets/media/IIC_start_stop.jpg"></p>
+<p>map_vm_area()将struct vm_struct和struct page关联起来.</p>
 
-<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
+<pre><code>map_vm_area ==&gt; vmap_page_range
+|--vmap_page_range_noflush  改写页表, 但如函数名所说的, 不执行flush
+|--flush_cache_vmap
 
-<p>假定是7bit地址的情况.
-先发送高位还是低位?<br>
-可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
+vmap_page_range_noflush
+|...
+|--vmap_pte_range
 
-<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
 
-<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
 
-<p><img src="/assets/media/IIC_SCL_high_SDA_valid.jpg"></p>
+__vmalloc_area_node
+{
+    /*问题:为何这里是 减去PAGE_SIZE ? */
+    nr_pages = (area-&gt;size - PAGE_SIZE) &gt;&gt; PAGE_SHIFT;
+    ...
 
-<p>如SCL高电平时, SDA发生了转换, 那么, 就不是在传送数据, 而是表示起始或停止.</p>
+}
+</code></pre>
 
-<h1 id="toc_2"><h4>3. 异常处理</h4></h1>
+<p>问题:为何这里是 减去PAGE_SIZE ?<br>
+答:</p>
 
-<p>ACK: 接收到8bit数据的要回复ACK, 这样是9bit. master端发送7bit地址+1bit读写, slave回复ACK, 也是9bit, 形式上统一.</p>
+<pre><code>__get_vm_area_node
+{
+    size = PAGE_ALIGN(size);
+    /*
+     * We always allocate a guard page.
+     */
+    size += PAGE_SIZE;
 
-<p>ACK要能够被检测到, 故不发送ACK的那方不能去干扰SDA, 故保持高电位, 发送ACK的那方拉低SDA.</p>
+    alloc_vmap_area(size, ...);
+}
+</code></pre>
 
-<p>如果 从机接收好完整的数据字节(含响应位) 后,  要完成一些其他功能后 (例如一个内部中断服务程序), 才能接收或发送下一个完整的数据字节, 可以使时钟线 SCL 保持低电平迫使主机进入等待状态. </p>
+<p>所以, 减去的是  guard page.<br>
+所以,  作为guard的page是虚拟地址是占用了, 不过page frame就不必分配了, 反正我们不是想存到guard page中去的.</p>
+
+<h1 id="toc_1"><h4>2. 递归</h4></h1>
+
+<pre><code>__vmalloc_area_node
+{
+
+    array_size = (nr_pages * sizeof(struct page *)); 
+
+    if (array_size &gt; PAGE_SIZE) {
+        pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
+                PAGE_KERNEL, node, caller);
+        area-&gt;flags |= VM_VPAGES;
+    } else {
+        pages = kmalloc_node(array_size, nested_gfp, node);
+    }
+}
+</code></pre>
+
+<p>这里分配的内存是用来存放 成员为struct page *的数组.
+我们很爱惜物理地址连续的内存, 如果 用来存储struct page *的超过一个物理页, 那么, 我们还是坚持尽量从order==0中来分配.</p>
+
+<p>这里递归了, 因为</p>
+
+<pre><code>vmalloc
+|--__vmalloc_node_flags -&gt; __vmalloc_node -&gt; __vmalloc_node_range
+|   |--__get_vm_area_node
+|   |--__vmalloc_area_node
+|   |   |--__vmalloc_node
+|   |   |   |--kmalloc_node
+</code></pre>
+
+<p>__vmalloc_node()调用了 __vmalloc_node().</p>
+
+<p>释放中对应地, 也有递归</p>
+
+<pre><code>__vunmap
+{
+    if (area-&gt;flags &amp; VM_VPAGES)
+        vfree(area-&gt;pages); //这里是递归 (先释放里面的, 再释放外面的)
+    else
+        kfree(area-&gt;pages);
+
+}
+</code></pre>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/hw/iic>https://awakening-fong.github.io/posts/hw/iic</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/vmalloc>https://awakening-fong.github.io/posts/mm/vmalloc</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -104,23 +174,23 @@
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#hardware-ref">hardware <span>1</span></a>
+        <a href="/categories#内存管理-ref">内存管理 <span>6</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#IIC-ref">IIC <span>1</span></a>
+        <a href="/tags#vmalloc-ref">vmalloc <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/reclaim_03_activity" title="page reclaim 03:活跃度的表示和状态转换">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/other/pt_regs_for_debug" title="内核中 通过 struct pt_regs 来获取  用户传递的参数">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/other/optimize" title="内核中常见的优化方法">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/mmap_fault" title="mmap和fault handler">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>IIC相关内容的记忆</title>
+    <title>arm linux的ASID (Address Space ID)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -53,48 +53,77 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>IIC相关内容的记忆 </h1>
+  <h1>arm linux的ASID (Address Space ID) </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-15</strong>
+      <span>2017-01-18</strong>
     </div>
     <div class="content">
-      <p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
+      <p>
+来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
+</p>
 
-<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
+<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
+ # CONFIG_ARM_LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
 
-<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.
-在时钟为高时, SDA若表示数据, 需维持稳定, 否则, 其表示起始或停止.</p>
+<pre><code>31                         7          0
++-------------------------+-----------+
+|      PROCID             |   ASID    |
++-------------------------+-----------+
+</code></pre>
 
-<p><img src="/assets/media/IIC_start_stop.jpg"></p>
+<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
 
-<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
+<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
+linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
 
-<p>假定是7bit地址的情况.
-先发送高位还是低位?<br>
-可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
+                  pte_t *ptep, pte_t pteval) 
+{ 
+...
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
+... 
+        ext |= PTE_EXT_NG; 
+    } 
+... 
+    set_pte_ext(ptep, pteval, ext); 
+}
 
-<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
+set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
+</code></pre>
 
-<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
+<p>arm linux中通过设置CONTEXTIDR, 进而设置ASID, 相关代码为:
+linux-3.10.86/arch/arm/mm/proc-v7-2level.S</p>
 
-<p><img src="/assets/media/IIC_SCL_high_SDA_valid.jpg"></p>
+<pre><code>ENTRY(cpu_v7_switch_mm) 
+... 
+mcr    p15, 0, r1, c13, c0, 1        @ set context ID
+</code></pre>
 
-<p>如SCL高电平时, SDA发生了转换, 那么, 就不是在传送数据, 而是表示起始或停止.</p>
+<p>调用关系为:</p>
 
-<h1 id="toc_2"><h4>3. 异常处理</h4></h1>
+<pre><code>context_switch() -&gt;switch_mm() -&gt; check_and_switch_context(struct mm_struct *mm, struct task_struct *tsk) -&gt; cpu_switch_mm() -&gt; cpu_v7_switch_mm(pgd_t * pgd, struct mm_struct *mm)
+</code></pre>
 
-<p>ACK: 接收到8bit数据的要回复ACK, 这样是9bit. master端发送7bit地址+1bit读写, slave回复ACK, 也是9bit, 形式上统一.</p>
+<p>linux把ASID存储在mm-&gt;context.id的低8位 (D7:D0).</p>
 
-<p>ACK要能够被检测到, 故不发送ACK的那方不能去干扰SDA, 故保持高电位, 发送ACK的那方拉低SDA.</p>
+<p>新创建的非内核线程 (内核线程不会调用到dup_mm), 初始化ASID为0:</p>
 
-<p>如果 从机接收好完整的数据字节(含响应位) 后,  要完成一些其他功能后 (例如一个内部中断服务程序), 才能接收或发送下一个完整的数据字节, 可以使时钟线 SCL 保持低电平迫使主机进入等待状态. </p>
+<pre><code>copy_mm -&gt; dup_mm -&gt; init_new_context
+#define init_new_context(tsk,mm)   ({ atomic64_set(&amp;mm-&gt;context.id, 0); 0; })
+</code></pre>
+
+<p>到上下文切换的时候才真正开始给ASID赋值, 并设置CONTEXTIDR寄存器.</p>
+
+<p>有分配, 就该有回收, 这也是使用bitmap来管理ASID, 而不是asid++的方式的原因. ASID的分配是通过bitmap变量asid_map来记录的. set bit的操作在new_context()中可以找到. 查找对该变量的clear bit操作, 进程退出时, 本应有该动作(清asid_map中该进程所对应的bit), 但很遗憾, 没有找到, 开发人员偷懒了?</p>
+
+<p>由于ASID只有8bit, 范围为0~0xff, 当这些值分配完后, 就需要flush TLB, 同时对generation加1, 然后重新开始分配ASID. generation为mm-&gt;context.id的高24+32位(D63:D8), 这样, 后续再调度到这个进程时, 就可以通过判断generation是否变化了, 来知道 mm-&gt;context.id中的ASID是否还有效.</p>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/hw/iic>https://awakening-fong.github.io/posts/hw/iic</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/arm/arm_asid>https://awakening-fong.github.io/posts/arm/arm_asid</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -104,23 +133,26 @@
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#hardware-ref">hardware <span>1</span></a>
+        <a href="/categories#ARM-ref">ARM <span>11</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#IIC-ref">IIC <span>1</span></a>
+        <a href="/tags#ARM-ref">ARM <span>11</span></a>
+      </li>
+      <li>
+        <a href="/tags#页表-ref">页表 <span>5</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/reclaim_03_activity" title="page reclaim 03:活跃度的表示和状态转换">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/arm/arm_create_mapping_page_table" title="从create_mapping()看arm linux的页表">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/other/optimize" title="内核中常见的优化方法">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/reclaim_05_page_count" title="page reclaim 05:page count">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>IIC相关内容的记忆</title>
+    <title>关于arm linux中kthread()中的do_exit()</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="awaken_ing">
 
@@ -53,48 +53,89 @@
       <div class="content">
         
 <div class="page-header">
-  <h1>IIC相关内容的记忆 </h1>
+  <h1>关于arm linux中kthread()中的do_exit() </h1>
 </div>
 
 <div class="row-fluid post-full">
   <div class="span12">
     <div class="date">
-      <span>2017-02-15</strong>
+      <span>2016-12-31</strong>
     </div>
     <div class="content">
-      <p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
+      <p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
 
-<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
 
-<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.
-在时钟为高时, SDA若表示数据, 需维持稳定, 否则, 其表示起始或停止.</p>
+<p>linux-3.10.86/kernel/kthread.c</p>
 
-<p><img src="/assets/media/IIC_start_stop.jpg"></p>
+<pre><code>static int kthread(void *_create)
+{
+...
+    /* we can&#39;t just return, we must preserve &quot;self&quot; on stack */
+    do_exit(ret);
+}
+</code></pre>
 
-<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
+<p>这里注释说不能省略do_exit(), why?</p>
 
-<p>假定是7bit地址的情况.
-先发送高位还是低位?<br>
-可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
+<h1 id="toc_1"><h4>2. 解</h4></h1>
 
-<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
+<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
 
-<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
+<p>内核创建的部分流程为: __switch_to -&gt; ret_from_fork -&gt; kthread</p>
 
-<p><img src="/assets/media/IIC_SCL_high_SDA_valid.jpg"></p>
+<p>linux-3.10.86/arch/arm/kernel/entry-common.S</p>
 
-<p>如SCL高电平时, SDA发生了转换, 那么, 就不是在传送数据, 而是表示起始或停止.</p>
+<pre><code>/*
+ * This is how we return from a fork.
+ */
+ENTRY(ret_from_fork)
+    bl  schedule_tail
+    cmp r5, #0
+    movne   r0, r4
+    adrne   lr, BSYM(1f)
+    movne   pc, r5
+1:  get_thread_info tsk
+    b   ret_slow_syscall
+ENDPROC(ret_from_fork)
+</code></pre>
 
-<h1 id="toc_2"><h4>3. 异常处理</h4></h1>
+<p>movne pc, r5 执行kthread()</p>
 
-<p>ACK: 接收到8bit数据的要回复ACK, 这样是9bit. master端发送7bit地址+1bit读写, slave回复ACK, 也是9bit, 形式上统一.</p>
+<h1 id="toc_3"><h4>2.2 如果没有do_exit</h4></h1>
 
-<p>ACK要能够被检测到, 故不发送ACK的那方不能去干扰SDA, 故保持高电位, 发送ACK的那方拉低SDA.</p>
+<p>linux-3.10.86/kernel/exit.c</p>
 
-<p>如果 从机接收好完整的数据字节(含响应位) 后,  要完成一些其他功能后 (例如一个内部中断服务程序), 才能接收或发送下一个完整的数据字节, 可以使时钟线 SCL 保持低电平迫使主机进入等待状态. </p>
+<pre><code>void do_exit(long code) 
+{
+... 
+    schedule(); 
+    BUG(); 
+    /* Avoid &quot;noreturn function does return&quot;.  */
+    for (;;)
+        cpu_relax();    /* For when BUG is null */
+}
+</code></pre>
+
+<p>do_exit()最后执行schedule(), 所以, 就不会调用到 ret_from_fork中的ret_slow_syscall. 看下ret_slow_syscall的汇编代码:</p>
+
+<pre><code>(gdb) disass ret_slow_syscall
+Dump of assembler code for function ret_to_user:
+...
+   0x8000e630 &lt;+16&gt;:     ldr   lr,[sp, #60]!    ; 0x3c   @get pc
+...
+   0x8000e63c &lt;+28&gt;:    ldmdb   sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr}^
+   0x8000e640 &lt;+32&gt;:    nop         ; (mov r0, r0)
+   0x8000e644 &lt;+36&gt;:    add sp, sp, #12
+   0x8000e648 &lt;+40&gt;:    movs    pc, lr
+End of assembler dump.
+</code></pre>
+
+<p>内核线程可能是在内核启动过程中创建的, 并不是由用户态触发而创建的, 故不应该执行ldr lr,[sp, #60]! , ldmdb sp, {... }^以及movs pc, lr. 所以, 需要调用do_exit(). 这里也解释了内核线程的两种退出方式: call do_exit() directly or return when &#39;kthread_should_stop()&#39; . </p>
 
 	  <p>
-	  本文地址: <a href=https://awakening-fong.github.io/posts/hw/iic>https://awakening-fong.github.io/posts/hw/iic</a>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/other/arm_kthread_do_exit>https://awakening-fong.github.io/posts/other/arm_kthread_do_exit</a>
 	  </p>
 	  <p>
 	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
@@ -104,23 +145,23 @@
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#hardware-ref">hardware <span>1</span></a>
+        <a href="/categories#other-ref">other <span>4</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
       <li><i class="icon-tags"></i></li>
       <li>
-        <a href="/tags#IIC-ref">IIC <span>1</span></a>
+        <a href="/tags#kthread-ref">kthread <span>2</span></a>
       </li>
     </ul>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/reclaim_03_activity" title="page reclaim 03:活跃度的表示和状态转换">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/generic_perform_write" title="generic_perform_write流程">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/other/optimize" title="内核中常见的优化方法">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/other/kthread_park_unpark" title="内核线程的park和unpark">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>
