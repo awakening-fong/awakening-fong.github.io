@@ -88,40 +88,6 @@ __send_signal
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/vmalloc_ds">vmalloc的数据组织</a> <span class="date">2017-02-25</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. vm_struct和vmap_area</h4></h1>
-
-<p>vmalloc分配出来的区间  用 vm_struct 表示.</p>
-
-<p>linux-3.10.86/include/linux/vmalloc.h</p>
-
-<pre><code>struct vm_struct {
-    struct vm_struct    *next;
-    ...
-};
-</code></pre>
-
-<p>vm_struct 是通过单向链表把vmalloc区域串起来的, 
-但要找寻一个区域的话, 单向链表的效率就太低了, 所以, 
-有struct vmap_area, 且用红黑树vmap_area_root来管理.</p>
-
-<pre><code>struct vm_struct * __get_vm_area_node(...)
-{
-    alloc_vmap_area
-    {
-        搜索 vmap_area_root
-    }
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/vmalloc_ds" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
 
         <div class="summary ellipsis">
@@ -150,37 +116,6 @@ copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup
 
         <div class="more">
           <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -361,6 +296,68 @@ int main()
 
         <div class="more">
           <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>摘自APUE:</p>
+
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
+
+<p>问题:哪里设置只读, 如何知道只读?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
+
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
         </div>
       </div>
     

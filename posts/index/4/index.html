@@ -54,69 +54,6 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG_MEMCG, 未开启CONFIG_SWAP.
-若无特别说明, 本文仅讨论ARM体系的情况.</p>
-
-<h1 id="toc_0"><h4>1. 数据结构</h4></h1>
-
-<p>per zone : active list, inactive list</p>
-
-<pre><code>struct zone {
-    struct lruvec       lruvec;
-};
-
-struct lruvec {
-    struct list_head lists[NR_LRU_LISTS];
-    ...
-};
-</code></pre>
-
-<p>per node :kswapd  </p>
-
-<pre><code>kswapd_init -&gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
-kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_02_implement" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>linux-3.10.86/mm/vmscan.c</p>
-
-<pre><code>static inline int is_page_cache_freeable(struct page *page)
-{
-
-    /*
-     * A freeable page cache page is referenced only by the caller
-     * that isolated the page, the page cache radix tree and
-     * optional buffer heads at page-&gt;private.
-     */
-    return page_count(page) - page_has_private(page) == 2;
-
-}
-</code></pre>
-
-<p>为何是== 2?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_05_page_count" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
@@ -156,6 +93,182 @@ set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
 
         <div class="more">
           <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p> 文来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972016226674429
+</p>
+
+<h1 id="toc_0"><h4>1. 主要流程</h4></h1>
+
+<p>平台:versatilepb ARM Versatile/PB (ARM926EJ-S) 内核版本2.6.35.7</p>
+
+<pre><code>paging_init
+|--devicemaps_init
+|   |--from VMALLOC_END, pmd_clear(pmd_off_k(addr))
+|   |--mdesc-&gt;map_io() =&gt; versatile_map_io  
+|   |   |--iotable_init
+|   |   |   |--create_mapping
+</code></pre>
+
+<h1 id="toc_1"><h4>2. 为何是 MT_DEVICE</h4></h1>
+
+<p>linux-2.6.35.7/arch/arm/mach-versatile/core.c</p>
+
+<pre><code>void __init versatile_map_io(void)
+{
+    iotable_init(versatile_io_desc, ARRAY_SIZE(versatile_io_desc));
+}
+
+static struct map_desc versatile_io_desc[] __initdata = {
+    {
+        ...
+        .type       = MT_DEVICE
+    },
+    ...
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_map_io" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p>文来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159</p>
+
+<p>本篇只提问, 不解答, 祝开心.</p>
+
+<p>如果读写锁是unlocked, 然后cpu 0和cpu 1都想获取写锁,
+如表格所示, CPU 0在t2时刻执行的是wfene, 这时, CPU 1执行的是ldrex, 然后是否会有cpu能够获取到锁?
+源码来自
+linux-3.10.86/arch/arm/include/asm/spinlock.h
+arch_write_lock()</p>
+
+<!--
+查看源码后, 将第1个<table>改为
+<table class="table table-bordered table-striped table-condensed">
+
+时间 | CPU0                      |时间  |CPU1
+-----|---------------------------|------|----
+t0/t6| 1:    ldrex    %0, [%1]   |      |
+t1/t7| teq    %0, #0             |      |
+t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
+t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
+t4   |teq    %0, #0              |t4    |WFE("ne")
+t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
+t6   |                           |t6    |teq    %0, #0
+t7   |                           |t7    |bne    1b
+-->
+
+<table class="table table-bordered table-striped table-condensed">
+<thead>
+<tr>
+<th>时间</th>
+<th>CPU0</th>
+<th>时间</th>
+<th>CPU1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t0/t6</td>
+<td>1:    ldrex    %0, [%1]</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t1/t7</td>
+<td>teq    %0, #0</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t2</td>
+<td>WFE("ne")</td>
+<td>t2</td>
+<td>1:    ldrex    %0, [%1]</td>
+</tr>
+<tr>
+<td>t3</td>
+<td>strexeq    %0, %2, [%1]</td>
+<td>t3</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t4</td>
+<td>teq    %0, #0</td>
+<td>t4</td>
+<td>WFE("ne")</td>
+</tr>
+<tr>
+<td>t5</td>
+<td>bne    1b</td>
+<td>t5</td>
+<td>strexeq    %0, %2, [%1]</td>
+</tr>
+<tr>
+<td>t6</td>
+<td></td>
+<td>t6</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t7</td>
+<td></td>
+<td>t7</td>
+<td>bne    1b</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
+
+<p>假定 CONFIG_MULTI_IRQ_HANDLER=y, handle_arch_irq 为 gic_handle_irq.<br>
+linux-3.10.86/arch/arm/kernel/setup.c</p>
+
+<pre><code>__irq_svc @entry-armv.S
+|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
+|   |--irq_handler
+|   |   |--handle_arch_irq =&gt; gic_handle_irq
+|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
+|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
+|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
+|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--handle_irq_event
+|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
+|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--chip-&gt;irq_eoi
+|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
+|   |   |   |       |   |--if( ... ) invoke_softirq() 
+|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
+|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
+|   |   |   |       |   |    |    |--h-&gt;action(h)
+|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
+|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
+|   |--svc_exit r5, irq = 1  @entry-header.S
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -201,56 +314,6 @@ ENTRY(cpu_arm926_set_pte_ext)
 
         <div class="more">
           <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客
-http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
-</p>
-
-<pre><code>模式   usr            exception                                   svc                             
------|----|--------------------------------|---------------------------------------------------                                                                                               
-函数                 vector_\name:                             usr_entry:                         
-
-
-                                                                            对应的汇编语句:                    
-                  +----------------+        0  +------------------+   ------------------------    
-           高地址 |spsr_&lt;exception&gt;|           |      r0          |      str     r1, [sp]         
-                  |                |        4  +------------------+    ----------------------     
-             ^    +----------------+           |      r1          |                               
-             |    |                |           |                  |                               
-             |    |lr_&lt;exception&gt;  |           |      .           |                               
-             |    |                |           |      .           |      stmib   sp, {r1 - r12}   
-             |    +----------------+           |      .           |                               
-                  |                |           |                  |                               
-           低地址 |      r0        |           |     r12          |                               
-                  |                |           |                  |                               
-                  +----------------+       52  +------------------+     ----------------------    
-                    struct stack               |      sp_usr      |                               
-                                               |                  |                               
-                                           56  +------------------+     stmdb   r0, {sp, lr}^     
-                                               |     lr_usr       |                               
-                                               |                  |                               
-                                           60  +------------------+      ---------------------    
-                                               |  lr_&lt;exception&gt;  |                               
-                                               |                  |                               
-                                           64  +------------------+                                
-                                               | spsr_&lt;exception&gt; |      stmia   r0, {r2 - r4}    
-                                               |                  |                               
-                                           68  +------------------+                               
-                                               |      -1          |                               
-                                               |                  |                               
-                                           72  +------------------+     -----------------------   
-                                                struct  pt_regs
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
         </div>
       </div>
     
