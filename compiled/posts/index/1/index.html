@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        <div class="row-fluid">
+  <div class="span12">
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 发送</h4></h1>
+
+<p>以tkill为例来说明.
+linux-3.10.86/kernel/signal.c
+假定不是发送给组的, 即__send_signal()的@group为0</p>
+
+<pre><code>do_tkill -&gt; do_send_specific
+|--find_task_by_vpid
+|--check_kill_permission
+|--do_send_sig_info -&gt; send_signal
+|   |--__send_signal
+
+
+__send_signal
+|--q=__sigqueue_alloc //new sigqueue instance
+|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
+|--设置q-&gt;info的各域
+|   |--q-&gt;info.si_signo =
+|   |--q-&gt;info.si_pid =
+|--complete_signal
+|   |--signal_wake_up -&gt; signal_wake_up_state
+|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
+|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/signal" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
+
+<p>linux-3.10.86/arch/arm/mm/fault.c</p>
+
+<pre><code>static int __kprobes
+do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+{
+
+    if (!user_mode(regs))
+        goto no_context;
+
+
+no_context:
+    __do_kernel_fault(mm, addr, fsr, regs);
+    return 0;
+}
+</code></pre>
+
+<p>所以,  用户态(user_mode(regs))发起的 读或写 , 
+copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup_exception的.
+(fixup_exception 仅会被 __do_kernel_fault调用.)</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/mmap_fault">mmap和fault handler</a> <span class="date">2017-02-24</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>我们想知道, 通过mmap映射文件, 然后读取, 是如何读取到文件的, 其中的fault handler相关的内容.</p>
+
+<h1 id="toc_1"><h4>2. ftrace</h4></h1>
+
+<pre><code class="c">#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;strings.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;errno.h&gt;
+
+#define MEMSIZE 1024*4
+#define MPFILE "./.ash_history"
+
+//#define ON_OFF //tracing_on
+
+void write_ftrace(char *path, char *val)
+{
+    char ftrace_d[50]="/sys/kernel/debug/tracing/";
+    int len_d=strlen(ftrace_d);
+
+
+    int fd_trace=open(strcat(ftrace_d,path), O_RDWR|O_TRUNC);
+    if (fd_trace &lt; 0) {
+        printf("open %s:%s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    printf("to write:%s %s\n",path,val);
+
+    int ret=write(fd_trace, val, strlen(val));
+    if(ret&lt;0)
+    {
+        printf("write %s %s\n",path,strerror(errno));
+        exit(1);
+    }
+
+
+    if (0==strncmp("trace",path, sizeof("trace")))
+    {
+        close(fd_trace);
+        return;
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd_trace, val_read, sizeof(val_read),0);
+    printf("read val:%s\n",val_read);
+    close(fd_trace);
+
+}
+
+void write_val(char *path, char *val)
+{
+    int fd=open(path, O_RDWR);
+    if (fd &lt; 0) {
+        printf("open %s:%s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    printf("to write:%s %s\n",path, val);
+    int ret=write(fd, val, strlen(val));
+    if(ret&lt;0)
+    {
+        printf("write %s %s\n",path,strerror(errno));
+        exit(1);
+    }
+
+    char val_read[20];
+    memset(val_read,0,sizeof(val_read));
+    pread(fd, val_read, sizeof(val_read),0);
+    printf("read val:%s\n",val_read);
+    close(fd);
+}
+
+
+int main()
+{
+    char *ptr;
+    int fd;
+    int ret=-1;
+    int i=-1;
+
+    fd = open(MPFILE, O_RDWR);
+    if (fd &lt; 0) {
+        perror("open()");
+        exit(1);
+    }
+
+    ptr = mmap(NULL, MEMSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == NULL) {
+        perror("malloc()");
+        exit(1);
+    }
+
+    /*避免page cache干扰*/
+    if( posix_fadvise(fd,0,4096,POSIX_FADV_DONTNEED) != 0) {  
+        printf("Cache FADV_DONTNEED failed, %s\n",strerror(errno));  
+    }  
+    else {  
+        printf("Cache FADV_DONTNEED done\n");  
+    }  
+
+    //mount -t debugfs nodev /sys/kernel/debug/
+    system("mount -t debugfs nodev /sys/kernel/debug/");
+
+
+
+    /*
+    ~ # echo 1 &gt; /proc/sys/kernel/ftrace_enabled
+    */
+
+    write_val("/proc/sys/kernel/ftrace_enabled", "1");
+
+    int pid_cur=getpid();
+    printf("pid:%d\n",pid_cur);
+    char str_pid[25];
+    memset(str_pid,0, sizeof(str_pid));
+    snprintf(str_pid, sizeof(str_pid),"%d", pid_cur);
+    //  /sys/kernel/debug/tracing/set_ftrace_pid
+    write_ftrace("set_ftrace_pid", str_pid);
+
+
+    write_ftrace("tracing_on", "1");
+
+
+    /*# can set other filtering here
+    echo function &gt; ${ROOT_FTRACE}/current_tracer
+    */
+    write_ftrace("current_tracer", "function");
+
+    write_ftrace("trace", "0");
+
+    /*
+    #echo 0 &gt; ${ROOT_FTRACE}/trace
+    echo start_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
+    exec $* 
+    */
+
+    //write_ftrace("trace_marker", "start_trace_marker");
+
+   i=*ptr;  //这个就是我们要跟踪的
+
+
+    /*
+    echo end_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
+    echo 0  &gt; ${ROOT_FTRACE}/tracing_on  #stop record to buffer
+    */
+
+    //write_ftrace("trace_marker", "end_trace_marker");
+
+    write_ftrace("tracing_on", "0");
+    system("cat /sys/kernel/debug/tracing/trace &gt; mmap.ftrace");
+
+    printf("%x\n", i);
+
+
+    munmap(ptr, MEMSIZE);
+    close(fd);
+
+    exit(1);
+}
+
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p>摘自APUE:</p>
+
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
+
+<p>问题:哪里设置只读, 如何知道只读?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
+
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+    
+    <div class="pagination">
+      <ul>
+          <li class="active"><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
+          <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
+          <li><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
+          <li><a href="/posts/index/9">9</a></li>
+          <li><a href="/posts/index/10">10</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
