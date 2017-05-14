@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        <div class="row-fluid">
+  <div class="span12">
+      <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_01_lost_wake-up">调度器, 从lost wake-up problem说起</a> <span class="date">2017-01-11</span></h3>
+
+        <div class="summary ellipsis">
+<p>文来自本人的旧博客 blog.163.com/awaken_ing/blog/static/1206131972016124113539444/</p>
+
+<h1 id="toc_0"><h4>0. 引言</h4></h1>
+
+<p>The lost wake-up problem 请参考 <a href="http://www.linuxjournal.com/article/8144">http://www.linuxjournal.com/article/8144</a><br>
+本篇主要解释为何修改后的代码没有问题.
+修改后的代码为:</p>
+
+<pre><code>1  set_current_state(TASK_INTERRUPTIBLE);
+2  spin_lock(&amp;list_lock);
+3  if(list_empty(&amp;list_head)) {
+4         spin_unlock(&amp;list_lock); //如果这里面让出cpu?
+//如果在这个点被生产者唤醒会如何?
+5         schedule();
+6         spin_lock(&amp;list_lock);
+7  }
+8  set_current_state(TASK_RUNNING);
+9
+10 /* Rest of the code ... */
+11 spin_unlock(&amp;list_lock);
+</code></pre>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_01_lost_wake-up" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_03_switch_to">arm linux的switch_to</a> <span class="date">2017-01-11</span></h3>
+
+        <div class="summary ellipsis">
+<p>文来自本人的旧博客: blog.163.com/awaken_ing/blog/static/12061319720158310574442/</p>
+
+<p>&lt;&lt; Professional Linux Kernel Architecture &gt;&gt; page105标题为 Intricacies of switch_to (intricacies:错综复杂的) , 絮絮叨叨着switch_to.</p>
+
+<p>下面看下arm linux的情况.</p>
+
+<pre><code>context_switch(struct rq *rq, struct task_struct *prev,
+           struct task_struct *next)
+{
+...
+switch_to(prev, next, prev);
+barrier();
+ /*
+假定进程A被调出去, 进程B运行, 即switch_to(A, B, A)
+那么, 这里是刚才被调度走的进程A 恢复运行后, 会执行这个地方, 
+要验证的话, 可以看看进程A让出CPU前, 最后一条修改lr的指令.
+*/
+ finish_task_switch(this_rq(), prev);
+}
+</code></pre>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_03_switch_to" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_00_implementation">调度器CFS的实现</a> <span class="date">2017-01-10</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 概述</h4></h1>
+
+<p>主要视角是, 考虑要多久才能轮到某个进程的运行, (称之为targeted preemption latency) 而不是每个进程分配多少份的时间片.</p>
+
+<p>对单个进程 达到 时间段t1内被至少调度一次到, 对所有的进程都达到的话, 就是, 时间段t1内所有进程都跑一遍.
+the interval during which every runnable task should run at least once.
+这个时间段t1我们成为 one latency period.</p>
+
+<p>本文仅讨论SCHED_NORMAL.
+且没有使能CONFIG_FAIR_GROUP_SCHED. 内核版本3.10.</p>
+
+<h1 id="toc_1"><h4>2. 时间的计算</h4></h1>
+
+<p>等了多久, 具体如何量化?<br>
+每次计算时间, 若是逐个给每个TASK_RUNNING进程计算, 这样势必低效,
+所以, 实现上, 不应该是逐个进程判断等待的时间.<br>
+当前的实现是, 记录各进程运行所占用的时间, 运行占用时间的另一面, 就是 没有运行. 一个进程运行时间久, 其他进程没有运行或者等待的时间就久. 故可以仅记录运行时间来反应等待时间, 这个运行的时间记为vruntime.</p>
+
+<h3 id="toc_2"><h4>2.1 vruntime</h4></h3>
+
+<p>virtual run time, 运行时间经加权后的数据, 加权方法为</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_00_implementation" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/deadline-iosched">deadline-iosched</a> <span class="date">2017-01-06</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景</h4></h1>
+
+<p>派发队列(q-&gt;queue_head)(the block device dispatch queue) 为空时，将request从 I/O调度队列(io scheduler queue) 转移到 派发队列, 
+具体是 通过 调用I/O调度算法的elevator_dispatch_fn来完成的:<br>
+linux-3.10.86/block/blk.h</p>
+
+<pre><code>__elv_next_request
+{
+    while (1) {
+        if (!list_empty(&amp;q-&gt;queue_head)) {
+            rq = list_entry_rq(q-&gt;queue_head.next);
+            return rq;
+        }
+        ...
+        if ( ... || !q-&gt;elevator-&gt;type-&gt;ops.elevator_dispatch_fn(q, 0))//比如deadline_dispatch_requests
+            return NULL;
+    }       
+}
+</code></pre>
+
+<p>具体调度策略有 cfq-iosched, deadline-iosched等.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/io/deadline-iosched" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/generic_make_request">generic_make_request</a> <span class="date">2017-01-04</span></h3>
+
+        <div class="summary ellipsis">
+<p>linux-3.10.86/block/blk-core.c</p>
+
+<p>先断章取义下:</p>
+
+<pre><code class="c">void generic_make_request(struct bio *bio)
+{
+
+    bio_list_init(&amp;bio_list_on_stack);
+    current-&gt;bio_list = &amp;bio_list_on_stack;
+    ...
+        /*
+        从这里来看, q-&gt;make_request_fn()可能会往current-&gt;bio_list中添加bio,
+        否则, 从哪里pop呢?
+        */
+    q-&gt;make_request_fn(q, bio);
+    bio = bio_list_pop(current-&gt;bio_list);
+    ...
+}
+</code></pre>
+
+<p>上面的猜想是片面的, 还是来个全貌的:</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/io/generic_make_request" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+    
+    <div class="pagination">
+      <ul>
+          <li><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
+          <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
+          <li class="active"><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
+          <li><a href="/posts/index/9">9</a></li>
+          <li><a href="/posts/index/10">10</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

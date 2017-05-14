@@ -27,8 +27,8 @@
 &lt;p&gt;&#x5BA2;&#x5B98;, &#x672C;&#x535A;&#x5BA2;&#x6587;&#x7AE0;&#x7684;&#x8D28;&#x91CF;&#x5982;&#x4F55;?   &lt;/p&gt;
 
 &lt;table&gt;&lt;tr&gt;
-&lt;td&gt;&lt;img src="/assets/media/wechat_facetoface_qrcode.png" border=0&gt;&lt;/td&gt;
-&lt;td&gt;&lt;img src="/assets/media/alipay_qrcode.png" border=0&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src="/assets/media/wechat_facetoface_qrcode.jpg" border=0&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src="/assets/media/alipay_qrcode.jpg" border=0&gt;&lt;/td&gt;
 &lt;/tr&gt;&lt;/table&gt;
 </description>
     </item>
@@ -216,7 +216,7 @@
   &lt;h3 class="title"&gt;&lt;a href="/posts/arm/current_in_interrupt_handler"&gt;&#x4E3A;&#x4F55;&#x4E2D;&#x65AD;handler&#x4E2D;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;current&lt;/a&gt; &lt;span class="date"&gt;2017-05-13&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary"&gt;
-&lt;p&gt;&#x672C;&#x535A;&#x6587;&#x4EC5;&#x63D0;&#x51FA;&#x95EE;&#x9898;, &#x4E0D;&#x7ED9;&#x51FA;&#x7B54;&#x6848;. &#x795D;&#x73A9;&#x7684;&#x5F00;&#x5FC3;.   &lt;/p&gt;
+&lt;p&gt;&#x672C;&#x535A;&#x6587;&#x4EC5;&#x63D0;&#x51FA;&#x95EE;&#x9898;, &#x4E0D;&#x7ED9;&#x51FA;&#x7B54;&#x6848;. &#x795D;&#x73A9;&#x5F97;&#x5F00;&#x5FC3;.   &lt;/p&gt;
 
 &lt;p&gt;&#x95EE;&#x9898;: &#x6211;&#x4EEC;&#x77E5;&#x9053; &#x5F53;&#x524D;task&#x53EF;&#x4EE5;&#x901A;&#x8FC7;current&#x6765;&#x83B7;&#x5F97;. ARM&#x4E0A;, &#x5176;&#x5B9E;&#x73B0;&#x5982;&#x4E0B;:&lt;/p&gt;
 
