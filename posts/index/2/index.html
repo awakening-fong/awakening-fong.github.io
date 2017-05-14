@@ -54,6 +54,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
 
         <div class="summary">
@@ -217,38 +248,6 @@ Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the
 
         <div class="more">
           <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG_MEMCG, 未开启CONFIG_SWAP.
-若无特别说明, 本文仅讨论ARM体系的情况.</p>
-
-<h1 id="toc_0"><h4>1. 数据结构</h4></h1>
-
-<p>per zone : active list, inactive list</p>
-
-<pre><code>struct zone {
-    struct lruvec       lruvec;
-};
-
-struct lruvec {
-    struct list_head lists[NR_LRU_LISTS];
-    ...
-};
-</code></pre>
-
-<p>per node :kswapd  </p>
-
-<pre><code>kswapd_init -&gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
-kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_02_implement" class="btn btn-small">read more..</a>
         </div>
       </div>
     

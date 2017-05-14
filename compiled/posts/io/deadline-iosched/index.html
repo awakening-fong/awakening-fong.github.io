@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>deadline-iosched</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">HOMEPAGE</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>deadline-iosched </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-01-06</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. 背景</h4></h1>
+
+<p>派发队列(q-&gt;queue_head)(the block device dispatch queue) 为空时，将request从 I/O调度队列(io scheduler queue) 转移到 派发队列, 
+具体是 通过 调用I/O调度算法的elevator_dispatch_fn来完成的:<br>
+linux-3.10.86/block/blk.h</p>
+
+<pre><code>__elv_next_request
+{
+    while (1) {
+        if (!list_empty(&amp;q-&gt;queue_head)) {
+            rq = list_entry_rq(q-&gt;queue_head.next);
+            return rq;
+        }
+        ...
+        if ( ... || !q-&gt;elevator-&gt;type-&gt;ops.elevator_dispatch_fn(q, 0))//比如deadline_dispatch_requests
+            return NULL;
+    }       
+}
+</code></pre>
+
+<p>具体调度策略有 cfq-iosched, deadline-iosched等.</p>
+
+<p>I/O调度队列 是调度器的队列, 所以是特定于io调度策略的 队列.</p>
+
+<h1 id="toc_1"><h4>2. 添加到I/O调度队列</h4></h1>
+
+<p>linux-3.10.86/block/deadline-iosched.c</p>
+
+<pre><code>static struct elevator_type iosched_deadline = {
+    .ops = {
+        .elevator_add_req_fn =      deadline_add_request,
+        ...
+    },
+    ...
+};  
+
+
+deadline_add_request
+{
+
+    deadline_add_rq_rb
+    list_add_tail
+}
+</code></pre>
+
+<p>rq会被同时添加到 rb树, 和 链表fifo_list中.</p>
+
+<pre><code>struct deadline_data {
+    /*
+     * run time data
+     */
+
+    /*
+     * requests (deadline_rq s) are present on both sort_list and fifo_list
+    request既在sort_list, 又在fifo_list, see deadline_add_request()
+
+    see deadline_merge(), 根据__sector (而不是__sector+ bi_size&gt;&gt;9)在树上放置各request.
+
+    __sector+ bi_size&gt;&gt;9是用来实现back merge, 在独立于io调度策略的层 用来hash的, 
+    see struct elevator_queue的hash, 
+    and see blk_queue_bio -&gt; elv_merge -&gt; elv_rqhash_find
+     */
+    struct rb_root sort_list[2];
+    /*由于是fifo, 所以, 自然时间上递增, 新添加的放在后面*/
+    struct list_head fifo_list[2]; //fong:see deadline_add_request()
+
+    /*
+     * next in sort order. read, write or both are NULL
+
+    问题:这个有啥用?
+    答:batch模式下, 该rq会被dispatch.
+
+     谁修改该指针?
+     deadline_latter_request()修改指针, see deadline_move_request()
+     问题:按什么排序? 
+     答:扇区编号递增, see deadline_add_request -&gt; deadline_add_rq_rb
+     */
+    struct request *next_rq[2];
+    /*
+    如果batching&lt;fifo_batch, 则不按 过期时间来dispatch.
+    fifo_batch是setting, batching是run time data.
+    */
+    unsigned int batching;      /* number of sequential requests made */
+    sector_t last_sector;       /* head position  这个注释如何理解??? 被引用比如deadline_move_request()*/
+    unsigned int starved;       /* times reads have starved writes */
+
+    /*
+     * settings that change how the i/o scheduler behaves
+
+     这几个值是不随进度而变化的.
+     */
+    int fifo_expire[2];
+    /*攒够这个数 才 开始考虑 fifo_list*/
+    int fifo_batch;
+    int writes_starved;
+    int front_merges;
+}
+</code></pre>
+
+<p>​ </p>
+
+<h1 id="toc_2"><h4>3. 移动到派发队列</h4></h1>
+
+<pre><code>/*
+从队列中挑选出一个合适的request, 派发之
+*/
+deadline_dispatch_requests
+{
+
+    if (rq &amp;&amp; dd-&gt;batching &lt; dd-&gt;fifo_batch)
+        goto dispatch_request;
+
+}
+</code></pre>
+
+<p>为简化讨论, 如果系统的读写都比较多, 通常在每次dispatch fifo_batch个 (准确地说, 是除首次外, 其他 是每fifo_batch-1个) rq后, 才有一个根据 过期时间来选择rq的机会 , batch模式下都是根据sector来选择rq.
+假定fifo_batch为1, 则效果是first-come first-served.</p>
+
+<h1 id="toc_3"><h4>4. 调用路径</h4></h1>
+
+<p>会到标题2的内容, 添加到io调度队列的路径/回溯:</p>
+
+<p>假定没有plug:</p>
+
+<pre><code>blk_queue_bio
+|--elv_merge 之类的 bio合并到rq
+|   |-- -&gt;elevator_merged_fn
+|--为io分配rq, 然后init_request_from_bio
+|--add_acct_request -&gt; __elv_add_request(, ELEVATOR_INSERT_SORT)
+|   |--elv_rqhash_add  //不依赖 具体的iosched
+|   |--q-&gt;elevator-&gt;type-&gt;ops.elevator_add_req_fn  //依赖 具体的iosched
+</code></pre>
+
+<p>调用合并的路径:<br>
+linux-3.10.86/block/deadline-iosched.c</p>
+
+<pre><code>static struct elevator_type iosched_deadline = {
+    .ops = {
+        .elevator_merge_fn =        deadline_merge,
+        .elevator_merged_fn =       deadline_merged_request,
+        .elevator_merge_req_fn =    deadline_merged_requests,
+    ...
+</code></pre>
+
+<p>elevator_merge_fn, elevator_merged_fn, elevator_merge_req_fn 的区别是啥?<br>
+答: linux-3.10.86/include/linux/elevator.h</p>
+
+<pre><code>struct elevator_ops
+{
+    //比如deadline_merge
+    elevator_merge_fn *elevator_merge_fn; /*仅检查, 不做合并, 合并由elevator_merge_req_fn执行*/
+    /*这个是merge*d*, 在合并 *后* 调用, 比如对于deadline-iosched, 要修改rb树*/
+    elevator_merged_fn *elevator_merged_fn;
+    /*和elevator_merge_fn的区别?
+    答:
+    typedef int (elevator_merge_fn) (struct request_queue *, struct request **,
+                     struct bio *);
+    这个原型中有bio, 是查找可以和bio合并的request.
+
+    typedef void (elevator_merge_req_fn) (struct request_queue *, struct request *, struct request *);
+    这个名字中给出了 谓宾, 用来合并两struct request.
+    */
+    elevator_merge_req_fn *elevator_merge_req_fn;
+</code></pre>
+
+<p>问题:何时调用 deadline_merged_requests?<br>
+答:
+    attempt_back_merge -&gt; attempt_merge -&gt; elv_merge_requests -&gt;  elevator_merge_req_fn -&gt; deadline_merged_requests</p>
+
+<pre><code>blk_queue_bio
+{
+
+    el_ret = elv_merge(q, &amp;req, bio);
+    if (el_ret == ELEVATOR_BACK_MERGE) {
+        if (bio_attempt_back_merge(q, req, bio)) {
+            elv_bio_merged(q, req, bio);
+            /*
+            上面是把bio合并到request中, 图示的[b, c]是刚合并的bio, 合并为[a&#39;, c]这个request,
+            ---| |---| |---
+            a&#39; a b   c d
+
+            现在考虑request [a&#39;, c]是否能够和request [d, ]合并.
+            */
+            if (!attempt_back_merge(q, req))
+                elv_merged_request(q, req, el_ret);
+            goto out_unlock;
+        }
+    }
+
+}
+</code></pre>
+
+<p>问题:struct elevator_queue()和io调度器的关系?<br>
+答:  </p>
+
+<pre><code>submit_bio() -&gt; generic_make_request -&gt; blk_queue_bio
+|--无锁 attempt_plug_merge
+|--spin_lock_irq(q-&gt;queue_lock);
+|--elv_merge(struct request_queue *q, ...) /*没有进行队列的插入操作, 仅判断是否能够完成merge.*/
+|   |--struct elevator_queue *e = q-&gt;elevator;
+|   |--e-&gt;type-&gt;ops.elevator_merge_fn  -&gt; deadline_merge(struct request_queue *q, ...)
+|   |   |--struct deadline_data *dd = q-&gt;elevator-&gt;elevator_data;
+</code></pre>
+
+<p>elevator_queue是 各调度策略通用的结构体.
+再通过 elevator-&gt;elevator_data 转到  各调度策略 特定的结构体.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/io/deadline-iosched>https://awakening-fong.github.io/posts/io/deadline-iosched</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#I/O-ref">I/O <span>9</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#iosched-ref">iosched <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/io/generic_make_request" title="generic_make_request">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/scheduler/scheduler_00_implementation" title="调度器CFS的实现">Next &rarr;</a></li>
+      </ul>
+    </div>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

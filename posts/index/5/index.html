@@ -54,6 +54,51 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p>
+来自本人的旧博客
+http://blog.163.com/awaken_ing/blog/static/120613197201571932454226
+</p>
+
+<p>create_mapping会调用到alloc_init_pte(), 进而调用set_pte_ext()</p>
+
+<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+</code></pre>
+
+<p>这里qemu模拟的versatilepb ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ</p>
+
+<p>所以set_pte_ext(pte, pfn_pte(pfn, __pgprot(type-&gt;prot_pte)), 0);</p>
+
+<p>就是</p>
+
+<p>cpu_arm926_set_pte_ext (pte, pfn_pte(pfn, __pgprot(type-&gt;prot_pte)), 0);</p>
+
+<pre><code>/*
+ * cpu_arm926_set_pte_ext(ptep, pte, ext)
+ *
+ * Set a PTE and flush it out
+ */
+    .align  5
+ENTRY(cpu_arm926_set_pte_ext)
+#ifdef CONFIG_MMU
+    armv3_set_pte_ext
+    mov r0, r0
+#ifndef CONFIG_CPU_DCACHE_WRITETHROUGH
+    mcr p15, 0, r0, c7, c10, 1      @ clean D entry
+#endif
+    mcr p15, 0, r0, c7, c10, 4      @ drain WB
+#endif
+    mov pc, lr
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
@@ -215,42 +260,6 @@ str r3, [r4, r6, lsl #2] @ identity mapping
 
         <div class="more">
           <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
-
-        <div class="summary ellipsis">
-<p>本文假定没有打开CONFIG_SLUB_DEBUG, 没有配置CONFIG_NUMA.</p>
-
-<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
-
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
- *   on any list. It is not on any list. The processor that froze the slab is the one who can
- *   perform list operations on the page. Other processors may put objects
- *   onto the freelist but the processor that froze the slab is the only
- *   one that can retrieve the objects from the page's freelist.
-</code></pre>
-
-<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
-cpu02不能从该page中取obj, 只能把obj还给该page.</p>
-
-<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
-
-<p>linux-3.10.86/include/linux/slub_def.h</p>
-
-<pre><code>struct kmem_cache_cpu {
-...
-    struct page *partial;   /* Partially allocated frozen slabs */
-    ...
-};
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
         </div>
       </div>
     
