@@ -54,6 +54,39 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. page_referenced</h4></h1>
+
+<p>linux-3.10.86/mm/rmap.c</p>
+
+<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
+ * returns the number of ptes which referenced the page.
+这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
+
+ 问题:这个函数的用途?
+ 答:用来反应在inactive list中的page的活跃程度.
+ 返回数值1和返回数值2是有区别的, see page_check_references
+ {
+     referenced_ptes = page_referenced(...);
+     if (... || referenced_ptes &gt; 1)
+        return PAGEREF_ACTIVATE;
+
+ }
+ */
+int page_referenced(struct page *page,
+        int is_locked,
+        struct mem_cgroup *memcg,
+        unsigned long *vm_flags)
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_03_activity" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
@@ -262,45 +295,6 @@ t7   |                           |t7    |bne    1b
 
         <div class="more">
           <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
-
-<p>假定 CONFIG_MULTI_IRQ_HANDLER=y, handle_arch_irq 为 gic_handle_irq.<br>
-linux-3.10.86/arch/arm/kernel/setup.c</p>
-
-<pre><code>__irq_svc @entry-armv.S
-|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
-|   |--irq_handler
-|   |   |--handle_arch_irq =&gt; gic_handle_irq
-|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
-|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
-|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
-|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--handle_irq_event
-|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
-|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--chip-&gt;irq_eoi
-|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
-|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
-|   |   |   |       |   |--if( ... ) invoke_softirq() 
-|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
-|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
-|   |   |   |       |   |    |    |--h-&gt;action(h)
-|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
-|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
-|   |--svc_exit r5, irq = 1  @entry-header.S
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
     

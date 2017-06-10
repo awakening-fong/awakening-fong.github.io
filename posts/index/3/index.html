@@ -54,34 +54,88 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<p>未开启CONFIG_MEMCG, CONFIG_SWAP.</p>
+
+<h1 id="toc_0"><h4>1. scan_control</h4></h1>
 
 <p>linux-3.10.86/mm/vmscan.c</p>
 
-<pre><code>static inline int is_page_cache_freeable(struct page *page)
-{
+<pre><code>struct scan_control {
+
+    /* Incremented by the number of inactive pages that were scanned */
+    unsigned long nr_scanned;
+
+    /* How many pages shrink_list() should reclaim 
+    问题:nr_to_reclaim和nr_scanned的关系?
+    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
+    通常是先给struct scan_control sc设置好这个目标, 
+    然后启动回收. 
+    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
+    */
+    unsigned long nr_to_reclaim;
 
     /*
-     * A freeable page cache page is referenced only by the caller
-     * that isolated the page, the page cache radix tree and
-     * optional buffer heads at page-&gt;private.
-     */
-    return page_count(page) - page_has_private(page) == 2;
+    这里的may类似may I ..., may的意思是 是否可以, 是否允许
+    */
+    int may_writepage;
 
+    /*
+    [Understanding the Linux Kernel, 3rd Edition]p695
+    Lower priority implies scanning more pages.
+    */
+    int priority;
+
+};
+
+get_scan_count
+{
+        size = get_lru_size(lruvec, lru);
+        scan = size &gt;&gt; sc-&gt;priority;
+        //扫描的量 与 list的大小 成比例
 }
+
+shrink_lruvec
+|--//1. 根据优先级等 给数组nr[]赋值
+|--get_scan_count(lruvec, sc, nr); 
 </code></pre>
-
-<p>为何是== 2?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_05_page_count" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
+
+<p>本文不讨论 swapping (swap out to disk).  </p>
+
+<p>If a seldom-used page is backed by a block device (e.g., memory mappings
+of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
+通过Writing back cached data即可将这些page释放.</p>
+
+<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
+
+<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
+
+<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
+
+<p>如何找到这些内存呢? 啥链表吗?<br>
+答:see add_to_page_cache_lru(), page_add_new_anon_rmap()</p>
+
+<p>方式1:
+add_to_page_cache_lru 把page添加到 both the page cache and the LRU cache. 
+Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -141,90 +195,34 @@ set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. page_referenced</h4></h1>
-
-<p>linux-3.10.86/mm/rmap.c</p>
-
-<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
- * returns the number of ptes which referenced the page.
-这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
-
- 问题:这个函数的用途?
- 答:用来反应在inactive list中的page的活跃程度.
- 返回数值1和返回数值2是有区别的, see page_check_references
- {
-     referenced_ptes = page_referenced(...);
-     if (... || referenced_ptes &gt; 1)
-        return PAGEREF_ACTIVATE;
-
- }
- */
-int page_referenced(struct page *page,
-        int is_locked,
-        struct mem_cgroup *memcg,
-        unsigned long *vm_flags)
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_03_activity" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<p>未开启CONFIG_MEMCG, CONFIG_SWAP.</p>
-
-<h1 id="toc_0"><h4>1. scan_control</h4></h1>
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
 <p>linux-3.10.86/mm/vmscan.c</p>
 
-<pre><code>struct scan_control {
-
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
-
-    /* How many pages shrink_list() should reclaim 
-    问题:nr_to_reclaim和nr_scanned的关系?
-    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
-    通常是先给struct scan_control sc设置好这个目标, 
-    然后启动回收. 
-    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
-
-    /*
-    这里的may类似may I ..., may的意思是 是否可以, 是否允许
-    */
-    int may_writepage;
-
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
-
-};
-
-get_scan_count
+<pre><code>static inline int is_page_cache_freeable(struct page *page)
 {
-        size = get_lru_size(lruvec, lru);
-        scan = size &gt;&gt; sc-&gt;priority;
-        //扫描的量 与 list的大小 成比例
-}
 
-shrink_lruvec
-|--//1. 根据优先级等 给数组nr[]赋值
-|--get_scan_count(lruvec, sc, nr); 
+    /*
+     * A freeable page cache page is referenced only by the caller
+     * that isolated the page, the page cache radix tree and
+     * optional buffer heads at page-&gt;private.
+     */
+    return page_count(page) - page_has_private(page) == 2;
+
+}
 </code></pre>
+
+<p>为何是== 2?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_05_page_count" class="btn btn-small">read more..</a>
         </div>
       </div>
     

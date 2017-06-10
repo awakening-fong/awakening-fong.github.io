@@ -54,34 +54,67 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
-<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+<p>摘自APUE:</p>
 
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
 
-<p>2.1   HZ 设置为 250, 1000等.</p>
+<p>问题:哪里设置只读, 如何知道只读?</p>
 
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+<h1 id="toc_1"><h4>2. 解</h4></h1>
 
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
 
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
 
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
-
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
-
-<p>hash应该也算这个类别.</p>
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
 
 </div>
 
         <div class="more">
-          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+
+<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
+中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
+
+<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
+</code></pre>
+
+<p>为何要-8?  </p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<pre><code>static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<p>(图示中A点到B点  大小是8字节)<br>
+如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
+如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
+所以, 需要-8.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/thread_start_sp" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -156,36 +189,34 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
 
-<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
-中说到 start_kernel前设置sp为 init_thread_union + THREAD_START_SP</p>
+<p>add_to_page_cache_lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
 
-<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
-</code></pre>
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
 
-<p>为何要-8?  </p>
+<p>2.1   HZ 设置为 250, 1000等.</p>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
 
-<pre><code>static inline struct thread_info *current_thread_info(void)
-{
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
-}
-</code></pre>
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
 
-<p>(图示中A点到B点  大小是8字节)<br>
-如果sp是SP0, 那么,(sp &amp; ~(THREAD_SIZE - 1)) 后还是指向SP0 (A点);<br>
-如果sp是SP1, 那么, (sp &amp; ~(THREAD_SIZE - 1)) 后指向的是thread_info (C点).<br>
-所以, 需要-8.</p>
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
 </div>
 
         <div class="more">
-          <a href="/posts/arm/thread_start_sp" class="btn btn-small">read more..</a>
+          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -217,37 +248,6 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 
         <div class="more">
           <a href="/posts/hw/iic" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
-
-<p>本文不讨论 swapping (swap out to disk).  </p>
-
-<p>If a seldom-used page is backed by a block device (e.g., memory mappings
-of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
-通过Writing back cached data即可将这些page释放.</p>
-
-<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
-
-<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
-
-<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
-
-<p>如何找到这些内存呢? 啥链表吗?<br>
-答:see add_to_page_cache_lru(), page_add_new_anon_rmap()</p>
-
-<p>方式1:
-add_to_page_cache_lru 把page添加到 both the page cache and the LRU cache. 
-Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
-当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
         </div>
       </div>
     

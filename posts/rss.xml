@@ -4,7 +4,54 @@
     <title>HOMEPAGE</title>
     <description>HOMEPAGE</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2017-05-14</pubDate>
+    <pubDate>2017-06-10</pubDate>
+    <item>
+      <title>&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;</title>
+      <link>https://awakening-fong.github.io/posts/debug/softlockup</link>
+      <pubDate>2017-06-10</pubDate>
+      <description>&lt;p&gt;&#x672C;&#x6587;&#x4EE5;2.6.18&#x5185;&#x6838;&#x6765;&#x8BF4;&#x660E;.&lt;/p&gt;
+
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x68C0;&#x6D4B;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x6BCF;&#x95F4;&#x9694;HZ, &#x4F1A;&#x5582;watchdog.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;tick                         watchdog
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &amp;gt;     |
+|check                         | touch
+|                              |
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &amp;gt;     |
+|check                         | touch
+|                              |
+|                              |
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x82E5;watchdog&#x7EBF;&#x7A0B;&#x8FDF;&#x8FDF;&#x6CA1;&#x6709;&#x88AB;&#x8C03;&#x5EA6;&#x5230;, &#x5219;&#x5BFC;&#x81F4;watchdog&#x6CA1;&#x6709;touch, &#x8FD9;&#x6837;, tick &#x65F6;&#x949F;&#x4F1A;&#x68C0;&#x67E5;&#x5230;&#x8BE5;&#x95EE;&#x9898;, &#x62A5; soft lockup .&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;&lt;h4&gt;2. &#x6253;&#x5370;&#x51FA;&#x6765;&#x7684;&#x662F;&#x8C01;&#x7684;&#x6808;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code&gt;softlockup_tick
+{
+    if (time_after(jiffies, touch_timestamp + 10*HZ))
+    {
+        ...
+        per_cpu(print_timestamp, this_cpu) = touch_timestamp;
+
+        dump_stack(); 
+        ...
+    }
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x95EE;&#x9898;:&#x4E0A;&#x9762;&#x8FD9;&#x4E2A;dump_stack()&#x6709;&#x610F;&#x4E49;&#x5417;? &#x6253;&#x5370;&#x51FA;&#x6765;&#x7684;&#x662F;&#x8C01;&#x7684;&#x6808;?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: &#x7531;&#x4E8E; watchdog &#x7EBF;&#x7A0B;&#x65E0;&#x6CD5;&#x8C03;&#x5EA6;&#x5230;, &#x90A3;&#x4E48;, &#x4E5F;&#x5C31;&#x662F;&#x6709; task &#x957F;&#x671F;&#x5360;&#x7528;&#x7740;cpu, &#x6240;&#x4EE5;, &#x65F6;&#x949F;&#x4E2D;&#x65AD;&#x53D1;&#x751F;&#x65F6;, &#x5927;&#x6982;&#x7387;&#x662F;&#x5904;&#x5728;&#x8FD9;&#x4E2A; &#x957F;&#x671F;&#x5360;&#x7528;&#x7684;cpu&#x7684;task&#x4E0A;, &#x6545; &#x8FD9;&#x91CC;dump_stack()&#x5927;&#x6982;&#x7387;&#x6253;&#x5370;&#x51FA; &#x8FD9;&#x4E2A;task. &lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>&#x4E3A;&#x4F55;&#x4E2D;&#x65AD;handler&#x4E2D;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;current</title>
       <link>https://awakening-fong.github.io/posts/arm/current_in_interrupt_handler</link>
@@ -844,59 +891,48 @@ copy_one_pte
 </description>
     </item>
     <item>
-      <title>&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
-      <link>https://awakening-fong.github.io/posts/other/optimize</link>
+      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
+      <link>https://awakening-fong.github.io/posts/arm/thread_start_sp</link>
       <pubDate>2017-02-23</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6279;&#x91CF;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h1&gt;
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;add_to_page_cache_lru,  &#x64CD;&#x4F5C;lru&#x7684;&#x8BDD;, &#x5148;&#x653E;&#x5230;per cpu&#x7684;lru cache (struct pagevec), &#x5F85;lru cache&#x5B58;&#x6EE1;&#x540E;drain.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
+&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
 
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x541E;&#x5410;&#x91CF;&#xFF08;Throughput&#xFF09;&#x548C;&#x65F6;&#x5EF6;&#xFF08;Latency&#xFF09;&lt;/h4&gt;&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;2.1   HZ &#x8BBE;&#x7F6E;&#x4E3A; 250, 1000&#x7B49;.&lt;/p&gt;
+&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
 
-&lt;p&gt;2.2 
-&#x4E2D;&#x65AD;&#x7EBF;&#x7A0B;&#x5316;&#x540E;, &#x541E;&#x5410;&#x91CF;&#x53EF;&#x80FD;&#x4E0B;&#x964D;, &#x4F46;&#x7CFB;&#x7EDF;&#x5176;&#x5B83;&#x5730;&#x65B9;&#x7684;&#x65F6;&#x5EF6;&#x53EF;&#x80FD;&#x6539;&#x5584;.&lt;/p&gt;
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x7528;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&lt;/h4&gt;&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
+    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+}
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&#x8BA1;&#x7B97;&#x7ED3;&#x679C;&#x7F13;&#x5B58;&#x4E4B;&#x7C7B;&#x7684;, &#x6BD4;&#x5982; &#x4E00;&#x4E9B;&#x6570;&#x503C;&#x8BA1;&#x7B97;, &#x5F00;&#x6839;&#x53F7;&#x4EC0;&#x4E48;&#x7684;.&lt;/p&gt;
+&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
+&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
 
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x6536;&#x655B;?&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;radix tree&#x7684;tag, &#x4E0D;&#x5FC5;&#x9010;&#x4E2A;&#x5224;&#x65AD;&#x8BE5;&#x8282;&#x70B9; &#x5B50;&#x6811; &#x4E0B;&#x7684;&#x53F6;&#x5B50;. &#x8FD9;&#x4E2A;&#x53EF;&#x80FD;&#x4E5F;&#x53EF;&#x4EE5;&#x5F52;&#x5230;  &#x7F13;&#x5B58; &#x4E2D;.&lt;/p&gt;
-
-&lt;p&gt;hash&#x5E94;&#x8BE5;&#x4E5F;&#x7B97;&#x8FD9;&#x4E2A;&#x7C7B;&#x522B;.&lt;/p&gt;
-
-&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x7F13;&#x5B58;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;buddy system &#x4E00;&#x5F00;&#x59CB;&#x4ECE;zone&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x5206;&#x914D;, &#x91CA;&#x653E;&#x65F6;&#x653E;&#x5230;per cpu&#x7684;pcp, &#x540E;&#x7EED;&#x4ECE;pcp&#x4E2D;&#x53D6;, &#x51CF;&#x5C11;&#x4E86;&#x9501;&#x7684;&#x95EE;&#x9898;.&lt;/p&gt;
-
-&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x9501;&#x7684;&#x95EE;&#x9898;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;6.1 &#x4F7F;&#x7528;per cpu.
-&#x6BD4;&#x5982; lru&#x95EE;&#x9898; per cpu&#x7684; pagevec.&lt;/p&gt;
-
-&lt;p&gt;6.2&lt;br&gt;
-1. lock&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;,&lt;br&gt;
-2. &#x4ECE;&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x6311;&#x9009;&#x653E;&#x5165;on a local list,&lt;br&gt;
-3. unlock &#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&lt;br&gt;
-4. &#x5BF9; local list&#x8FDB;&#x884C;&#x76F8;&#x5BF9;&#x6BD4;&#x8F83;&#x8017;&#x65F6;&#x7684;&#x64CD;&#x4F5C;&lt;/p&gt;
-
-&lt;p&gt;&#x8FD9;&#x4E2A;&#x6BD4;&#x8F83;&#x5E38;&#x89C1;, &#x6BD4;&#x5982; ...&lt;/p&gt;
-
-&lt;p&gt;6.3 RCU&#x7684;&#x9002;&#x7528;&#x8303;&#x56F4;
-...&lt;/p&gt;
-
-&lt;p&gt;6.4 &#x628A;&#x76F8;&#x5173;&#x4FE1;&#x606F; &#x6324;&#x5230;  int &#x4E2D;, &#x66F4;&#x65B0;int&#x662F;&#x539F;&#x5B50;&#x7684;, &#x5C31;&#x7701;&#x6389;&#x4E86;&#x9501;.
-&#x6BD4;&#x5982;, 
-strct page&#x4E2D;&#x6709;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct { /* SLUB */
-    unsigned inuse:16;
-    unsigned objects:15;
-    unsigned frozen:1; 
-};
+&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
+                |    | A           |     |                  
+                8    |             |     |            ^     
+                |    |             |                  |     
+          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
+                     |             |     .            |     
+                     |             |     |            |     
+                     |             |     |            |     
+                     |             |     |            |     
+  thread_info ---&amp;gt;   |.C           |  ------          |     
+                     |             |                  |     
+                     |             |                  |     
+                     |             |                  |      
+                     |             |                        
+                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -968,48 +1004,59 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 </description>
     </item>
     <item>
-      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
-      <link>https://awakening-fong.github.io/posts/arm/thread_start_sp</link>
+      <title>&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
+      <link>https://awakening-fong.github.io/posts/other/optimize</link>
       <pubDate>2017-02-23</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6279;&#x91CF;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
-&#x4E2D;&#x8BF4;&#x5230; start_kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init_thread_union + THREAD_START_SP&lt;/p&gt;
+&lt;p&gt;add_to_page_cache_lru,  &#x64CD;&#x4F5C;lru&#x7684;&#x8BDD;, &#x5148;&#x653E;&#x5230;per cpu&#x7684;lru cache (struct pagevec), &#x5F85;lru cache&#x5B58;&#x6EE1;&#x540E;drain.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
-&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x541E;&#x5410;&#x91CF;&#xFF08;Throughput&#xFF09;&#x548C;&#x65F6;&#x5EF6;&#xFF08;Latency&#xFF09;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+&lt;p&gt;2.1   HZ &#x8BBE;&#x7F6E;&#x4E3A; 250, 1000&#x7B49;.&lt;/p&gt;
 
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+&lt;p&gt;2.2 
+&#x4E2D;&#x65AD;&#x7EBF;&#x7A0B;&#x5316;&#x540E;, &#x541E;&#x5410;&#x91CF;&#x53EF;&#x80FD;&#x4E0B;&#x964D;, &#x4F46;&#x7CFB;&#x7EDF;&#x5176;&#x5B83;&#x5730;&#x65B9;&#x7684;&#x65F6;&#x5EF6;&#x53EF;&#x80FD;&#x6539;&#x5584;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
-{
-    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
-    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
-}
-&lt;/code&gt;&lt;/pre&gt;
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x7528;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD_SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
-&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+&lt;p&gt;&#x8BA1;&#x7B97;&#x7ED3;&#x679C;&#x7F13;&#x5B58;&#x4E4B;&#x7C7B;&#x7684;, &#x6BD4;&#x5982; &#x4E00;&#x4E9B;&#x6570;&#x503C;&#x8BA1;&#x7B97;, &#x5F00;&#x6839;&#x53F7;&#x4EC0;&#x4E48;&#x7684;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
-                |    | A           |     |                  
-                8    |             |     |            ^     
-                |    |             |                  |     
-          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
-                     |             |     .            |     
-                     |             |     |            |     
-                     |             |     |            |     
-                     |             |     |            |     
-  thread_info ---&amp;gt;   |.C           |  ------          |     
-                     |             |                  |     
-                     |             |                  |     
-                     |             |                  |      
-                     |             |                        
-                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x6536;&#x655B;?&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;radix tree&#x7684;tag, &#x4E0D;&#x5FC5;&#x9010;&#x4E2A;&#x5224;&#x65AD;&#x8BE5;&#x8282;&#x70B9; &#x5B50;&#x6811; &#x4E0B;&#x7684;&#x53F6;&#x5B50;. &#x8FD9;&#x4E2A;&#x53EF;&#x80FD;&#x4E5F;&#x53EF;&#x4EE5;&#x5F52;&#x5230;  &#x7F13;&#x5B58; &#x4E2D;.&lt;/p&gt;
+
+&lt;p&gt;hash&#x5E94;&#x8BE5;&#x4E5F;&#x7B97;&#x8FD9;&#x4E2A;&#x7C7B;&#x522B;.&lt;/p&gt;
+
+&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x7F13;&#x5B58;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;buddy system &#x4E00;&#x5F00;&#x59CB;&#x4ECE;zone&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x5206;&#x914D;, &#x91CA;&#x653E;&#x65F6;&#x653E;&#x5230;per cpu&#x7684;pcp, &#x540E;&#x7EED;&#x4ECE;pcp&#x4E2D;&#x53D6;, &#x51CF;&#x5C11;&#x4E86;&#x9501;&#x7684;&#x95EE;&#x9898;.&lt;/p&gt;
+
+&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x9501;&#x7684;&#x95EE;&#x9898;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;6.1 &#x4F7F;&#x7528;per cpu.
+&#x6BD4;&#x5982; lru&#x95EE;&#x9898; per cpu&#x7684; pagevec.&lt;/p&gt;
+
+&lt;p&gt;6.2&lt;br&gt;
+1. lock&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;,&lt;br&gt;
+2. &#x4ECE;&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x6311;&#x9009;&#x653E;&#x5165;on a local list,&lt;br&gt;
+3. unlock &#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&lt;br&gt;
+4. &#x5BF9; local list&#x8FDB;&#x884C;&#x76F8;&#x5BF9;&#x6BD4;&#x8F83;&#x8017;&#x65F6;&#x7684;&#x64CD;&#x4F5C;&lt;/p&gt;
+
+&lt;p&gt;&#x8FD9;&#x4E2A;&#x6BD4;&#x8F83;&#x5E38;&#x89C1;, &#x6BD4;&#x5982; ...&lt;/p&gt;
+
+&lt;p&gt;6.3 RCU&#x7684;&#x9002;&#x7528;&#x8303;&#x56F4;
+...&lt;/p&gt;
+
+&lt;p&gt;6.4 &#x628A;&#x76F8;&#x5173;&#x4FE1;&#x606F; &#x6324;&#x5230;  int &#x4E2D;, &#x66F4;&#x65B0;int&#x662F;&#x539F;&#x5B50;&#x7684;, &#x5C31;&#x7701;&#x6389;&#x4E86;&#x9501;.
+&#x6BD4;&#x5982;, 
+strct page&#x4E2D;&#x6709;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;struct { /* SLUB */
+    unsigned inuse:16;
+    unsigned objects:15;
+    unsigned frozen:1; 
+};
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -1047,6 +1094,143 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 &lt;p&gt;ACK&#x8981;&#x80FD;&#x591F;&#x88AB;&#x68C0;&#x6D4B;&#x5230;, &#x6545;&#x4E0D;&#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x4E0D;&#x80FD;&#x53BB;&#x5E72;&#x6270;SDA, &#x6545;&#x4FDD;&#x6301;&#x9AD8;&#x7535;&#x4F4D;, &#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x62C9;&#x4F4E;SDA.&lt;/p&gt;
 
 &lt;p&gt;&#x5982;&#x679C; &#x4ECE;&#x673A;&#x63A5;&#x6536;&#x597D;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;(&#x542B;&#x54CD;&#x5E94;&#x4F4D;) &#x540E;,  &#x8981;&#x5B8C;&#x6210;&#x4E00;&#x4E9B;&#x5176;&#x4ED6;&#x529F;&#x80FD;&#x540E; (&#x4F8B;&#x5982;&#x4E00;&#x4E2A;&#x5185;&#x90E8;&#x4E2D;&#x65AD;&#x670D;&#x52A1;&#x7A0B;&#x5E8F;), &#x624D;&#x80FD;&#x63A5;&#x6536;&#x6216;&#x53D1;&#x9001;&#x4E0B;&#x4E00;&#x4E2A;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;, &#x53EF;&#x4EE5;&#x4F7F;&#x65F6;&#x949F;&#x7EBF; SCL &#x4FDD;&#x6301;&#x4F4E;&#x7535;&#x5E73;&#x8FEB;&#x4F7F;&#x4E3B;&#x673A;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x72B6;&#x6001;. &lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>page reclaim 04:&#x53C2;&#x6570;</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_04_parameter</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;p&gt;&#x672A;&#x5F00;&#x542F;CONFIG_MEMCG, CONFIG_SWAP.&lt;/p&gt;
+
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. scan_control&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;struct scan_control {
+
+    /* Incremented by the number of inactive pages that were scanned */
+    unsigned long nr_scanned;
+
+    /* How many pages shrink_list() should reclaim 
+    &#x95EE;&#x9898;:nr_to_reclaim&#x548C;nr_scanned&#x7684;&#x5173;&#x7CFB;?
+    &#x7B54;:nr_to_reclaim&#x662F;&#x4E2A;setting data, nr_reclaimed&#x662F;runtime date.
+    &#x901A;&#x5E38;&#x662F;&#x5148;&#x7ED9;struct scan_control sc&#x8BBE;&#x7F6E;&#x597D;&#x8FD9;&#x4E2A;&#x76EE;&#x6807;, 
+    &#x7136;&#x540E;&#x542F;&#x52A8;&#x56DE;&#x6536;. 
+    &#x5728; sum of shrink_list() &amp;gt; nr_to_reclaim&#x540E;&#x4E2D;&#x65AD;&#x56DE;&#x6536;, see shrink_lruvec() or do_try_to_free_pages().
+    */
+    unsigned long nr_to_reclaim;
+
+    /*
+    &#x8FD9;&#x91CC;&#x7684;may&#x7C7B;&#x4F3C;may I ..., may&#x7684;&#x610F;&#x601D;&#x662F; &#x662F;&#x5426;&#x53EF;&#x4EE5;, &#x662F;&#x5426;&#x5141;&#x8BB8;
+    */
+    int may_writepage;
+
+    /*
+    [Understanding the Linux Kernel, 3rd Edition]p695
+    Lower priority implies scanning more pages.
+    */
+    int priority;
+
+};
+
+get_scan_count
+{
+        size = get_lru_size(lruvec, lru);
+        scan = size &amp;gt;&amp;gt; sc-&amp;gt;priority;
+        //&#x626B;&#x63CF;&#x7684;&#x91CF; &#x4E0E; list&#x7684;&#x5927;&#x5C0F; &#x6210;&#x6BD4;&#x4F8B;
+}
+
+shrink_lruvec
+|--//1. &#x6839;&#x636E;&#x4F18;&#x5148;&#x7EA7;&#x7B49; &#x7ED9;&#x6570;&#x7EC4;nr[]&#x8D4B;&#x503C;
+|--get_scan_count(lruvec, sc, nr); 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. watermark &lt;/h4&gt;&lt;/h1&gt;
+
+&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 low watermark&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x53D1;&#x73B0;&#x4F4E;&#x4E8E;low watermark&#x65F6;, &#x5524;&#x9192;kswapd:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;__alloc_pages_nodemask
+|-- int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
+|--page = get_page_from_freelist(,alloc_flags,)
+|--if (unlikely(!page)) 
+|   |--__alloc_pages_slowpath()
+|   |   |--if (!(gfp_mask &amp;amp; __GFP_NO_KSWAPD))
+|   |   |   |--wake_all_kswapd(order, ...)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 high watermark&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x8FBE;&#x5230;high watermark&#x65F6;&#x505C;&#x6B62;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;zone_balanced(, balance_gap:0,)  //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x5FFD;&#x7565;CONFIG_COMPACTION
+|--free &amp;gt; high_wmark_pages+balance_gap 
+|-- and ...
+
+pgdat_balanced //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x53EA;&#x770B;order&#x4E3A;0&#x7684;&#x60C5;&#x51B5;
+{
+    if (zone_balanced(..,balance_gap:0, ))
+        return true
+}
+
+
+kswapd -&amp;gt; balance_pgdat
+{
+    ...
+            shrink_zone
+            shrink_slab
+
+    if (pgdat_balanced(...))
+        break;      /* kswapd: all done */
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 min_free_kbytes&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;linux-3.10.86/Documentation/sysctl/vm.txt&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;min_free_kbytes:&lt;/p&gt;
+
+&lt;p&gt;This is used to force the Linux VM to keep a minimum number of kilobytes free.  The VM uses this number to compute a watermark[WMARK_MIN] value for each lowmem zone in the system. Each lowmem zone gets a number of reserved free pages based proportionally on its size.&lt;/p&gt;
+
+&lt;p&gt;Some minimal amount of memory is needed to satisfy PF_MEMALLOC allocations; if you set this to lower than 1024KB, your system will become subtly broken, and prone to deadlock under high loads.&lt;/p&gt;
+
+&lt;p&gt;Setting this too high will OOM your machine instantly. &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;pfmemalloc_watermark_ok
+{
+    pfmemalloc_reserve += min_wmark_pages(zone);
+    wmark_ok = free_pages &amp;gt; pfmemalloc_reserve / 2;
+
+    if (!wmark_ok &amp;amp;&amp;amp; waitqueue_active(&amp;amp;pgdat-&amp;gt;kswapd_wait)) {
+        ...
+        /*&#x5982;&#x679C;&#x7761;&#x7720;&#x4E2D;(waitqueue_active()), &#x5219;&#x5524;&#x9192;kswapd*/
+        wake_up_interruptible(&amp;amp;pgdat-&amp;gt;kswapd_wait);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href="https://lwn.net/Articles/422291/"&gt;https://lwn.net/Articles/422291/&lt;/a&gt;&lt;br&gt;
+The thresholds kswapd/direct reclaim starts(ends) depend on
+watermark[min,low,high] and currently all watermarks are set
+based on min_free_kbytes. min_free_kbytes is the amount of
+free memory that Linux VM should keep at least.&lt;/p&gt;
+
+&lt;p&gt;linux-3.10.86/mm/page_alloc.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;__setup_per_zone_wmarks
+{
+
+    zone-&amp;gt;watermark[WMARK_MIN] = ...
+    zone-&amp;gt;watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 2);
+    zone-&amp;gt;watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 1);
+}
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     <item>
@@ -1136,99 +1320,6 @@ generic_perform_write -&amp;gt; mark_page_accessed(page)
 &lt;p&gt;per zone : active list, inactive list&lt;br&gt;
 per node :kswapd&lt;br&gt;
 per cpu  :lru cache, &#x4E5F;&#x5C31;&#x662F; pagevec  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 05:page count</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_05_page_count</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static inline int is_page_cache_freeable(struct page *page)
-{
-
-    /*
-     * A freeable page cache page is referenced only by the caller
-     * that isolated the page, the page cache radix tree and
-     * optional buffer heads at page-&amp;gt;private.
-     */
-    return page_count(page) - page_has_private(page) == 2;
-
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E3A;&#x4F55;&#x662F;== 2?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x8C03;&#x7528;&#x8DEF;&#x5F84;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;shrink_inactive_list
-|--lru_add_drain
-|--isolate_lru_pages
-|   |--get_page_unless_zero  //&#x5F15;&#x7528;&#x8BA1;&#x6570;
-|--shrink_page_list   (shrink_page_list&#x4E0D;&#x4F1A;&#x88AB;shrink_active_list&#x8C03;&#x7528;.)
-|   |--pageout
-|   |   |--is_page_cache_freeable
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 isolated the page&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x7565;&lt;/p&gt;
-
-&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 buddy system&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x6CE8;&#x91CA;&#x4E2D;&#x63D0;&#x5230;&amp;quot;the page cache radix tree&amp;quot;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x5E76;&#x4E0D;&#x51C6;&#x786E;, &#x5E94;&#x8BE5;&#x662F;&#x4ECE;buddy system&#x5206;&#x914D;&#x4EA7;&#x751F;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;.&lt;/p&gt;
-
-&lt;p&gt;buddy system&#x7684;get:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
-|   |--get_page_from_freelist
-|   |   |--buffered_rmqueue 
-|   |   |   |--prep_new_page
-|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5E76;&#x4E0D;&#x662F;radix tree&#x7684;get&#x7684;&#x7406;&#x7531;&#x5982;&#x4E0B;:&lt;br&gt;
-&#x4EE5;do_generic_file_read &#x4E3A;&#x4F8B;, &#x770B;&#x4E0B;page cache&#x7684;get:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;do_generic_file_read
-|--no_cached_page: page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
-|   |--get_page_from_freelist
-|   |   |--buffered_rmqueue 
-|   |   |   |--prep_new_page
-|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
-|--add_to_page_cache_lru
-|   |--add_to_page_cache -&amp;gt; add_to_page_cache_locked
-|   |   |   |--page_cache_get //&#x5F15;&#x7528;&#x8BA1;&#x6570;A
-|   |   |   |--radix_tree_insert
-|   |--lru_cache_add_file -&amp;gt; __lru_cache_add
-|--readpage: mapping-&amp;gt;a_ops-&amp;gt;readpage(filp, page)
-|--ret = actor(desc, page, offset, nr);//&#x6BD4;&#x5982;file_read_actor()
-|--page_cache_release(page); //&#x5F15;&#x7528;&#x8BA1;&#x6570;B
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4F7F;&#x7528;&#x5B8C;&#x540E;, &#x4FEE;&#x6539;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x6545;&#x8FD9;&#x91CC;&#x5BF9;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x6CA1;&#x6709;&#x5F71;&#x54CD;.&lt;/p&gt;
-
-&lt;p&gt;lru&#x7684;&#x8BA1;&#x6570;&#x5462;?&lt;br&gt;
-&#x7B54;:&#x52A0;&#x5165;pagevec&#x4E2D;&#x4F1A;get page, &#x6E05;&#x7A7A;pagevec&#x653E;&#x5165;lru&#x65F6;, &#x4F1A;put page.&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 buffer_head&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x82E5;page_has_private()&#x8FD4;&#x56DE;1, &#x5219;page_count&#x4E3A;3&lt;/p&gt;
-
-&lt;p&gt;buffer_head&#x65F6;&#x7684;get page:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;grow_dev_page
-|--find_or_create_page
-|--alloc_page_buffers
-|--link_dev_buffers(page, bh) -&amp;gt; attach_page_buffers
-|   |--page_cache_get
-|   |--set_page_private
-|--page_cache_release(page);  //&#x548C;find_or_create_page&#x4E2D;&#x7684;get &#x5BF9;&#x5E94;
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     <item>
@@ -1370,6 +1461,99 @@ cpu_v7_set_pte_ext&#x4E0D;&#x4F1A;&#x4FEE;&#x6539;&#x5230;L_PTE_PRESENT.&lt;br&g
 </description>
     </item>
     <item>
+      <title>page reclaim 05:page count</title>
+      <link>https://awakening-fong.github.io/posts/mm/reclaim_05_page_count</link>
+      <pubDate>2017-02-07</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline int is_page_cache_freeable(struct page *page)
+{
+
+    /*
+     * A freeable page cache page is referenced only by the caller
+     * that isolated the page, the page cache radix tree and
+     * optional buffer heads at page-&amp;gt;private.
+     */
+    return page_count(page) - page_has_private(page) == 2;
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E3A;&#x4F55;&#x662F;== 2?&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x8C03;&#x7528;&#x8DEF;&#x5F84;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;shrink_inactive_list
+|--lru_add_drain
+|--isolate_lru_pages
+|   |--get_page_unless_zero  //&#x5F15;&#x7528;&#x8BA1;&#x6570;
+|--shrink_page_list   (shrink_page_list&#x4E0D;&#x4F1A;&#x88AB;shrink_active_list&#x8C03;&#x7528;.)
+|   |--pageout
+|   |   |--is_page_cache_freeable
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 isolated the page&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x7565;&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 buddy system&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x6CE8;&#x91CA;&#x4E2D;&#x63D0;&#x5230;&amp;quot;the page cache radix tree&amp;quot;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x8FD9;&#x4E2A;&#x6CE8;&#x91CA;&#x5E76;&#x4E0D;&#x51C6;&#x786E;, &#x5E94;&#x8BE5;&#x662F;&#x4ECE;buddy system&#x5206;&#x914D;&#x4EA7;&#x751F;&#x7684;&#x5F15;&#x7528;&#x8BA1;&#x6570;.&lt;/p&gt;
+
+&lt;p&gt;buddy system&#x7684;get:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
+|   |--get_page_from_freelist
+|   |   |--buffered_rmqueue 
+|   |   |   |--prep_new_page
+|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x5E76;&#x4E0D;&#x662F;radix tree&#x7684;get&#x7684;&#x7406;&#x7531;&#x5982;&#x4E0B;:&lt;br&gt;
+&#x4EE5;do_generic_file_read &#x4E3A;&#x4F8B;, &#x770B;&#x4E0B;page cache&#x7684;get:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;do_generic_file_read
+|--no_cached_page: page_cache_alloc_cold -&amp;gt; __alloc_pages_nodemask
+|   |--get_page_from_freelist
+|   |   |--buffered_rmqueue 
+|   |   |   |--prep_new_page
+|   |   |   |   |--set_page_refcounted -&amp;gt; set_page_count(page, 1);
+|--add_to_page_cache_lru
+|   |--add_to_page_cache -&amp;gt; add_to_page_cache_locked
+|   |   |   |--page_cache_get //&#x5F15;&#x7528;&#x8BA1;&#x6570;A
+|   |   |   |--radix_tree_insert
+|   |--lru_cache_add_file -&amp;gt; __lru_cache_add
+|--readpage: mapping-&amp;gt;a_ops-&amp;gt;readpage(filp, page)
+|--ret = actor(desc, page, offset, nr);//&#x6BD4;&#x5982;file_read_actor()
+|--page_cache_release(page); //&#x5F15;&#x7528;&#x8BA1;&#x6570;B
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4F7F;&#x7528;&#x5B8C;&#x540E;, &#x4FEE;&#x6539;&#x5F15;&#x7528;&#x8BA1;&#x6570;, &#x6545;&#x8FD9;&#x91CC;&#x5BF9;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x6CA1;&#x6709;&#x5F71;&#x54CD;.&lt;/p&gt;
+
+&lt;p&gt;lru&#x7684;&#x8BA1;&#x6570;&#x5462;?&lt;br&gt;
+&#x7B54;:&#x52A0;&#x5165;pagevec&#x4E2D;&#x4F1A;get page, &#x6E05;&#x7A7A;pagevec&#x653E;&#x5165;lru&#x65F6;, &#x4F1A;put page.&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 buffer_head&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x82E5;page_has_private()&#x8FD4;&#x56DE;1, &#x5219;page_count&#x4E3A;3&lt;/p&gt;
+
+&lt;p&gt;buffer_head&#x65F6;&#x7684;get page:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;grow_dev_page
+|--find_or_create_page
+|--alloc_page_buffers
+|--link_dev_buffers(page, bh) -&amp;gt; attach_page_buffers
+|   |--page_cache_get
+|   |--set_page_private
+|--page_cache_release(page);  //&#x548C;find_or_create_page&#x4E2D;&#x7684;get &#x5BF9;&#x5E94;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
       <title>page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;</title>
       <link>https://awakening-fong.github.io/posts/mm/reclaim_03_activity</link>
       <pubDate>2017-02-07</pubDate>
@@ -1507,143 +1691,6 @@ fault&#x65F6;mark_page_accessed, &#x7136;&#x540E;, unmap&#x65F6;&#x82E5;pte youn
 &#x7B54;:&#x7531;&#x4E8E;unmap, &#x5BFC;&#x81F4;&#x539F;&#x5148;&#x901A;&#x8FC7;young&#x6807;&#x8BB0;&#x7684;&#x6D3B;&#x8DC3;&#x5EA6;&#x4FE1;&#x606F;&#x5C06;&#x4F1A;&#x6D88;&#x5931;, &#x6545;&#x6539;&#x7528;mark_page_accessed&#x6765;&#x53CD;&#x6620;&#x8BE5;&#x4FE1;&#x606F;.&lt;/p&gt;
 
 &lt;p&gt;&#x8FD9;&#x662F; &#x975E;if (PageAnon(page))&#x7684;&#x60C5;&#x51B5;, &#x8FD9;&#x6837;&#x5373;&#x4F7F;&#x8131;&#x79BB;pte, &#x8FD8;&#x53EF;&#x901A;&#x8FC7;radix tree&#x627E;&#x5230;&#x8BE5;page,  &#x8FDB;&#x800C;&#x4F7F;&#x7528;&#x4E4B;&#x524D;&#x7684;page&#x5185;&#x5BB9;, &#x8FD9;&#x6837;, &#x6807;&#x8BB0;&#x6D3B;&#x8DC3;&#x5EA6;&#x624D;&#x6709;&#x610F;&#x4E49;.&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 04:&#x53C2;&#x6570;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_04_parameter</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;p&gt;&#x672A;&#x5F00;&#x542F;CONFIG_MEMCG, CONFIG_SWAP.&lt;/p&gt;
-
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. scan_control&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct scan_control {
-
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
-
-    /* How many pages shrink_list() should reclaim 
-    &#x95EE;&#x9898;:nr_to_reclaim&#x548C;nr_scanned&#x7684;&#x5173;&#x7CFB;?
-    &#x7B54;:nr_to_reclaim&#x662F;&#x4E2A;setting data, nr_reclaimed&#x662F;runtime date.
-    &#x901A;&#x5E38;&#x662F;&#x5148;&#x7ED9;struct scan_control sc&#x8BBE;&#x7F6E;&#x597D;&#x8FD9;&#x4E2A;&#x76EE;&#x6807;, 
-    &#x7136;&#x540E;&#x542F;&#x52A8;&#x56DE;&#x6536;. 
-    &#x5728; sum of shrink_list() &amp;gt; nr_to_reclaim&#x540E;&#x4E2D;&#x65AD;&#x56DE;&#x6536;, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
-
-    /*
-    &#x8FD9;&#x91CC;&#x7684;may&#x7C7B;&#x4F3C;may I ..., may&#x7684;&#x610F;&#x601D;&#x662F; &#x662F;&#x5426;&#x53EF;&#x4EE5;, &#x662F;&#x5426;&#x5141;&#x8BB8;
-    */
-    int may_writepage;
-
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
-
-};
-
-get_scan_count
-{
-        size = get_lru_size(lruvec, lru);
-        scan = size &amp;gt;&amp;gt; sc-&amp;gt;priority;
-        //&#x626B;&#x63CF;&#x7684;&#x91CF; &#x4E0E; list&#x7684;&#x5927;&#x5C0F; &#x6210;&#x6BD4;&#x4F8B;
-}
-
-shrink_lruvec
-|--//1. &#x6839;&#x636E;&#x4F18;&#x5148;&#x7EA7;&#x7B49; &#x7ED9;&#x6570;&#x7EC4;nr[]&#x8D4B;&#x503C;
-|--get_scan_count(lruvec, sc, nr); 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. watermark &lt;/h4&gt;&lt;/h1&gt;
-
-&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 low watermark&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x53D1;&#x73B0;&#x4F4E;&#x4E8E;low watermark&#x65F6;, &#x5524;&#x9192;kswapd:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__alloc_pages_nodemask
-|-- int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
-|--page = get_page_from_freelist(,alloc_flags,)
-|--if (unlikely(!page)) 
-|   |--__alloc_pages_slowpath()
-|   |   |--if (!(gfp_mask &amp;amp; __GFP_NO_KSWAPD))
-|   |   |   |--wake_all_kswapd(order, ...)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 high watermark&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x8FBE;&#x5230;high watermark&#x65F6;&#x505C;&#x6B62;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;zone_balanced(, balance_gap:0,)  //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x5FFD;&#x7565;CONFIG_COMPACTION
-|--free &amp;gt; high_wmark_pages+balance_gap 
-|-- and ...
-
-pgdat_balanced //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x53EA;&#x770B;order&#x4E3A;0&#x7684;&#x60C5;&#x51B5;
-{
-    if (zone_balanced(..,balance_gap:0, ))
-        return true
-}
-
-
-kswapd -&amp;gt; balance_pgdat
-{
-    ...
-            shrink_zone
-            shrink_slab
-
-    if (pgdat_balanced(...))
-        break;      /* kswapd: all done */
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 min_free_kbytes&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;linux-3.10.86/Documentation/sysctl/vm.txt&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;min_free_kbytes:&lt;/p&gt;
-
-&lt;p&gt;This is used to force the Linux VM to keep a minimum number of kilobytes free.  The VM uses this number to compute a watermark[WMARK_MIN] value for each lowmem zone in the system. Each lowmem zone gets a number of reserved free pages based proportionally on its size.&lt;/p&gt;
-
-&lt;p&gt;Some minimal amount of memory is needed to satisfy PF_MEMALLOC allocations; if you set this to lower than 1024KB, your system will become subtly broken, and prone to deadlock under high loads.&lt;/p&gt;
-
-&lt;p&gt;Setting this too high will OOM your machine instantly. &lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;pfmemalloc_watermark_ok
-{
-    pfmemalloc_reserve += min_wmark_pages(zone);
-    wmark_ok = free_pages &amp;gt; pfmemalloc_reserve / 2;
-
-    if (!wmark_ok &amp;amp;&amp;amp; waitqueue_active(&amp;amp;pgdat-&amp;gt;kswapd_wait)) {
-        ...
-        /*&#x5982;&#x679C;&#x7761;&#x7720;&#x4E2D;(waitqueue_active()), &#x5219;&#x5524;&#x9192;kswapd*/
-        wake_up_interruptible(&amp;amp;pgdat-&amp;gt;kswapd_wait);
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;a href="https://lwn.net/Articles/422291/"&gt;https://lwn.net/Articles/422291/&lt;/a&gt;&lt;br&gt;
-The thresholds kswapd/direct reclaim starts(ends) depend on
-watermark[min,low,high] and currently all watermarks are set
-based on min_free_kbytes. min_free_kbytes is the amount of
-free memory that Linux VM should keep at least.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/mm/page_alloc.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__setup_per_zone_wmarks
-{
-
-    zone-&amp;gt;watermark[WMARK_MIN] = ...
-    zone-&amp;gt;watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 2);
-    zone-&amp;gt;watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 1);
-}
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     <item>
@@ -2130,101 +2177,6 @@ t7   |                           |t7    |bne    1b
     : &amp;quot;cc&amp;quot;);
 
     smp_mb();
-}
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;</title>
-      <link>https://awakening-fong.github.io/posts/arm/interrupt_softirq_in_arm</link>
-      <pubDate>2017-01-18</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4E2D;&#x65AD;&#x6D41;&#x7A0B;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5047;&#x5B9A; CONFIG_MULTI_IRQ_HANDLER=y, handle_arch_irq &#x4E3A; gic_handle_irq.&lt;br&gt;
-linux-3.10.86/arch/arm/kernel/setup.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__irq_svc @entry-armv.S
-|   |--svc_entry    &#x4FDD;&#x5B58;spsr_&amp;lt;exception&amp;gt; &#x5230;r5
-|   |--irq_handler
-|   |   |--handle_arch_irq =&amp;gt; gic_handle_irq
-|   |   |   |--irq_find_mapping  &#x5B8C;&#x6210; an hw irq number&#x5230;a linux irq&#x7684;&#x8F6C;&#x6362;
-|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
-|   |   |   |       |--generic_handle_irq  -&amp;gt; generic_handle_irq_desc -&amp;gt; handle_fasteoi_irq
-|   |   |   |       |   |--raw_spin_lock(&amp;amp;desc-&amp;gt;lock);
-|   |   |   |       |   |--handle_irq_event
-|   |   |   |       |   |   |--raw_spin_unlock(&amp;amp;desc-&amp;gt;lock);
-|   |   |   |       |   |   |--handle_irq_event_percpu -&amp;gt; action-&amp;gt;handler
-|   |   |   |       |   |   |--raw_spin_lock(&amp;amp;desc-&amp;gt;lock);
-|   |   |   |       |   |--chip-&amp;gt;irq_eoi
-|   |   |   |       |   |--raw_spin_unlock(&amp;amp;desc-&amp;gt;lock);
-|   |   |   |       |--irq_exit();  &#x8FD9;&#x91CC;&#x4E2D;&#x65AD;&#x8FD8;&#x662F;&#x7981;&#x7528;&#x7684;&#x5417;? &#x7B54;:&#x662F;&#x7684;, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
-|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
-|   |   |   |       |   |--if( ... ) invoke_softirq() 
-|   |   |   |       |   |    |--do_softirq -&amp;gt; __do_softirq
-|   |   |   |       |   |    |    |--local_irq_enable   //&#x4FEE;&#x6539;CPSR I bit, &#x6253;&#x5F00;&#x4E2D;&#x65AD;
-|   |   |   |       |   |    |    |--h-&amp;gt;action(h)
-|   |   |   |       |   |    |    |--local_irq_disable  //&#x8FD9;&#x91CC;&#x4E3A;&#x4F55;&#x53C8;&#x7981;&#x6B62;&#x4E2D;&#x65AD;???
-|   |   |   |       |--set_irq_regs(old_regs)  &#x8FD9;&#x91CC;&#x5F00;&#x542F;&#x4E2D;&#x65AD;? &#x7B54;:&#x4E0D;&#x662F;.
-|   |--svc_exit r5, irq = 1  @entry-header.S
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5047;&#x5B9A;&#x53D1;&#x751F;&#x4E2D;&#x65AD;&#x524D;, &#x662F;&#x5904;&#x4E8E;svc&#x6A21;&#x5F0F;&#x7684;, &#x6240;&#x4EE5;, &#x4E0A;&#x9762;&#x6D41;&#x7A0B;&#x4E3A;__irq_svc.
-&#x4E2D;&#x65AD;&#x4E0A;&#x534A;&#x90E8;&#x5206; &#x4E2D;&#x65AD;&#x662F;&#x5173;&#x95ED;&#x7684;, &#x4F55;&#x65F6;&#x91CD;&#x65B0;&#x4F7F;&#x80FD;&#x4E2D;&#x65AD;, &#x4E0A;&#x9762;&#x90FD;&#x4EE5;&#x6807;&#x51FA;. &#x4F7F;&#x80FD;&#x4E4B;&#x540E;, &#x5C31;&#x5F00;&#x59CB;&#x5904;&#x7406;&#x8F6F;&#x4E2D;&#x65AD;&#x4E86;.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. tasklet&#x7684;&#x7279;&#x70B9;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E24;&#x4E2A;&#x7C7B;&#x578B;&#x76F8;&#x540C;&#x7684;tasklet&#x4E0D;&#x80FD;&#x540C;&#x65F6;&#x8FD0;&#x884C;, &#x5373;&#x4F7F;&#x5728;&#x4E0D;&#x540C;&#x7684;&#x5904;&#x7406;&#x5668;&#x4E0A;&#x4E5F;&#x662F;&#x5982;&#x6B64;, &#x56E0;&#x4E3A;&#x4EE3;&#x7801;&#x4E0A;&#x68C0;&#x67E5;&#x7684;&#x5E76;&#x4E0D;&#x662F;per cpu&#x7684;&#x53D8;&#x91CF;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;void __init softirq_init(void)
-{
-...
-    open_softirq(TASKLET_SOFTIRQ, tasklet_action);
-    open_softirq(HI_SOFTIRQ, tasklet_hi_action);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4EE3;&#x7801;:linux-3.10/kernel/softirq.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static void tasklet_action(struct softirq_action *a)
-{
-        struct tasklet_struct *t
-        ...
-        if (tasklet_trylock(t)) {
-            ...
-            t-&amp;gt;func(t-&amp;gt;data);
-        }
-
-}
-
-#ifdef CONFIG_SMP
-static inline int tasklet_trylock(struct tasklet_struct *t)
-{
-    return !test_and_set_bit(TASKLET_STATE_RUN, &amp;amp;(t)-&amp;gt;state);
-}
-#endif
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. softirq&#x7684;&#x7279;&#x70B9;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;softirq&#x7684;pending&#x53D8;&#x91CF;&#x662F;per-cpu&#x7684;, &#x5E76;&#x4E0D;&#x4F1A;&#x963B;&#x6B62;&#x76F8;&#x540C;&#x7684;handler&#x540C;&#x65F6;&#x8FD0;&#x884C;&#x5728;&#x4E0D;&#x540C;&#x7684;cpu&#x4E0A;.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/kernel/softirq.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__do_softirq
-{
-
-    pending = local_softirq_pending();
-    set_softirq_pending(0);
-
-    do {
-        if (pending &amp;amp; 1) {
-
-            -&amp;gt;action
-        }
-
-        pending &amp;gt;&amp;gt;= 1;
-    }while (pending);
-
 }
 &lt;/code&gt;&lt;/pre&gt;
 </description>

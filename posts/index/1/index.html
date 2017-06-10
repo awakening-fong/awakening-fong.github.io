@@ -54,6 +54,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/debug/softlockup">探测softlockup的原理</a> <span class="date">2017-06-10</span></h3>
+
+        <div class="summary ellipsis">
+<p>本文以2.6.18内核来说明.</p>
+
+<h1 id="toc_0"><h4>1. 检测</h4></h1>
+
+<p>每间隔HZ, 会喂watchdog.</p>
+
+<pre><code>tick                         watchdog
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &gt;     |
+|check                         | touch
+|                              |
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &gt;     |
+|check                         | touch
+|                              |
+|                              |
+</code></pre>
+
+<p>若watchdog线程迟迟没有被调度到, 则导致watchdog没有touch, 这样, tick 时钟会检查到该问题, 报 soft lockup .</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/debug/softlockup" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
 
         <div class="summary">
@@ -326,37 +357,6 @@ int main()
 
         <div class="more">
           <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy_one_pte()会调用 ptep_set_wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
     
