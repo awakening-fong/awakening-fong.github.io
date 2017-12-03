@@ -112,7 +112,7 @@
 </code></pre>
 
 <p>并不是radix tree的get的理由如下:<br>
-以do_generic_file_read 为例, 看下page cache的get:</p>
+以do<em>generic</em>file_read 为例, 看下page cache的get:</p>
 
 <pre><code>do_generic_file_read
 |--no_cached_page: page_cache_alloc_cold -&gt; __alloc_pages_nodemask
@@ -137,7 +137,7 @@
 
 <h2 id="toc_4"><h4>2.3 buffer_head</h4></h2>
 
-<p>若page_has_private()返回1, 则page_count为3</p>
+<p>若page<em>has</em>private()返回1, 则page_count为3</p>
 
 <p>buffer_head时的get page:</p>
 
@@ -177,7 +177,7 @@
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/reclaim_00_references" title="page reclaim 00:相关资料">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/reclaim_04_parameter" title="page reclaim 04:参数">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

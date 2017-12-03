@@ -62,11 +62,11 @@
       <span>2017-01-11</strong>
     </div>
     <div class="content">
-      <h1 id="toc_0"><h4>1. 何时设置 TIF_NEED_RESCHED</h4></h1>
+      <h1 id="toc_0"><h4>1. 何时设置 TIF<em>NEED</em>RESCHED</h4></h1>
 
-<p>任务task01还没有完成, 但调度器认为 其运行的够久了, 就设置TIF_NEED_RESCHED, 这样, 在合适的时机, task01就会被调度走, 由其他task使用cpu.</p>
+<p>任务task01还没有完成, 但调度器认为 其运行的够久了, 就设置TIF<em>NEED</em>RESCHED, 这样, 在合适的时机, task01就会被调度走, 由其他task使用cpu.</p>
 
-<p>除了scheduler_tick会设置外, 当一个优先级高的进程进入可执行状态的时候, try_to_wake_up()也会设置这个标志。</p>
+<p>除了scheduler<em>tick会设置外, 当一个优先级高的进程进入可执行状态的时候, try</em>to<em>wake</em>up()也会设置这个标志。</p>
 
 <h1 id="toc_1"><h4>2. 不检查preempt_count?</h4></h1>
 
@@ -91,9 +91,9 @@ do_work_pending
 }
 </code></pre>
 
-<p>这里仅判断_TIF_NEED_RESCHED, 没有判断 preempt_count, 为啥?<br>
+<p>这里仅判断<em>TIF</em>NEED<em>RESCHED, 没有判断 preempt</em>count, 为啥?<br>
 难道说, 禁用抢占依旧会发生抢占?<br>
-答: 假定这个时间点上, preempt_count不为0, 那么, 之后就返回用户态, 没有机会再操作 preempt_count了.<br>
+答: 假定这个时间点上, preempt<em>count不为0, 那么, 之后就返回用户态, 没有机会再操作 preempt</em>count了.<br>
 这样就相当于 在内核态过程中 对preempt count进行的加减不平衡, 这事不该发生, 故当前切换到用户态前, 并没有检查preempt_count(). 我们认为其结果是可以预见, 总是0, 允许抢占发生.</p>
 
 	  <p>
@@ -119,11 +119,11 @@ do_work_pending
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/scheduler/scheduler_01_lost_wake-up" title="调度器, 从lost wake-up problem说起">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/scheduler/scheduler_00_implementation" title="调度器CFS的实现">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/slub_slab_alloc" title="SLUB 01:the SLUB allocator的相关数据结构和主要流程">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/scheduler/scheduler_01_lost_wake-up" title="调度器, 从lost wake-up problem说起">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

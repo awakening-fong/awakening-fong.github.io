@@ -82,14 +82,14 @@
  * incremented by CONFIG_NR_CPUS.
 </code></pre>
 
-<p>问题:一次不是加1, 而是加CONFIG_NR_CPUS, 为啥?<br>
+<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
 答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
-不过上面的注释有点老, 因为实际并不是加CONFIG_NR_CPUS, 而是TID_STEP.</p>
+不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
 
 <pre><code>#define TID_STEP  roundup_pow_of_two(CONFIG_NR_CPUS)
 </code></pre>
 
-<p>先看下为何加CONFIG_NR_CPUS也是错误的:<br>
+<p>先看下为何加CONFIG<em>NR</em>CPUS也是错误的:<br>
 linux-3.10.86/mm/slub.c </p>
 
 <pre><code>static void init_kmem_cache_cpus(struct kmem_cache *s)
@@ -109,7 +109,7 @@ linux-3.10.86/mm/slub.c </p>
 </code></pre>
 
 <p>cpu2的tid  和 cpu0的tid 可能出现相同的值, 本例中为0, BUG出现.<br>
-如果cpu个数不是 2^x的话, 如果每次 递增CONFIG_NR_CPUS的话, 就会出现上面例子的BUG.<br>
+如果cpu个数不是 2^x的话, 如果每次 递增CONFIG<em>NR</em>CPUS的话, 就会出现上面例子的BUG.<br>
 可以改为 递增2^x, 这样, 相当于 各个cpu的低xbit  Dx-1~D0不变, 只有较高位在变.
 这样就可以保证各cpu的tid永不相同.</p>
 
@@ -118,12 +118,12 @@ linux-3.10.86/mm/slub.c </p>
 <p><a href="http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=9aabf810a67cd97e2d1a48f0bab338b7680f1929">http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=9aabf810a67cd97e2d1a48f0bab338b7680f1929</a></p>
 
 <blockquote>
-<p>We had to insert a preempt enable/disable in the fastpath a while ago in order to guarantee that tid and kmem_cache_cpu are retrieved on the same cpu. It is the problem only for CONFIG_PREEMPT in which scheduler can move the process to other cpu during retrieving data. Now, I reach the solution to remove preempt enable/disable in the fastpath. If tid is matched with kmem_cache_cpu&#39;s tid after tid and kmem_cache_cpu are retrieved by separate this_cpu operation, it means that they are retrieved on the same cpu. If not matched, we just have to retry it. With this guarantee, preemption enable/disable isn&#39;t need at all even if CONFIG_PREEMPT, so this patch removes it.</p>
+<p>We had to insert a preempt enable/disable in the fastpath a while ago in order to guarantee that tid and kmem<em>cache</em>cpu are retrieved on the same cpu. It is the problem only for CONFIG<em>PREEMPT in which scheduler can move the process to other cpu during retrieving data. Now, I reach the solution to remove preempt enable/disable in the fastpath. If tid is matched with kmem</em>cache<em>cpu&#39;s tid after tid and kmem</em>cache<em>cpu are retrieved by separate this</em>cpu operation, it means that they are retrieved on the same cpu. If not matched, we just have to retry it. With this guarantee, preemption enable/disable isn&#39;t need at all even if CONFIG_PREEMPT, so this patch removes it.</p>
 
-<p>I saw roughly 5% win in a fast-path loop over kmem_cache_alloc/free in CONFIG_PREEMPT. (14.821 ns -&gt; 14.049 ns)</p>
+<p>I saw roughly 5% win in a fast-path loop over kmem<em>cache</em>alloc/free in CONFIG_PREEMPT. (14.821 ns -&gt; 14.049 ns)</p>
 </blockquote>
 
-<p>将__kmalloc -&gt; slab_alloc -&gt; slab_alloc_node 中: </p>
+<p>将_<em>kmalloc -&gt; slab</em>alloc -&gt; slab<em>alloc</em>node 中: </p>
 
 <pre><code>preempt_disable();
 c = __this_cpu_ptr(s-&gt;cpu_slab);
@@ -180,11 +180,11 @@ page = c-&gt;page;
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/slub_partial" title="SLUB 03:partial和cpu partial">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/slub_slab_alloc" title="SLUB 01:the SLUB allocator的相关数据结构和主要流程">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/slub_frozen" title="SLUB 02:frozen">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/slub_partial" title="SLUB 03:partial和cpu partial">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

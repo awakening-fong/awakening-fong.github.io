@@ -62,7 +62,7 @@
       <span>2017-02-07</strong>
     </div>
     <div class="content">
-      <p>未开启CONFIG_MEMCG, CONFIG_SWAP.</p>
+      <p>未开启CONFIG<em>MEMCG, CONFIG</em>SWAP.</p>
 
 <h1 id="toc_0"><h4>1. scan_control</h4></h1>
 
@@ -148,12 +148,12 @@ kswapd -&gt; balance_pgdat
 }
 </code></pre>
 
-<h2 id="toc_4"><h4>2.3 min_free_kbytes</h4></h2>
+<h2 id="toc_4"><h4>2.3 min<em>free</em>kbytes</h4></h2>
 
 <p>linux-3.10.86/Documentation/sysctl/vm.txt</p>
 
 <blockquote>
-<p>min_free_kbytes:</p>
+<p>min<em>free</em>kbytes:</p>
 
 <p>This is used to force the Linux VM to keep a minimum number of kilobytes free.  The VM uses this number to compute a watermark[WMARK_MIN] value for each lowmem zone in the system. Each lowmem zone gets a number of reserved free pages based proportionally on its size.</p>
 
@@ -180,7 +180,7 @@ kswapd -&gt; balance_pgdat
 <p><a href="https://lwn.net/Articles/422291/">https://lwn.net/Articles/422291/</a><br>
 The thresholds kswapd/direct reclaim starts(ends) depend on
 watermark[min,low,high] and currently all watermarks are set
-based on min_free_kbytes. min_free_kbytes is the amount of
+based on min<em>free</em>kbytes. min<em>free</em>kbytes is the amount of
 free memory that Linux VM should keep at least.</p>
 
 <p>linux-3.10.86/mm/page_alloc.c</p>
@@ -217,11 +217,11 @@ free memory that Linux VM should keep at least.</p>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/reclaim_01_overview" title="page reclaim 01:概述">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/reclaim_05_page_count" title="page reclaim 05:page count">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/hw/iic" title="IIC相关内容的记忆">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/reclaim_00_references" title="page reclaim 00:相关资料">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

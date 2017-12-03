@@ -77,15 +77,15 @@ of files) then the modified pages need not be swapped out, but can be directly s
 <h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
 
 <p>如何找到这些内存呢? 啥链表吗?<br>
-答:see add_to_page_cache_lru(), page_add_new_anon_rmap()</p>
+答:see add<em>to</em>page<em>cache</em>lru(), page<em>add</em>new<em>anon</em>rmap()</p>
 
 <p>方式1:
-add_to_page_cache_lru 把page添加到 both the page cache and the LRU cache. 
-Most importantly, it is used by mpage_readpages and do_generic_mapping_read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+add<em>to</em>page<em>cache</em>lru 把page添加到 both the page cache and the LRU cache. 
+Most importantly, it is used by mpage<em>readpages and do</em>generic<em>mapping</em>read, the standard functions in which the block layer ends up when reading data from a file or mapping.
 当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
 
 <p>方式2:
-add_to_page_cache_lru 将page加入tree, 故可考虑从各文件系统的inode遍历各page:</p>
+add<em>to</em>page<em>cache</em>lru 将page加入tree, 故可考虑从各文件系统的inode遍历各page:</p>
 
 <pre><code>drop_caches_sysctl_handler -&gt; iterate_supers(drop_pagecache_sb, NULL)
 |--list_for_each_entry(inode, &amp;sb-&gt;s_inodes, i_sb_list)
@@ -98,47 +98,47 @@ add_to_page_cache_lru 将page加入tree, 故可考虑从各文件系统的inode�
 为了区分使用频率, 内核将较少使用的page放入inactive list中. 如果使用相对频繁, 则移动到active list中.<br>
 这样, 我们可以从特定链表中尝试对page进行回收, 因为这些链表中的page相对较少使用.</p>
 
-<p>首次添加到lru的话, 通常是添加到inactive那边, 对于匿名页添加到active list, see  __do_fault, do_anonymous_page, do_wp_page</p>
+<p>首次添加到lru的话, 通常是添加到inactive那边, 对于匿名页添加到active list, see  _<em>do</em>fault, do<em>anonymous</em>page, do<em>wp</em>page</p>
 
 <h1 id="toc_3"><h4>4. PG_referenced</h4></h1>
 
 <p>page在active list和inactive list之间迁移, 可以理解为page的状态迁移了, 而这两者的迁移仅需一步, 内核认为这个不合适, 引入了 PG_referenced. </p>
 
-<p>PG_referenced 和 PG_active 的区别<br>
+<p>PG<em>referenced 和 PG</em>active 的区别<br>
 在引入PG_referenced之前, When the page is accessed, the flag is set, but when is it going to be removed again? Either the kernel does not remove it automatically, but then the page would remain in the active state forever even if it would only be used very little, or not at all anymore.   </p>
 
-<p>为此, 我们需要能够认出 标记了PG_active但不常访问的page.
-当前的方法是引入了 PG_referenced 这个标记.</p>
+<p>为此, 我们需要能够认出 标记了PG<em>active但不常访问的page.
+当前的方法是引入了 PG</em>referenced 这个标记.</p>
 
 <p>page fault会将page 设置为active, 那么, 是否会一直呆在某个list中呢?<br>
-答:不会, page_check_references 和 mark_page_accessed 双方进行角逐.</p>
+答:不会, page<em>check</em>references 和 mark<em>page</em>accessed 双方进行角逐.</p>
 
 <p>inactive不会直接转变为active, 要先unreferenced转变为referenced.<br>
-如果D0表示 PG_referenced , D1表示 PG_active, 那么, 状态转换即为:<br>
+如果D0表示 PG<em>referenced , D1表示 PG</em>active, 那么, 状态转换即为:<br>
 0b00-&gt;0b01-&gt;0b10-&gt;0b11</p>
 
-<p>引入之后, A highly active page has both PG_active and PG_referenced set.</p>
+<p>引入之后, A highly active page has both PG<em>active and PG</em>referenced set.</p>
 
-<h1 id="toc_4"><h4>5. 何处调用 page_check_references 和 mark_page_accessed</h4></h1>
+<h1 id="toc_4"><h4>5. 何处调用 page<em>check</em>references 和 mark<em>page</em>accessed</h4></h1>
 
-<p>调用page_check_references的路径:  </p>
+<p>调用page<em>check</em>references的路径:  </p>
 
 <pre><code>shrink_inactive_list -&gt; shrink_page_list -&gt; page_check_references
 </code></pre>
 
-<p>常见的调用 mark_page_accessed的路径: </p>
+<p>常见的调用 mark<em>page</em>accessed的路径: </p>
 
 <pre><code>touch_buffer -&gt; mark_page_accessed(bh-&gt;b_page)
 do_generic_file_read -&gt; mark_page_accessed(page)
 generic_perform_write -&gt; mark_page_accessed(page)
 </code></pre>
 
-<p>何时 shrink   PG_referenced, PG_active?<br>
+<p>何时 shrink   PG<em>referenced, PG</em>active?<br>
 答: 常见的有direct reclaim 和 kswapd, 以及truncate等.</p>
 
 <h1 id="toc_5"><h4>6. 如何回收</h4></h1>
 
-<p>如标题1中的内容所述, 对于有块设备后备的page, 在reclaim后, 若后续需要, 可以通过重新读入来恢复, 所以, 可将page的内容回写到后备设备中, 然后归还给buddy system, see shrink_inactive_list().</p>
+<p>如标题1中的内容所述, 对于有块设备后备的page, 在reclaim后, 若后续需要, 可以通过重新读入来恢复, 所以, 可将page的内容回写到后备设备中, 然后归还给buddy system, see shrink<em>inactive</em>list().</p>
 
 <h1 id="toc_6"><h4>7. 数据结构</h4></h1>
 
@@ -173,7 +173,7 @@ per cpu  :lru cache, 也就是 pagevec  </p>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/reclaim_04_parameter" title="page reclaim 04:参数">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/reclaim_02_implement" title="page reclaim 02:实现">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

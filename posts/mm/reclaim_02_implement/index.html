@@ -62,7 +62,7 @@
       <span>2017-02-07</strong>
     </div>
     <div class="content">
-      <p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG_MEMCG, 未开启CONFIG_SWAP.
+      <p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG<em>MEMCG, 未开启CONFIG</em>SWAP.
 若无特别说明, 本文仅讨论ARM体系的情况.</p>
 
 <h1 id="toc_0"><h4>1. 数据结构</h4></h1>
@@ -89,7 +89,7 @@ kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, &quot;kswapd%d&qu
 
 <h1 id="toc_1"><h4>2. 调用逻辑</h4></h1>
 
-<p>何时调用  shrink_active_list, 何时调用 shrink_inactive_list ?</p>
+<p>何时调用  shrink<em>active</em>list, 何时调用 shrink<em>inactive</em>list ?</p>
 
 <p>调用路径:  </p>
 
@@ -101,16 +101,16 @@ kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, &quot;kswapd%d&qu
 |    |  |   |--else shrink_inactive_list
 </code></pre>
 
-<p>由于 shrink_active_list 存在将page添加到inactive list的情况 , 若之后再 shrink_inactive_list 的话, 就是双重打击了,  故shrink_lruvec()会 先调用 shrink_inactive_list, 后调用shrink_active_list.   </p>
+<p>由于 shrink<em>active</em>list 存在将page添加到inactive list的情况 , 若之后再 shrink<em>inactive</em>list 的话, 就是双重打击了,  故shrink<em>lruvec()会 先调用 shrink</em>inactive<em>list, 后调用shrink</em>active_list.   </p>
 
-<p>我们并不会总是shrink_active_list, 只有在inactive list的page相对比较少时才会shrink_active_list.</p>
+<p>我们并不会总是shrink<em>active</em>list, 只有在inactive list的page相对比较少时才会shrink<em>active</em>list.</p>
 
-<p>问题:如果shrink_inactive_list中把page移到active list, 那么, shrink_active_list会不会又把该page挪到 inactive list?<br>
-答:我们是新添加到active list的, 队列是FIFO的方式, 所以, 只要nr_to_scan不是很大, 就可以避免短时间内被扫描到.</p>
+<p>问题:如果shrink<em>inactive</em>list中把page移到active list, 那么, shrink<em>active</em>list会不会又把该page挪到 inactive list?<br>
+答:我们是新添加到active list的, 队列是FIFO的方式, 所以, 只要nr<em>to</em>scan不是很大, 就可以避免短时间内被扫描到.</p>
 
 <p>由于page被回收, 相关页表项需要处理, 这部分需要rmap, 本文略去.</p>
 
-<h2 id="toc_2"><h4>3. shrink_active_list</h4></h2>
+<h2 id="toc_2"><h4>3. shrink<em>active</em>list</h4></h2>
 
 <pre><code>shrink_active_list
 |--lru_add_drain
@@ -134,7 +134,7 @@ kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, &quot;kswapd%d&qu
 所以, 常见的流程是: 从active list中移除, 添加到inactive list中. 如果page count为0, 就不必添加到list中, 而是free掉page.
 对于可执行文件的page, 根据情况可重新放入active list.</p>
 
-<p>关于move_active_pages_to_lru中put后, page count为0:<br>
+<p>关于move<em>active</em>pages<em>to</em>lru中put后, page count为0:<br>
 linux-3.10.86/mm/vmscan.c</p>
 
 <pre><code>move_active_pages_to_lru
@@ -159,7 +159,7 @@ linux-3.10.86/mm/vmscan.c</p>
 }
 </code></pre>
 
-<h1 id="toc_3"><h4>4. shrink_inactive_list</h4></h1>
+<h1 id="toc_3"><h4>4. shrink<em>inactive</em>list</h4></h1>
 
 <p>//忽略Compound Page</p>
 
@@ -179,13 +179,13 @@ linux-3.10.86/mm/vmscan.c</p>
 |--free_hot_cold_page_list(&amp;page_list, )
 </code></pre>
 
-<h2 id="toc_4"><h4>4.1 shrink_page_list</h4></h2>
+<h2 id="toc_4"><h4>4.1 shrink<em>page</em>list</h4></h2>
 
 <p>[Professional Linux Kernel Architecture] p1072<br>
-shrink_page_list sends the page to the associated backing store (which means the page is synchronized, swapped out, or discarded)</p>
+shrink<em>page</em>list sends the page to the associated backing store (which means the page is synchronized, swapped out, or discarded)</p>
 
 <p>[Professional Linux Kernel Architecture]p1074<br>
-shrink_page_list returns the number of pages for which it succeeded to initiate writeout.</p>
+shrink<em>page</em>list returns the number of pages for which it succeeded to initiate writeout.</p>
 
 <pre><code>shrink_page_list
 {
@@ -239,7 +239,7 @@ mm: vmscan: do not writeback filesystem pages in direct reclaim
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/arm/arm_asid" title="arm linux的ASID (Address Space ID)">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/reclaim_01_overview" title="page reclaim 01:概述">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 

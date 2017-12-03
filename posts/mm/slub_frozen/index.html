@@ -62,7 +62,7 @@
       <span>2017-01-14</strong>
     </div>
     <div class="content">
-      <p>本文假定没有打开CONFIG_SLUB_DEBUG, 没有配置CONFIG_NUMA.</p>
+      <p>本文假定没有打开CONFIG<em>SLUB</em>DEBUG, 没有配置CONFIG_NUMA.</p>
 
 <h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
 
@@ -149,8 +149,8 @@ cpu02不能从该page中取obj, 只能把obj还给该page.</p>
 
 <p>这个设计牛逼了, 允许同时从同一个page  一端取出 , 而在另一端放回.
 取出通过c-&gt;freelist;<br>
-把某obj放回, 比如把obj_t2放回, 通过obj_t2找到其所属的page, 然后放回page-&gt;freepointer, 形成链表:<br>
-obj_t2 -&gt;  obj_t1 -&gt; NULL.</p>
+把某obj放回, 比如把obj<em>t2放回, 通过obj</em>t2找到其所属的page, 然后放回page-&gt;freepointer, 形成链表:<br>
+obj<em>t2 -&gt;  obj</em>t1 -&gt; NULL.</p>
 
 <h1 id="toc_4"><h4>5. 耗尽c-&gt;page的obj后解冻page</h4></h1>
 
@@ -191,11 +191,11 @@ obj_t2 -&gt;  obj_t1 -&gt; NULL.</p>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/slub_tid" title="SLUB 04:tid">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/slub_partial" title="SLUB 03:partial和cpu partial">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/arm/arm_qemu_02" title="qemu观察arm linux启动过程02">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/arm/arm_qemu_01" title="qemu观察arm linux启动过程01">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

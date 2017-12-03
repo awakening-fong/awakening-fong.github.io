@@ -126,7 +126,7 @@ static inline struct thread_info *current_thread_info(void)
 
 <p>以tkill为例来说明.
 linux-3.10.86/kernel/signal.c
-假定不是发送给组的, 即__send_signal()的@group为0</p>
+假定不是发送给组的, 即_<em>send</em>signal()的@group为0</p>
 
 <pre><code>do_tkill -&gt; do_send_specific
 |--find_task_by_vpid
@@ -174,9 +174,9 @@ no_context:
 }
 </code></pre>
 
-<p>所以,  用户态(user_mode(regs))发起的 读或写 , 
-copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup_exception的.
-(fixup_exception 仅会被 __do_kernel_fault调用.)</p>
+<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
+copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
+(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
 </div>
 
   <div class="more">

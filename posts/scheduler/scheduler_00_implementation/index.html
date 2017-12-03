@@ -70,8 +70,8 @@
 the interval during which every runnable task should run at least once.
 这个时间段t1我们成为 one latency period.</p>
 
-<p>本文仅讨论SCHED_NORMAL.
-且没有使能CONFIG_FAIR_GROUP_SCHED. 内核版本3.10.</p>
+<p>本文仅讨论SCHED<em>NORMAL.
+且没有使能CONFIG</em>FAIR<em>GROUP</em>SCHED. 内核版本3.10.</p>
 
 <h1 id="toc_1"><h4>2. 时间的计算</h4></h1>
 
@@ -84,7 +84,7 @@ the interval during which every runnable task should run at least once.
 
 <p>virtual run time, 运行时间经加权后的数据, 加权方法为</p>
 
-<p>update_curr -&gt; __update_curr -&gt; calc_delta_fair</p>
+<p>update<em>curr -&gt; _</em>update<em>curr -&gt; calc</em>delta_fair</p>
 
 <p>如何处理overflow问题?
 ...</p>
@@ -94,7 +94,7 @@ the interval during which every runnable task should run at least once.
 <p>统计已使用的时间, 由update_curr()完成. 调用路径有:  </p>
 
 <ol>
-<li>最常见的是周期性的时钟中断, scheduler_tick -&gt; curr-&gt;sched_class-&gt;task_tick(...);  =&gt; task_tick_fair  -&gt; entity_tick -&gt; update_curr</li>
+<li>最常见的是周期性的时钟中断, scheduler<em>tick -&gt; curr-&gt;sched</em>class-&gt;task<em>tick(...);  =&gt; task</em>tick<em>fair  -&gt; entity</em>tick -&gt; update_curr</li>
 <li>其他的本文不讨论.</li>
 </ol>
 
@@ -104,7 +104,7 @@ the interval during which every runnable task should run at least once.
 
 <p>若分配的太少, 则频繁上下文切换, 引起不必要overhead, 故给每个进程运行的时间不宜太短, 所以, 定义了<code>sysctl_sched_min_granularity</code>, 这样, 想要在<code>sysctl_sched_latency</code>内被调度一遍的话, 那么 想要运行的进程的量 &lt;= <code>sched_nr_latency</code>.  &gt;= <code>sysctl_sched_latency</code>的话, <code>sysctl_sched_latency</code>这个延迟就无法保证.</p>
 
-<p>所以, 如果系统有nr_running个进程, 那么, 每个进程分配到的时间为: sysctl_sched_latency × nr_running/sched_nr_latency</p>
+<p>所以, 如果系统有nr<em>running个进程, 那么, 每个进程分配到的时间为: sysctl</em>sched<em>latency × nr</em>running/sched<em>nr</em>latency</p>
 
 <p>实际计算时, 还要结合优先级, 代码在 sched_slice()</p>
 
@@ -183,11 +183,11 @@ work_pending:
 <p>Each CPU has its own run queue (struct rq).</p>
 
 <p>正在运行的进程 并不在红黑树上:<br>
-see __schedule -&gt; pick_next_task -&gt; pick_next_task_fair -&gt; set_next_entity -&gt; __dequeue_entity</p>
+see _<em>schedule -&gt; pick</em>next<em>task -&gt; pick</em>next<em>task</em>fair -&gt; set<em>next</em>entity -&gt; _<em>dequeue</em>entity</p>
 
 <p>何处调整 树上node的位置?<br>
 答:在重新放入红黑树时调整位置, 重新放回红黑树是为了后续被调度到:
-put_prev_task -&gt; put_prev_task_fair -&gt; put_prev_entity -&gt; if (prev-&gt;on_rq) __enqueue_entity</p>
+put<em>prev</em>task -&gt; put<em>prev</em>task<em>fair -&gt; put</em>prev<em>entity -&gt; if (prev-&gt;on</em>rq) _<em>enqueue</em>entity</p>
 
 <p>这样处理的优点:<br>
 运行的进程并不在树上, 这样 update_curr时, 也就不必调整在树上的位置.</p>
@@ -219,7 +219,7 @@ put_prev_task -&gt; put_prev_task_fair -&gt; put_prev_entity -&gt; if (prev-&gt;
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/scheduler/scheduler_03_switch_to" title="arm linux的switch_to">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/scheduler/scheduler_02_preempt" title="仅检查TIF_NEED_RESCHED,不检查preempt_count?">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

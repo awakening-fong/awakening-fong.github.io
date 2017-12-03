@@ -64,13 +64,13 @@
     <div class="content">
       <h1 id="toc_0"><h4>1. readahead</h4></h1>
 
-<p>do_generic_file_read 中有两个ahead相关的函数:</p>
+<p>do<em>generic</em>file_read 中有两个ahead相关的函数:</p>
 
 <pre><code>do_generic_file_read -&gt; page_cache_sync_readahead 
 generic_file_aio_read -&gt; do_generic_file_read -&gt;  page_cache_async_readahead
 </code></pre>
 
-<p>问:page_cache_sync_readahead 和 page_cache_async_readahead  的差别在哪里? sync和async体现在哪?<br>
+<p>问:page<em>cache</em>sync<em>readahead 和 page</em>cache<em>async</em>readahead  的差别在哪里? sync和async体现在哪?<br>
 答: 一个当前page cache中没有所需的数据, 发起的是对当下要用的数据的读取;<br>
 另一个是page cache中有所需的数据, 发起对后面可能要用的数据的读取.</p>
 
@@ -116,7 +116,7 @@ page_not_up_to_date:
 
 <h1 id="toc_1"><h4>2. how readahead works</h4></h1>
 
-<p>ondemand_readahead -&gt; __do_page_cache_readahead -&gt; read_pages</p>
+<p>ondemand<em>readahead -&gt; _</em>do<em>page</em>cache<em>readahead -&gt; read</em>pages</p>
 
 <pre><code>read_pages
 {
@@ -159,9 +159,9 @@ linux-3.10.86/include/linux/sched.h</p>
 </code></pre>
 
 <p>问题:<br>
-1. 若不经过struct blk_plug, 直接放入电梯调度, 也能够顺利合并啊, 为何非要引入struct blk_plug呢?<br>
-2. struct blk_plug如何 与 电梯 衔接的?<br>
-答:以上面的read_pages()为例, blk_start_plug()后, : </p>
+1. 若不经过struct blk<em>plug, 直接放入电梯调度, 也能够顺利合并啊, 为何非要引入struct blk</em>plug呢?<br>
+2. struct blk<em>plug如何 与 电梯 衔接的?<br>
+答:以上面的read</em>pages()为例, blk<em>start</em>plug()后, : </p>
 
 <pre><code>-&gt;readpages -&gt; submit_bio -&gt; generic_make_request -&gt; blk_queue_bio
 |--(无锁) attempt_plug_merge
@@ -172,10 +172,10 @@ linux-3.10.86/include/linux/sched.h</p>
 |   |   |--fall back:  e-&gt;type-&gt;ops.elevator_merge_fn  //依赖于 具体的iosched
 </code></pre>
 
-<p>blk_finish_plug -&gt; blk_flush_plug_list
-这里对struct blk_plug的操作无需加锁, 因为是属于current的, 并不会多人同时操作.</p>
+<p>blk<em>finish</em>plug -&gt; blk<em>flush</em>plug<em>list
+这里对struct blk</em>plug的操作无需加锁, 因为是属于current的, 并不会多人同时操作.</p>
 
-<p>elv_merge要加锁, 且要判断的内容 比 attempt_plug_merge 多不少. 所以, attempt_plug_merge比较快.</p>
+<p>elv<em>merge要加锁, 且要判断的内容 比 attempt</em>plug<em>merge 多不少. 所以, attempt</em>plug_merge比较快.</p>
 
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/io/readahead>https://awakening-fong.github.io/posts/io/readahead</a>
@@ -188,7 +188,7 @@ linux-3.10.86/include/linux/sched.h</p>
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#I/O-ref">I/O <span>9</span></a>
+        <a href="/categories#I/O-ref">I/O <span>8</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">

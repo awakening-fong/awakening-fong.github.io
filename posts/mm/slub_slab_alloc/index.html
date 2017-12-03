@@ -99,7 +99,7 @@ static inline void *get_freepointer(struct kmem_cache *s, void *object)
 
 <h1 id="toc_1"><h4>2. 从slowpath看数据结构和流程</h4></h1>
 
-<p>slab_alloc_node()中的slowpath为 __slab_alloc().</p>
+<p>slab<em>alloc</em>node()中的slowpath为 _<em>slab</em>alloc().</p>
 
 <pre><code>struct kmem_cache {
     struct kmem_cache_cpu __percpu *cpu_slab;
@@ -117,11 +117,11 @@ struct kmem_cache_cpu {
 };
 </code></pre>
 
-<p>执行__slab_alloc()这个slowpath的原因是 kmem_cache per cpu的freelist的object的单向链表形式的object 已用完 ( kmem_cache-&gt;cpu_slab-&gt;freelist == NULL ).<br>
-<code>__slab_alloc()</code>中先使用kmem_cache per cpu的page的freelist: cpu_slab-&gt;freelist=cpu_slab-&gt;page-&gt;freelist; cpu_slab-&gt;page-&gt;freelist=NULL;<br>
+<p>执行<strong>slab<em>alloc()这个slowpath的原因是 kmem</em>cache per cpu的freelist的object的单向链表形式的object 已用完 ( kmem<em>cache-&gt;cpu</em>slab-&gt;freelist == NULL ).<br>
+<code>__slab_alloc()</code>中先使用kmem<em>cache per cpu的page的freelist: cpu</em>slab-&gt;freelist=cpu<em>slab-&gt;page-&gt;freelist; cpu</em>slab-&gt;page-&gt;freelist=NULL;<br>
 如果也用完了, 则尝试 cpu_slab-&gt;partial及其链表上的page的object.<br>
-如果还是没有object, 也就是per cpu上的object都耗光了, 则执行__slab_alloc()中的new_slab_objects():<br>
-使用 kmem_cache_node-&gt;partial-&gt;next (指向page的lru)所在的page, 总共有nr_partial个这样的page, 取freelist不为空的page. 这里采取的是批量操作方式, 取出的第一个page划给c-&gt;page, 其他page放入cpu partial.
+如果还是没有object, 也就是per cpu上的object都耗光了, 则执行</strong>slab<em>alloc()中的new</em>slab<em>objects():<br>
+使用 kmem</em>cache<em>node-&gt;partial-&gt;next (指向page的lru)所在的page, 总共有nr</em>partial个这样的page, 取freelist不为空的page. 这里采取的是批量操作方式, 取出的第一个page划给c-&gt;page, 其他page放入cpu partial.
 如果也没有, 则执行new_slab(). 如下:</p>
 
 <pre><code>new_slab_objects
@@ -134,7 +134,7 @@ struct kmem_cache_cpu {
 |    |    |--fallback to alloc_slab_page(..., struct kmem_cache的min) order根据min来
 </code></pre>
 
-<p>关于struct kmem_cache_order_objects:</p>
+<p>关于struct kmem<em>cache</em>order_objects:</p>
 
 <pre><code>allocate_slab
 |--alloc_pages(..., oo_order(oo))
@@ -142,14 +142,14 @@ struct kmem_cache_cpu {
 </code></pre>
 
 <p>成员x的高16bit为order, 低16bit为struct page的unsigned objects.<br>
-struct kmem_cache_order_objects { unsigned long x; };</p>
+struct kmem<em>cache</em>order_objects { unsigned long x; };</p>
 
 <h1 id="toc_2"><h4>3. 自问自答</h4></h1>
 
 <p>问:有些情况下, 一个slabs要占用多个pages, 说说有啥不同?<br>
-答: new_slab() 从buddy system中分配compound page, 故compound page该有的特征都有, 具体特征见 linux-3.10.86/mm/page_alloc.c:prep_new_page().</p>
+答: new<em>slab() 从buddy system中分配compound page, 故compound page该有的特征都有, 具体特征见 linux-3.10.86/mm/page</em>alloc.c:prep<em>new</em>page().</p>
 
-<p>compound page中只有head page设置PG_Slab, tail pages没有设置PG_Slab.</p>
+<p>compound page中只有head page设置PG<em>Slab, tail pages没有设置PG</em>Slab.</p>
 
 <pre><code>new_slab
 {
@@ -162,7 +162,7 @@ __SetPageSlab(page)
 <p><a href="https://lwn.net/Articles/229984/">https://lwn.net/Articles/229984/</a><br>
 <a href="http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf">http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf</a></p>
 
-<p><h4 style="BACKGROUND-COLOR: rgb(204,255,255);"   >5. 附SLUB时struct page结构体</h3><pre><p>struct page {</p><p>&nbsp;&nbsp;&nbsp; /* First double word block</p><p>&nbsp;&nbsp;&nbsp; unsigned long flags;</p><p>&nbsp;&nbsp;&nbsp; struct address_space <em>mapping;</p><p>/</em> Second double word <em>/</p><p>&nbsp;&nbsp;&nbsp; struct {</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pgoff_t index;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> Our offset within mapping. <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; void *freelist;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> slub/slob first free object <em>/</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bool pfmemalloc;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned counters;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct {</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; atomic_t _mapcount;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct { /</em> SLUB <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned inuse:16;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned objects:15;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned frozen:1;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int units;&nbsp;&nbsp;&nbsp; /</em> SLOB <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; atomic_t _count;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> Usage count, see below. <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp; }; /</em> end of Second double word <em>/</p><p>&nbsp;&nbsp;&nbsp; /</em> Third double word block <em>/</p><p>&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct list_head lru;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> slub per cpu partial pages <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct page *next;&nbsp;&nbsp;&nbsp; /</em> Next partial slab <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; short int pages;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; short int pobjects;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct list_head list;&nbsp;&nbsp;&nbsp; /</em> slobs list of pages <em>/</s></p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct slab *slab_page; /</em> slab fields <em>/</s></p><p>&nbsp;&nbsp;&nbsp; };&nbsp; /</em> end of Third double word block <em>/</p><p>&nbsp;&nbsp;&nbsp; /</em> Remainder is not double word aligned <em>/</p><p>&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned long private;</s></p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; spinlock_t ptl;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct kmem_cache *slab_cache;&nbsp;&nbsp;&nbsp; /</em> SL[AU]B: Pointer to slab <em>/</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct page *first_page;&nbsp;&nbsp;&nbsp; /</em> Compound tail pages */</s></p><p>&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp; ...</p><p>};</p></pre></div></p>
+<p><h4 style="BACKGROUND-COLOR: rgb(204,255,255);"   >5. 附SLUB时struct page结构体</h3><pre><p>struct page {</p><p>&nbsp;&nbsp;&nbsp; /* First double word block</p><p>&nbsp;&nbsp;&nbsp; unsigned long flags;</p><p>&nbsp;&nbsp;&nbsp; struct address<em>space <em>mapping;</p><p>/</em> Second double word */</p><p>&nbsp;&nbsp;&nbsp; struct {</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pgoff</em>t index;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* Our offset within mapping. <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; void *freelist;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> slub/slob first free object <em>/</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bool pfmemalloc;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned counters;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct {</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; atomic_t _mapcount;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct { /</em> SLUB <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned inuse:16;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned objects:15;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned frozen:1;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int units;&nbsp;&nbsp;&nbsp; /</em> SLOB <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; atomic_t _count;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> Usage count, see below. <em>/</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp; }; /</em> end of Second double word <em>/</p><p>&nbsp;&nbsp;&nbsp; /</em> Third double word block <em>/</p><p>&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct list_head lru;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</em> slub per cpu partial pages <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct page *next;&nbsp;&nbsp;&nbsp; /</em> Next partial slab <em>/</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; short int pages;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; short int pobjects;</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; };</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct list_head list;&nbsp;&nbsp;&nbsp; /</em> slobs list of pages <em>/</s></p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct slab *slab_page; /</em> slab fields <em>/</s></p><p>&nbsp;&nbsp;&nbsp; };&nbsp; /</em> end of Third double word block <em>/</p><p>&nbsp;&nbsp;&nbsp; /</em> Remainder is not double word aligned <em>/</p><p>&nbsp;&nbsp;&nbsp; union {</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned long private;</s></p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; spinlock<em>t ptl;</s></p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct kmem</em>cache *slab_cache;&nbsp;&nbsp;&nbsp; /</em> SL[AU]B: Pointer to slab <em>/</p><p><s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct page *first_page;&nbsp;&nbsp;&nbsp; /</em> Compound tail pages */</s></p><p>&nbsp;&nbsp;&nbsp; };</p><p>&nbsp;&nbsp;&nbsp; ...</p><p>};</p></pre></div></p>
 
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/slub_slab_alloc>https://awakening-fong.github.io/posts/mm/slub_slab_alloc</a>
@@ -187,11 +187,11 @@ __SetPageSlab(page)
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/scheduler/scheduler_02_preempt" title="仅检查TIF_NEED_RESCHED,不检查preempt_count?">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/scheduler/scheduler_03_switch_to" title="arm linux的switch_to">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/slub_partial" title="SLUB 03:partial和cpu partial">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/slub_tid" title="SLUB 04:tid">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

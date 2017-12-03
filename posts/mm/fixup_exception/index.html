@@ -80,11 +80,11 @@ no_context:
 }
 </code></pre>
 
-<p>所以,  用户态(user_mode(regs))发起的 读或写 , 
-copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup_exception的.
-(fixup_exception 仅会被 __do_kernel_fault调用.)</p>
+<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
+copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
+(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
 
-<h1 id="toc_1"><h4>2. get_user 和 __ex_table</h4></h1>
+<h1 id="toc_1"><h4>2. get<em>user 和 _</em>ex_table</h4></h1>
 
 <p>linux-3.10.86/arch/arm/include/asm/uaccess.h</p>
 
@@ -107,7 +107,7 @@ copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup
     : &quot;cc&quot;)
 </code></pre>
 
-<p>在 __ex_table section中定义了如下数据:
+<p>在 _<em>ex</em>table section中定义了如下数据:
 .long   1b, 3b<br>
 3b是 1b处的修复指令<br>
 当1b处发生异常时, 系统根据情况, 会跳转到标号3的指令处继续执行.<br>
@@ -158,14 +158,14 @@ copy to/from user等*不会*调用到 __do_kernel_fault, 也就不会调用fixup
 }
 </code></pre>
 
-<p>这里修改了pt_regs的pc值, 后续将pt_regs还原, 也就是修改了程序的执行.</p>
+<p>这里修改了pt<em>regs的pc值, 后续将pt</em>regs还原, 也就是修改了程序的执行.</p>
 
 <h1 id="toc_3"><h4>4. 例</h4></h1>
 
 <h2 id="toc_4"><h4>4.1 断点</h4></h2>
 
-<p>下断点, 看看 发生fixup_exception的上下文.
-我们需要仅在fixup_exception()中if (fixup) 成立时的断点.</p>
+<p>下断点, 看看 发生fixup<em>exception的上下文.
+我们需要仅在fixup</em>exception()中if (fixup) 成立时的断点.</p>
 
 <pre><code>(gdb) disass fixup_exception
 Dump of assembler code for function fixup_exception:
@@ -206,8 +206,8 @@ Backtrace stopped: frame did not save the PC
 0xc001cf68 &lt;+40&gt;:   strne   r3, [r4, #60]   ; 0x3c
 </code></pre>
 
-<p>断点应该设置在  strne    r3, [r4, #60] ; regs-&gt;ARM_pc = fixup-&gt;fixup
-这样才能通过pt_regs知道异常发生前 发生了什么.</p>
+<p>断点应该设置在  strne    r3, [r4, #60] ; regs-&gt;ARM<em>pc = fixup-&gt;fixup
+这样才能通过pt</em>regs知道异常发生前 发生了什么.</p>
 
 <pre><code>(gdb) b *0xc001cf68
 </code></pre>
@@ -345,7 +345,7 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
 <p>r5是-EFAULT, r4是ret,<br>
 设置返回值为-EFAULT, 两 dmb  sy 之间的代码就不执行了. </p>
 
-<h2 id="toc_7"><h4>4.4 看下__ex_table的设置</h4></h2>
+<h2 id="toc_7"><h4>4.4 看下_<em>ex</em>table的设置</h4></h2>
 
 <p>linux-3.10.86/arch/arm/include/asm/futex.h</p>
 
@@ -403,7 +403,7 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
 }
 </code></pre>
 
-<p>这里要判断cmpxchg_futex_value_locked的返回值, 正好, fixup代码完成了这任务.
+<p>这里要判断cmpxchg<em>futex</em>value_locked的返回值, 正好, fixup代码完成了这任务.
 内核这样, 完成了一些需要detect的初始化.</p>
 
 	  <p>

@@ -69,7 +69,7 @@
 
 <h1 id="toc_0"><h4>1. node partial的产生</h4></h1>
 
-<p>在cpu0上执行new_slab_objects -&gt; new_slab, 由于可能睡眠, 之后可能运行在cpu1上. 这时若cpu1的c-&gt;page非空, 则根据情况, 可能将其放入node partial中.</p>
+<p>在cpu0上执行new<em>slab</em>objects -&gt; new_slab, 由于可能睡眠, 之后可能运行在cpu1上. 这时若cpu1的c-&gt;page非空, 则根据情况, 可能将其放入node partial中.</p>
 
 <p>linux-3.10.86/mm/slub.c</p>
 
@@ -172,10 +172,10 @@ static void deactivate_slab(struct kmem_cache *s, struct page *page, void *freel
 |   |--if (new.frozen &amp;&amp; !was_frozen) put_cpu_partial(s, page, 1)//当前page没人接管, 则放回cpu partial
 </code></pre>
 
-<p>什么情况下was_frozen会是0?<br>
+<p>什么情况下was<em>frozen会是0?<br>
 答: c-&gt;page把obj分配光了, c-&gt;page就处于unforzen状态, 接下来其他page作为c-&gt;page.
-这时的page处于比较有趣的一种状态, struct kmem_cache没有字段管理这个page,
-struct kmem_cache_cpu也没有链表管理这个page. 我们只能通过obj来找到该page.
+这时的page处于比较有趣的一种状态, struct kmem</em>cache没有字段管理这个page,
+struct kmem<em>cache</em>cpu也没有链表管理这个page. 我们只能通过obj来找到该page.
 现在释放obj, 我们就有机会把这些特殊状态的page收集起来, 将其放入cpu partial.</p>
 
 <pre><code>__slab_alloc
@@ -210,11 +210,11 @@ struct kmem_cache_cpu也没有链表管理这个page. 我们只能通过obj来�
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/slub_slab_alloc" title="SLUB 01:the SLUB allocator的相关数据结构和主要流程">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/mm/slub_tid" title="SLUB 04:tid">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/mm/slub_tid" title="SLUB 04:tid">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/slub_frozen" title="SLUB 02:frozen">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

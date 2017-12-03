@@ -64,8 +64,8 @@
     <div class="content">
       <h1 id="toc_0"><h4>1. 背景</h4></h1>
 
-<p>派发队列(q-&gt;queue_head)(the block device dispatch queue) 为空时，将request从 I/O调度队列(io scheduler queue) 转移到 派发队列, 
-具体是 通过 调用I/O调度算法的elevator_dispatch_fn来完成的:<br>
+<p>派发队列(q-&gt;queue<em>head)(the block device dispatch queue) 为空时，将request从 I/O调度队列(io scheduler queue) 转移到 派发队列, 
+具体是 通过 调用I/O调度算法的elevator</em>dispatch_fn来完成的:<br>
 linux-3.10.86/block/blk.h</p>
 
 <pre><code>__elv_next_request
@@ -177,7 +177,7 @@ deadline_dispatch_requests
 }
 </code></pre>
 
-<p>为简化讨论, 如果系统的读写都比较多, 通常在每次dispatch fifo_batch个 (准确地说, 是除首次外, 其他 是每fifo_batch-1个) rq后, 才有一个根据 过期时间来选择rq的机会 , batch模式下都是根据sector来选择rq.
+<p>为简化讨论, 如果系统的读写都比较多, 通常在每次dispatch fifo<em>batch个 (准确地说, 是除首次外, 其他 是每fifo</em>batch-1个) rq后, 才有一个根据 过期时间来选择rq的机会 , batch模式下都是根据sector来选择rq.
 假定fifo_batch为1, 则效果是first-come first-served.</p>
 
 <h1 id="toc_3"><h4>4. 调用路径</h4></h1>
@@ -206,7 +206,7 @@ linux-3.10.86/block/deadline-iosched.c</p>
     ...
 </code></pre>
 
-<p>elevator_merge_fn, elevator_merged_fn, elevator_merge_req_fn 的区别是啥?<br>
+<p>elevator<em>merge</em>fn, elevator<em>merged</em>fn, elevator<em>merge</em>req_fn 的区别是啥?<br>
 答: linux-3.10.86/include/linux/elevator.h</p>
 
 <pre><code>struct elevator_ops
@@ -227,9 +227,9 @@ linux-3.10.86/block/deadline-iosched.c</p>
     elevator_merge_req_fn *elevator_merge_req_fn;
 </code></pre>
 
-<p>问题:何时调用 deadline_merged_requests?<br>
+<p>问题:何时调用 deadline<em>merged</em>requests?<br>
 答:
-    attempt_back_merge -&gt; attempt_merge -&gt; elv_merge_requests -&gt;  elevator_merge_req_fn -&gt; deadline_merged_requests</p>
+    attempt<em>back</em>merge -&gt; attempt<em>merge -&gt; elv</em>merge<em>requests -&gt;  elevator</em>merge<em>req</em>fn -&gt; deadline<em>merged</em>requests</p>
 
 <pre><code>blk_queue_bio
 {
@@ -266,8 +266,8 @@ linux-3.10.86/block/deadline-iosched.c</p>
 |   |   |--struct deadline_data *dd = q-&gt;elevator-&gt;elevator_data;
 </code></pre>
 
-<p>elevator_queue是 各调度策略通用的结构体.
-再通过 elevator-&gt;elevator_data 转到  各调度策略 特定的结构体.</p>
+<p>elevator<em>queue是 各调度策略通用的结构体.
+再通过 elevator-&gt;elevator</em>data 转到  各调度策略 特定的结构体.</p>
 
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/io/deadline-iosched>https://awakening-fong.github.io/posts/io/deadline-iosched</a>
@@ -280,7 +280,7 @@ linux-3.10.86/block/deadline-iosched.c</p>
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#I/O-ref">I/O <span>9</span></a>
+        <a href="/categories#I/O-ref">I/O <span>8</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">
@@ -292,7 +292,7 @@ linux-3.10.86/block/deadline-iosched.c</p>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/io/generic_make_request" title="generic_make_request">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/tag_towrie_livelock" title="tag TOWRITE to avoid livelocking?">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 

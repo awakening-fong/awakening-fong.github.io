@@ -62,9 +62,9 @@
       <span>2016-12-31</strong>
     </div>
     <div class="content">
-      <h1 id="toc_0"><h4>1. flush_dcache_page的实现</h4></h1>
+      <h1 id="toc_0"><h4>1. flush<em>dcache</em>page的实现</h4></h1>
 
-<p>问题:flush_dcache_page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+<p>问题:flush<em>dcache</em>page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
 
 <p>linux-3.10.86/arch/arm/mm/flush.c</p>
 
@@ -195,7 +195,7 @@ page_ok:  /*page是uptodate状态*/
     stores done by the user. 
 </code></pre>
 
-<p>问题:是写page cache之前调用flush_dcache_page, 还是写page cache之后调用?<br>
+<p>问题:是写page cache之前调用flush<em>dcache</em>page, 还是写page cache之后调用?<br>
 答:上面有:</p>
 
 <pre><code>... to make sure these kernel stores are visible to user space mappings of that page.
@@ -226,11 +226,11 @@ page_ok:  /*page是uptodate状态*/
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/io/set_buffer_new" title="set_buffer_new">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/io/generic_perform_write" title="generic_perform_write流程">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/other/arm_kthread_do_exit" title="关于arm linux中kthread()中的do_exit()">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/other/kthread_park_unpark" title="内核线程的park和unpark">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>

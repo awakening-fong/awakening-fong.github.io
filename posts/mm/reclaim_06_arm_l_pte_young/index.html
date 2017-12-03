@@ -62,7 +62,7 @@
       <span>2017-02-07</strong>
     </div>
     <div class="content">
-      <h1 id="toc_0"><h4>1. page_referenced_one对硬件页表的影响</h4></h1>
+      <h1 id="toc_0"><h4>1. page<em>referenced</em>one对硬件页表的影响</h4></h1>
 
 <p>linux-3.10.86/include/asm-generic/pgtable.h</p>
 
@@ -104,9 +104,9 @@ set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
 <pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
 </code></pre>
 
-<p>set_pte_at -&gt; set_pte_ext -&gt; cpu_set_pte_ext -&gt; cpu_v7_set_pte_ext</p>
+<p>set<em>pte</em>at -&gt; set<em>pte</em>ext -&gt; cpu<em>set</em>pte<em>ext -&gt; cpu</em>v7<em>set</em>pte_ext</p>
 
-<p>我们想知道的是: ext中 L_PTE_YOUNG没有置位时, 硬件页表的变化.</p>
+<p>我们想知道的是: ext中 L<em>PTE</em>YOUNG没有置位时, 硬件页表的变化.</p>
 
 <p>linux-3.10.86/arch/arm/mm/proc-v7-2level.S</p>
 
@@ -122,12 +122,12 @@ moveq   r3, #0
 ...
 </code></pre>
 
-<p>当L_PTE_YOUNG没有置位时, 这里会执行moveq r3, #0, 
+<p>当L<em>PTE</em>YOUNG没有置位时, 这里会执行moveq r3, #0, 
 也就是页表项修改为0, 然后存储到硬件版页表.</p>
 
 <h1 id="toc_1"><h4>2. 后续访问相关page会如何</h4></h1>
 
-<p>执行page_referenced_one之后, 由于硬件页表被清零, 后续访问引发异常, 会执行到handle_pte_fault.</p>
+<p>执行page<em>referenced</em>one之后, 由于硬件页表被清零, 后续访问引发异常, 会执行到handle<em>pte</em>fault.</p>
 
 <p>linux-3.10.86/mm/memory.c</p>
 
@@ -144,7 +144,7 @@ moveq   r3, #0
 }   
 </code></pre>
 
-<p>上面硬件页表被清零了, 但是linux版页表并没有清零, 只清掉L_PTE_YOUNG.
+<p>上面硬件页表被清零了, 但是linux版页表并没有清零, 只清掉L<em>PTE</em>YOUNG.
 这里需要知道, if (!pte_present(entry))是否会成立.</p>
 
 <p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
@@ -173,12 +173,12 @@ vm_get_page_prot -&gt; protection_map -&gt; __PAGE_NONE
 #define _L_PTE_DEFAULT  L_PTE_PRESENT | L_PTE_YOUNG
 </code></pre>
 
-<p>__PAGE_NONE 和其他的__PAGE_xx 都含_L_PTE_DEFAULT.
-也就是说, 创建的linux版pte含有L_PTE_PRESENT.</p>
+<p>_<em>PAGE</em>NONE 和其他的_<em>PAGE</em>xx 都含<em>L</em>PTE<em>DEFAULT.
+也就是说, 创建的linux版pte含有L</em>PTE_PRESENT.</p>
 
-<p>set_pte_at -&gt; set_pte_ext -&gt; cpu_set_pte_ext -&gt; cpu_v7_set_pte_ext<br>
-cpu_v7_set_pte_ext不会修改到L_PTE_PRESENT.<br>
-也就是说, 后续异常时, L_PTE_PRESENT是置位状态了, 后续若因reclaim的扫描, L_PTE_YOUNG会被清掉, 硬件页表也被清零, 若访问该页表相关的page, 不走if (!pte_present(entry)), 而是会置位L_PTE_YOUNG, 并根据这个含有L_PTE_YOUNG的linux页表 重新设置硬件页表.</p>
+<p>set<em>pte</em>at -&gt; set<em>pte</em>ext -&gt; cpu<em>set</em>pte<em>ext -&gt; cpu</em>v7<em>set</em>pte<em>ext<br>
+cpu</em>v7<em>set</em>pte<em>ext不会修改到L</em>PTE<em>PRESENT.<br>
+也就是说, 后续异常时, L</em>PTE<em>PRESENT是置位状态了, 后续若因reclaim的扫描, L</em>PTE<em>YOUNG会被清掉, 硬件页表也被清零, 若访问该页表相关的page, 不走if (!pte</em>present(entry)), 而是会置位L<em>PTE</em>YOUNG, 并根据这个含有L<em>PTE</em>YOUNG的linux页表 重新设置硬件页表.</p>
 
 <p>由于这个异常只有在该page被reclaim扫描到后才会发生, 故overhead并不严重.  </p>
 
@@ -211,7 +211,7 @@ cpu_v7_set_pte_ext不会修改到L_PTE_PRESENT.<br>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/mm/reclaim_00_references" title="page reclaim 00:相关资料">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/arm/arm_int_pt_regs" title="arm linux中断处理过程中寄存器的保存">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 

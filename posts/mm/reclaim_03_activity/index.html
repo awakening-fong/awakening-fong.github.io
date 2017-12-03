@@ -86,22 +86,22 @@ int page_referenced(struct page *page,
         unsigned long *vm_flags)
 </code></pre>
 
-<h1 id="toc_1"><h4>2. L_PTE_YOUNG和 mark_page_accessed, 用哪个呢?</h4></h1>
+<h1 id="toc_1"><h4>2. L<em>PTE</em>YOUNG和 mark<em>page</em>accessed, 用哪个呢?</h4></h1>
 
-<p>有些page是先kmap, 接着 __copy_to_user, 最后kunmap, 这种使用之后 page就被 unmap 掉, 如果是highmem, 通过pte young标记就没有意义, 故采用mark page accessed来提升活跃度.
+<p>有些page是先kmap, 接着 _<em>copy</em>to_user, 最后kunmap, 这种使用之后 page就被 unmap 掉, 如果是highmem, 通过pte young标记就没有意义, 故采用mark page accessed来提升活跃度.
 这种类型的page, 没有被进程引用, 回收时也无需修改页表.
 或者说, 该page没有和进程关联, 故不通过页表来标记活跃度.</p>
 
-<p>对于和进程关联的page, L_PTE_YOUNG没有置位时, 访问会发生异常, 在fault handler中会置位L_PTE_YOUNG, 完成活跃度的标记.
-被扫描到时, 判断活跃度信息后, 总是会被清掉L_PTE_YOUNG, 如果有L_PTE_YOUNG的话.</p>
+<p>对于和进程关联的page, L<em>PTE</em>YOUNG没有置位时, 访问会发生异常, 在fault handler中会置位L<em>PTE</em>YOUNG, 完成活跃度的标记.
+被扫描到时, 判断活跃度信息后, 总是会被清掉L<em>PTE</em>YOUNG, 如果有L<em>PTE</em>YOUNG的话.</p>
 
-<h1 id="toc_2"><h4>3. page_check_references</h4></h1>
+<h1 id="toc_2"><h4>3. page<em>check</em>references</h4></h1>
 
 <p>活跃程度 体现在 两个方面, 
 一个是  该page可能在多个进程/线程中被引用, 这些进程中该page的pte的young有所体现,<br>
-另一个是 struct page的flag PG_referenced, PG_active.</p>
+另一个是 struct page的flag PG<em>referenced, PG</em>active.</p>
 
-<p>shrink_inactive_list -&gt; shrink_page_list -&gt; page_check_references</p>
+<p>shrink<em>inactive</em>list -&gt; shrink<em>page</em>list -&gt; page<em>check</em>references</p>
 
 <pre><code>static enum page_references page_check_references(struct page *page,
                       struct scan_control *sc)
@@ -127,10 +127,10 @@ int page_referenced(struct page *page,
 </code></pre>
 
 <p>问题:如何理解这里的 SetPageReferenced?<br>
-答: page_referenced()总是会清掉pte的young, 如果这里(shrink_inactive_list -&gt; .. -&gt; page_check_references)不SetPageReferenced, 
+答: page<em>referenced()总是会清掉pte的young, 如果这里(shrink</em>inactive<em>list -&gt; .. -&gt; page</em>check_references)不SetPageReferenced, 
 相当于一下子把较活跃的page的活跃度全部抹掉, 似乎并不合适, 故这里SetPageReferenced给page保留一点活跃度.</p>
 
-<h1 id="toc_3"><h4>4. mm: don&#39;t mark_page_accessed in fault path</h4></h1>
+<h1 id="toc_3"><h4>4. mm: don&#39;t mark<em>page</em>accessed in fault path</h4></h1>
 
 <p>linux-3.10.86/mm/filemap.c</p>
 
@@ -150,25 +150,25 @@ mapped memory region to read in file data during a page fault.</p>
 |--<del>mark_page_accessed</del>  
 </code></pre>
 
-<p>mm: don&#39;t mark_page_accessed in fault path 
+<p>mm: don&#39;t mark<em>page</em>accessed in fault path 
 <a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=bf3f3bc5e734706730c12a323f9b2068052aa1f0</a></p>
 
 <blockquote>
-<p>Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at unmap-time if the pte is young       has a number of problems.</p>
+<p>Doing a mark<em>page</em>accessed at fault-time, then doing SetPageReferenced at unmap-time if the pte is young       has a number of problems.</p>
 </blockquote>
 
 <p>本补丁之前的方式是, 如果
-fault时mark_page_accessed, 然后, unmap时若pte young则SetPageReferenced, 
+fault时mark<em>page</em>accessed, 然后, unmap时若pte young则SetPageReferenced, 
 这种方式会导致一些问题.</p>
 
 <blockquote>
-<p>So calling mark_page_accessed not only adds extra lru or PG_referenced manipulations for pages that are already going to have pte_young ptes anyway, but it also adds these references which are difficult to work with from the context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not wish to contribute to the page being referenced).</p>
+<p>So calling mark<em>page</em>accessed not only adds extra lru or PG<em>referenced manipulations for pages that are already going to have pte</em>young ptes anyway, but it also adds these references which are difficult to work with from the context of vma specific references (eg. MADV<em>SEQUENTIAL pte</em>young may not wish to contribute to the page being referenced).</p>
 </blockquote>
 
 <p>我们反正就要给pte置位young了, 就不要再弄个额外的page flag了. 而且还会给 谁谁谁 添堵.</p>
 
 <blockquote>
-<p>Then, simply doing SetPageReferenced when zapping a pte and finding it is young, is not a really good solution either. SetPageReferenced does not correctly promote the page to the active list for example. So after removing mark_page_accessed from the fault path, several mmap()+touch+munmap() would have a very different result from several read(2) calls for example, which is not really desirable.</p>
+<p>Then, simply doing SetPageReferenced when zapping a pte and finding it is young, is not a really good solution either. SetPageReferenced does not correctly promote the page to the active list for example. So after removing mark<em>page</em>accessed from the fault path, several mmap()+touch+munmap() would have a very different result from several read(2) calls for example, which is not really desirable.</p>
 </blockquote>
 
 <p>之前的处理, 在第2回的 munmap会把上回的信息丢失掉, 故活跃度和 read的结果不同.</p>
@@ -193,7 +193,7 @@ fault时mark_page_accessed, 然后, unmap时若pte young则SetPageReferenced,
 </code></pre>
 
 <p>问题:我们是在unmap, 为何要mark accessed?<br>
-答:由于unmap, 导致原先通过young标记的活跃度信息将会消失, 故改用mark_page_accessed来反映该信息.</p>
+答:由于unmap, 导致原先通过young标记的活跃度信息将会消失, 故改用mark<em>page</em>accessed来反映该信息.</p>
 
 <p>这是 非if (PageAnon(page))的情况, 这样即使脱离pte, 还可通过radix tree找到该page,  进而使用之前的page内容, 这样, 标记活跃度才有意义.</p>
 

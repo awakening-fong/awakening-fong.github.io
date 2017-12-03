@@ -87,10 +87,10 @@
 <h1 id="toc_1"><h4>1. 先解释linux journal上的内容</h4></h1>
 
 <blockquote>
-<p>The change is that whenever a wake_up_process is called for a process whose state is TASK_INTERRUPTIBLE or TASK_UNINTERRUPTIBLE, and the process has not yet called schedule(), the state of the process is changed back to TASK_RUNNING.</p>
+<p>The change is that whenever a wake<em>up</em>process is called for a process whose state is TASK<em>INTERRUPTIBLE or TASK</em>UNINTERRUPTIBLE, and the process has not yet called schedule(), the state of the process is changed back to TASK_RUNNING.</p>
 </blockquote>
 
-<p>本文假定调度器使用的是CFS. 假定在第4行和第5行之间 进程B调用 wake_up_process().<br>
+<p>本文假定调度器使用的是CFS. 假定在第4行和第5行之间 进程B调用 wake<em>up</em>process().<br>
 linux-3.10.86/kernel/sched/core.c</p>
 
 <pre><code>wake_up_process
@@ -116,7 +116,7 @@ out:
 }
 </code></pre>
 
-<p>ttwu_remote -&gt; ttwu_do_wakeup -&gt; p-&gt;state = TASK_RUNNING;<br>
+<p>ttwu<em>remote -&gt; ttwu</em>do<em>wakeup -&gt; p-&gt;state = TASK</em>RUNNING;<br>
 进程TASK_RUNNING下调用schedule() :</p>
 
 <pre><code>__schedule
@@ -126,15 +126,15 @@ if(prev-&gt;state &amp;&amp;...)
 }
 </code></pre>
 
-<p>0==TASK_RUNNING, 所以,<br>
-这个if (prev-&gt;state)等效于if ( prev-&gt;state != TASK_RUNNING )<br>
-所以, TASK_RUNNING调用schedule()不会调用到deactivate_task().</p>
+<p>0==TASK<em>RUNNING, 所以,<br>
+这个if (prev-&gt;state)等效于if ( prev-&gt;state != TASK</em>RUNNING )<br>
+所以, TASK<em>RUNNING调用schedule()不会调用到deactivate</em>task().</p>
 
 <p>deactivate_task 都完成啥动作???</p>
 
 <h1 id="toc_2"><h4>2. 再看看另外一种情况</h4></h1>
 
-<p>在第4行spin_unlock()中, 如果是个抢占的时机, 那么不是直接调用schedule(), 而是调用 preempt_schedule()</p>
+<p>在第4行spin<em>unlock()中, 如果是个抢占的时机, 那么不是直接调用schedule(), 而是调用 preempt</em>schedule()</p>
 
 <pre><code>preempt_schedule
 {
@@ -160,11 +160,11 @@ __schedule
 }
 </code></pre>
 
-<p>这里的!( preempt_count() &amp; PREEMPT_ACTIVE )就不会满足, 就不会执行deactivate_task().</p>
+<p>这里的!( preempt<em>count() &amp; PREEMPT</em>ACTIVE )就不会满足, 就不会执行deactivate_task().</p>
 
 <h1 id="toc_3"><h4>3. 重新挂到红黑树上</h4></h1>
 
-<p>由于当前运行的进程在被选中运行时, 就被移出红黑树了. 上面两种情况中, se节点又是如何重新放到rbtree上的呢? 看put_prev_entity() :</p>
+<p>由于当前运行的进程在被选中运行时, 就被移出红黑树了. 上面两种情况中, se节点又是如何重新放到rbtree上的呢? 看put<em>prev</em>entity() :</p>
 
 <pre><code>put_prev_entity(...)
 {
@@ -174,11 +174,11 @@ __schedule
 }
 </code></pre>
 
-<p>所以, 是这里的 put_prev_entity()将节点重新放到rbtree上.</p>
+<p>所以, 是这里的 put<em>prev</em>entity()将节点重新放到rbtree上.</p>
 
 <h1 id="toc_4"><h4>4. 防范</h4></h1>
 
-<p>既然容易出现上面的问题, 那么, 内核是如何处理这个问题的呢? 答案是内核提供了宏__wait_event, 可参考其写法:</p>
+<p>既然容易出现上面的问题, 那么, 内核是如何处理这个问题的呢? 答案是内核提供了宏_<em>wait</em>event, 可参考其写法:</p>
 
 <pre><code>#define __wait_event(wq, condition)                     \
 do{                                    \
@@ -194,8 +194,8 @@ do{                                    \
 }while(0)
 </code></pre>
 
-<p>prepare_to_wait(... , TASK_UNINTERRUPTIBLE) 会设置进程的状态为TASK_UNINTERRUPTIBLE,<br>
-finish_wait()设置状态为TASK_RUNNING. </p>
+<p>prepare<em>to</em>wait(... , TASK<em>UNINTERRUPTIBLE) 会设置进程的状态为TASK</em>UNINTERRUPTIBLE,<br>
+finish<em>wait()设置状态为TASK</em>RUNNING. </p>
 
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/scheduler/scheduler_01_lost_wake-up>https://awakening-fong.github.io/posts/scheduler/scheduler_01_lost_wake-up</a>
@@ -220,11 +220,11 @@ finish_wait()设置状态为TASK_RUNNING. </p>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/scheduler/scheduler_03_switch_to" title="arm linux的switch_to">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/scheduler/scheduler_02_preempt" title="仅检查TIF_NEED_RESCHED,不检查preempt_count?">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/scheduler/scheduler_02_preempt" title="仅检查TIF_NEED_RESCHED,不检查preempt_count?">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/scheduler/scheduler_03_switch_to" title="arm linux的switch_to">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>
