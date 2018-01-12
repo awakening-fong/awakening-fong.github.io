@@ -54,6 +54,39 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
+
+<p>drbd-8.4中有如下代码</p>
+
+<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
+{
+具体实现略
+}
+</code></pre>
+
+<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
+
+<h1 id="toc_1"><h4>2. 处理</h4></h1>
+
+<p>source insight版本4.0<br>
+option- file type option -<br>
+左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
+弹出的对话框中,<br>
+左侧选 c/c++ language, 右侧点击 properties...  </p>
+
+<p>弹出的对话框中, 
+标签页 custom parsing<br>
+打钩 Enable expressions below for parsing  </p>
+</div>
+
+        <div class="more">
+          <a href="/posts/tools/source_insight_custom_parsing" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/debug/softlockup">探测softlockup的原理</a> <span class="date">2017-06-10</span></h3>
 
         <div class="summary ellipsis">
@@ -177,186 +210,6 @@ copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也�
 
         <div class="more">
           <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/mmap_fault">mmap和fault handler</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>我们想知道, 通过mmap映射文件, 然后读取, 是如何读取到文件的, 其中的fault handler相关的内容.</p>
-
-<h1 id="toc_1"><h4>2. ftrace</h4></h1>
-
-<pre><code class="c">#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;strings.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/mman.h&gt;
-#include &lt;sys/stat.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;errno.h&gt;
-
-#define MEMSIZE 1024*4
-#define MPFILE "./.ash_history"
-
-//#define ON_OFF //tracing_on
-
-void write_ftrace(char *path, char *val)
-{
-    char ftrace_d[50]="/sys/kernel/debug/tracing/";
-    int len_d=strlen(ftrace_d);
-
-
-    int fd_trace=open(strcat(ftrace_d,path), O_RDWR|O_TRUNC);
-    if (fd_trace &lt; 0) {
-        printf("open %s:%s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    printf("to write:%s %s\n",path,val);
-
-    int ret=write(fd_trace, val, strlen(val));
-    if(ret&lt;0)
-    {
-        printf("write %s %s\n",path,strerror(errno));
-        exit(1);
-    }
-
-
-    if (0==strncmp("trace",path, sizeof("trace")))
-    {
-        close(fd_trace);
-        return;
-    }
-
-    char val_read[20];
-    memset(val_read,0,sizeof(val_read));
-    pread(fd_trace, val_read, sizeof(val_read),0);
-    printf("read val:%s\n",val_read);
-    close(fd_trace);
-
-}
-
-void write_val(char *path, char *val)
-{
-    int fd=open(path, O_RDWR);
-    if (fd &lt; 0) {
-        printf("open %s:%s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    printf("to write:%s %s\n",path, val);
-    int ret=write(fd, val, strlen(val));
-    if(ret&lt;0)
-    {
-        printf("write %s %s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    char val_read[20];
-    memset(val_read,0,sizeof(val_read));
-    pread(fd, val_read, sizeof(val_read),0);
-    printf("read val:%s\n",val_read);
-    close(fd);
-}
-
-
-int main()
-{
-    char *ptr;
-    int fd;
-    int ret=-1;
-    int i=-1;
-
-    fd = open(MPFILE, O_RDWR);
-    if (fd &lt; 0) {
-        perror("open()");
-        exit(1);
-    }
-
-    ptr = mmap(NULL, MEMSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if (ptr == NULL) {
-        perror("malloc()");
-        exit(1);
-    }
-
-    /*避免page cache干扰*/
-    if( posix_fadvise(fd,0,4096,POSIX_FADV_DONTNEED) != 0) {  
-        printf("Cache FADV_DONTNEED failed, %s\n",strerror(errno));  
-    }  
-    else {  
-        printf("Cache FADV_DONTNEED done\n");  
-    }  
-
-    //mount -t debugfs nodev /sys/kernel/debug/
-    system("mount -t debugfs nodev /sys/kernel/debug/");
-
-
-
-    /*
-    ~ # echo 1 &gt; /proc/sys/kernel/ftrace_enabled
-    */
-
-    write_val("/proc/sys/kernel/ftrace_enabled", "1");
-
-    int pid_cur=getpid();
-    printf("pid:%d\n",pid_cur);
-    char str_pid[25];
-    memset(str_pid,0, sizeof(str_pid));
-    snprintf(str_pid, sizeof(str_pid),"%d", pid_cur);
-    //  /sys/kernel/debug/tracing/set_ftrace_pid
-    write_ftrace("set_ftrace_pid", str_pid);
-
-
-    write_ftrace("tracing_on", "1");
-
-
-    /*# can set other filtering here
-    echo function &gt; ${ROOT_FTRACE}/current_tracer
-    */
-    write_ftrace("current_tracer", "function");
-
-    write_ftrace("trace", "0");
-
-    /*
-    #echo 0 &gt; ${ROOT_FTRACE}/trace
-    echo start_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
-    exec $* 
-    */
-
-    //write_ftrace("trace_marker", "start_trace_marker");
-
-   i=*ptr;  //这个就是我们要跟踪的
-
-
-    /*
-    echo end_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
-    echo 0  &gt; ${ROOT_FTRACE}/tracing_on  #stop record to buffer
-    */
-
-    //write_ftrace("trace_marker", "end_trace_marker");
-
-    write_ftrace("tracing_on", "0");
-    system("cat /sys/kernel/debug/tracing/trace &gt; mmap.ftrace");
-
-    printf("%x\n", i);
-
-
-    munmap(ptr, MEMSIZE);
-    close(fd);
-
-    exit(1);
-}
-
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
         </div>
       </div>
     

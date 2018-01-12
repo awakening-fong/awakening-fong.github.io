@@ -54,44 +54,92 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972016226674429
+<p>
+来自本人的旧博客
+http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
 </p>
 
-<h1 id="toc_0"><h4>1. 主要流程</h4></h1>
+<pre><code>模式   usr            exception                                   svc                             
+-----|----|--------------------------------|---------------------------------------------------                                                                                               
+函数                 vector_\name:                             usr_entry:                         
 
-<p>平台:versatilepb ARM Versatile/PB (ARM926EJ-S) 内核版本2.6.35.7</p>
 
-<pre><code>paging_init
-|--devicemaps_init
-|   |--from VMALLOC_END, pmd_clear(pmd_off_k(addr))
-|   |--mdesc-&gt;map_io() =&gt; versatile_map_io  
-|   |   |--iotable_init
-|   |   |   |--create_mapping
-</code></pre>
-
-<h1 id="toc_1"><h4>2. 为何是 MT_DEVICE</h4></h1>
-
-<p>linux-2.6.35.7/arch/arm/mach-versatile/core.c</p>
-
-<pre><code>void __init versatile_map_io(void)
-{
-    iotable_init(versatile_io_desc, ARRAY_SIZE(versatile_io_desc));
-}
-
-static struct map_desc versatile_io_desc[] __initdata = {
-    {
-        ...
-        .type       = MT_DEVICE
-    },
-    ...
+                                                                            对应的汇编语句:                    
+                  +----------------+        0  +------------------+   ------------------------    
+           高地址 |spsr_&lt;exception&gt;|           |      r0          |      str     r1, [sp]         
+                  |                |        4  +------------------+    ----------------------     
+             ^    +----------------+           |      r1          |                               
+             |    |                |           |                  |                               
+             |    |lr_&lt;exception&gt;  |           |      .           |                               
+             |    |                |           |      .           |      stmib   sp, {r1 - r12}   
+             |    +----------------+           |      .           |                               
+                  |                |           |                  |                               
+           低地址 |      r0        |           |     r12          |                               
+                  |                |           |                  |                               
+                  +----------------+       52  +------------------+     ----------------------    
+                    struct stack               |      sp_usr      |                               
+                                               |                  |                               
+                                           56  +------------------+     stmdb   r0, {sp, lr}^     
+                                               |     lr_usr       |                               
+                                               |                  |                               
+                                           60  +------------------+      ---------------------    
+                                               |  lr_&lt;exception&gt;  |                               
+                                               |                  |                               
+                                           64  +------------------+                                
+                                               | spsr_&lt;exception&gt; |      stmia   r0, {r2 - r4}    
+                                               |                  |                               
+                                           68  +------------------+                               
+                                               |      -1          |                               
+                                               |                  |                               
+                                           72  +------------------+     -----------------------   
+                                                struct  pt_regs
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_map_io" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
+
+<p>假定 CONFIG<em>MULTI</em>IRQ<em>HANDLER=y, handle</em>arch<em>irq 为 gic</em>handle_irq.<br>
+linux-3.10.86/arch/arm/kernel/setup.c</p>
+
+<pre><code>__irq_svc @entry-armv.S
+|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
+|   |--irq_handler
+|   |   |--handle_arch_irq =&gt; gic_handle_irq
+|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
+|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
+|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
+|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--handle_irq_event
+|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
+|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--chip-&gt;irq_eoi
+|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
+|   |   |   |       |   |--if( ... ) invoke_softirq() 
+|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
+|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
+|   |   |   |       |   |    |    |--h-&gt;action(h)
+|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
+|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
+|   |--svc_exit r5, irq = 1  @entry-header.S
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -236,48 +284,6 @@ str r3, [r4, r6, lsl #2] @ identity mapping
 
         <div class="more">
           <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
-</p>
-
-<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
- # CONFIG<em>ARM</em>LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
-
-<pre><code>31                         7          0
-+-------------------------+-----------+
-|      PROCID             |   ASID    |
-+-------------------------+-----------+
-</code></pre>
-
-<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
-
-<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
-linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
-
-<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
-                  pte_t *ptep, pte_t pteval) 
-{ 
-...
-    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
-... 
-        ext |= PTE_EXT_NG; 
-    } 
-... 
-    set_pte_ext(ptep, pteval, ext); 
-}
-
-set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">

@@ -54,34 +54,57 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
+<p>未开启CONFIG<em>MEMCG, CONFIG</em>SWAP.</p>
 
-<p>本文不讨论 swapping (swap out to disk).  </p>
+<h1 id="toc_0"><h4>1. scan_control</h4></h1>
 
-<p>If a seldom-used page is backed by a block device (e.g., memory mappings
-of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
-通过Writing back cached data即可将这些page释放.</p>
+<p>linux-3.10.86/mm/vmscan.c</p>
 
-<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
+<pre><code>struct scan_control {
 
-<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
+    /* Incremented by the number of inactive pages that were scanned */
+    unsigned long nr_scanned;
 
-<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
+    /* How many pages shrink_list() should reclaim 
+    问题:nr_to_reclaim和nr_scanned的关系?
+    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
+    通常是先给struct scan_control sc设置好这个目标, 
+    然后启动回收. 
+    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
+    */
+    unsigned long nr_to_reclaim;
 
-<p>如何找到这些内存呢? 啥链表吗?<br>
-答:see add<em>to</em>page<em>cache</em>lru(), page<em>add</em>new<em>anon</em>rmap()</p>
+    /*
+    这里的may类似may I ..., may的意思是 是否可以, 是否允许
+    */
+    int may_writepage;
 
-<p>方式1:
-add<em>to</em>page<em>cache</em>lru 把page添加到 both the page cache and the LRU cache. 
-Most importantly, it is used by mpage<em>readpages and do</em>generic<em>mapping</em>read, the standard functions in which the block layer ends up when reading data from a file or mapping.
-当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
+    /*
+    [Understanding the Linux Kernel, 3rd Edition]p695
+    Lower priority implies scanning more pages.
+    */
+    int priority;
+
+};
+
+get_scan_count
+{
+        size = get_lru_size(lruvec, lru);
+        scan = size &gt;&gt; sc-&gt;priority;
+        //扫描的量 与 list的大小 成比例
+}
+
+shrink_lruvec
+|--//1. 根据优先级等 给数组nr[]赋值
+|--get_scan_count(lruvec, sc, nr); 
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -124,53 +147,55 @@ set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_00_references">page reclaim 00:相关资料</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary">
+<ol>
+<li><p>[Professional Linux Kernel Architecture]</p></li>
+<li><p>Reducing Memory Access Latency by Satoru Moriya
+<a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf">http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf</a></p></li>
+<li><p><a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/</a></p></li>
+<li><p>[Understanding the Linux Kernel, 3rd Edition]</p></li>
+</ol>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_00_references" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p>
-来自本人的旧博客
-http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
-</p>
+<p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157611510386
+</p> 
 
-<pre><code>模式   usr            exception                                   svc                             
------|----|--------------------------------|---------------------------------------------------                                                                                               
-函数                 vector_\name:                             usr_entry:                         
+<h1 id="toc_0"><h4>1. 方法</h4></h1>
 
+<p>qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux -S -s</p>
 
-                                                                            对应的汇编语句:                    
-                  +----------------+        0  +------------------+   ------------------------    
-           高地址 |spsr_&lt;exception&gt;|           |      r0          |      str     r1, [sp]         
-                  |                |        4  +------------------+    ----------------------     
-             ^    +----------------+           |      r1          |                               
-             |    |                |           |                  |                               
-             |    |lr_&lt;exception&gt;  |           |      .           |                               
-             |    |                |           |      .           |      stmib   sp, {r1 - r12}   
-             |    +----------------+           |      .           |                               
-                  |                |           |                  |                               
-           低地址 |      r0        |           |     r12          |                               
-                  |                |           |                  |                               
-                  +----------------+       52  +------------------+     ----------------------    
-                    struct stack               |      sp_usr      |                               
-                                               |                  |                               
-                                           56  +------------------+     stmdb   r0, {sp, lr}^     
-                                               |     lr_usr       |                               
-                                               |                  |                               
-                                           60  +------------------+      ---------------------    
-                                               |  lr_&lt;exception&gt;  |                               
-                                               |                  |                               
-                                           64  +------------------+                                
-                                               | spsr_&lt;exception&gt; |      stmia   r0, {r2 - r4}    
-                                               |                  |                               
-                                           68  +------------------+                               
-                                               |      -1          |                               
-                                               |                  |                               
-                                           72  +------------------+     -----------------------   
-                                                struct  pt_regs
+<p>需要留意, 这里-kernel的参数不是/opt/qemu_arm/linux-2.6.35.7/vmlinux</p>
+
+<pre><code>arm-none-linux-gnueabi-gdb -tui -q /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux
+Reading symbols from /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux...done.
+(gdb) target extended-remote localhost:1234
+Remote debugging using localhost:1234
+warning: Source file is more recent than executable.
+start () at arch/arm/boot/compressed/head.S:115
+(gdb) b __setup_mmu
+Breakpoint 1 at 0x200: file arch/arm/boot/compressed/head.S, line 409.
+(gdb) c
+Continuing.
+Breakpoint 1, __setup_mmu () at arch/arm/boot/compressed/head.S:409
+(gdb) i r r3 r4
+r3 0x4000 16384
+r4 0x8000 32768
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_qemu_01" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -202,45 +227,6 @@ http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
 
         <div class="more">
           <a href="/posts/arm/arm_iounmap_master_table" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
-
-<p>假定 CONFIG<em>MULTI</em>IRQ<em>HANDLER=y, handle</em>arch<em>irq 为 gic</em>handle_irq.<br>
-linux-3.10.86/arch/arm/kernel/setup.c</p>
-
-<pre><code>__irq_svc @entry-armv.S
-|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
-|   |--irq_handler
-|   |   |--handle_arch_irq =&gt; gic_handle_irq
-|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
-|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
-|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
-|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--handle_irq_event
-|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
-|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--chip-&gt;irq_eoi
-|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
-|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
-|   |   |   |       |   |--if( ... ) invoke_softirq() 
-|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
-|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
-|   |   |   |       |   |    |    |--h-&gt;action(h)
-|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
-|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
-|   |--svc_exit r5, irq = 1  @entry-header.S
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
     

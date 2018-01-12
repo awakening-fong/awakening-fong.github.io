@@ -54,74 +54,119 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 
-http://blog.163.com/awaken_ing/blog/static/12061319720157611510386
-</p> 
+<p> 文来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972016226674429
+</p>
 
-<h1 id="toc_0"><h4>1. 方法</h4></h1>
+<h1 id="toc_0"><h4>1. 主要流程</h4></h1>
 
-<p>qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux -S -s</p>
+<p>平台:versatilepb ARM Versatile/PB (ARM926EJ-S) 内核版本2.6.35.7</p>
 
-<p>需要留意, 这里-kernel的参数不是/opt/qemu_arm/linux-2.6.35.7/vmlinux</p>
+<pre><code>paging_init
+|--devicemaps_init
+|   |--from VMALLOC_END, pmd_clear(pmd_off_k(addr))
+|   |--mdesc-&gt;map_io() =&gt; versatile_map_io  
+|   |   |--iotable_init
+|   |   |   |--create_mapping
+</code></pre>
 
-<pre><code>arm-none-linux-gnueabi-gdb -tui -q /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux
-Reading symbols from /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux...done.
-(gdb) target extended-remote localhost:1234
-Remote debugging using localhost:1234
-warning: Source file is more recent than executable.
-start () at arch/arm/boot/compressed/head.S:115
-(gdb) b __setup_mmu
-Breakpoint 1 at 0x200: file arch/arm/boot/compressed/head.S, line 409.
-(gdb) c
-Continuing.
-Breakpoint 1, __setup_mmu () at arch/arm/boot/compressed/head.S:409
-(gdb) i r r3 r4
-r3 0x4000 16384
-r4 0x8000 32768
+<h1 id="toc_1"><h4>2. 为何是 MT_DEVICE</h4></h1>
+
+<p>linux-2.6.35.7/arch/arm/mach-versatile/core.c</p>
+
+<pre><code>void __init versatile_map_io(void)
+{
+    iotable_init(versatile_io_desc, ARRAY_SIZE(versatile_io_desc));
+}
+
+static struct map_desc versatile_io_desc[] __initdata = {
+    {
+        ...
+        .type       = MT_DEVICE
+    },
+    ...
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_qemu_01" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_map_io" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p>本文假定没有打开CONFIG<em>SLUB</em>DEBUG, 没有配置CONFIG_NUMA.</p>
+<p>
+来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
+</p>
 
-<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
+<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
+ # CONFIG<em>ARM</em>LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
 
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
- *   on any list. It is not on any list. The processor that froze the slab is the one who can
- *   perform list operations on the page. Other processors may put objects
- *   onto the freelist but the processor that froze the slab is the only
- *   one that can retrieve the objects from the page's freelist.
+<pre><code>31                         7          0
++-------------------------+-----------+
+|      PROCID             |   ASID    |
++-------------------------+-----------+
 </code></pre>
 
-<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
-cpu02不能从该page中取obj, 只能把obj还给该page.</p>
+<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
 
-<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
+<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
+linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
+                  pte_t *ptep, pte_t pteval) 
+{ 
+...
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
+... 
+        ext |= PTE_EXT_NG; 
+    } 
+... 
+    set_pte_ext(ptep, pteval, ext); 
+}
+
+set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. tid</h4></h1>
 
 <p>linux-3.10.86/include/linux/slub_def.h</p>
 
 <pre><code>struct kmem_cache_cpu {
-...
-    struct page *partial;   /* Partially allocated frozen slabs */
     ...
+    unsigned long tid;  /* Globally unique transaction id */
+    ..
 };
 </code></pre>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code>#ifdef CONFIG_PREEMPT
+/*
+ * Calculate the next globally unique transaction for disambiguiation
+ * during cmpxchg. The transactions start with the cpu number and are then
+ * incremented by CONFIG_NR_CPUS.
+</code></pre>
+
+<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
+答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
+不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/slub_tid" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -231,80 +276,39 @@ static void deactivate_slab(struct kmem_cache *s, struct page *page, void *freel
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
+        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. tid</h4></h1>
+<p>本文假定没有打开CONFIG<em>SLUB</em>DEBUG, 没有配置CONFIG_NUMA.</p>
+
+<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
+ *   on any list. It is not on any list. The processor that froze the slab is the one who can
+ *   perform list operations on the page. Other processors may put objects
+ *   onto the freelist but the processor that froze the slab is the only
+ *   one that can retrieve the objects from the page's freelist.
+</code></pre>
+
+<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
+cpu02不能从该page中取obj, 只能把obj还给该page.</p>
+
+<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
 
 <p>linux-3.10.86/include/linux/slub_def.h</p>
 
 <pre><code>struct kmem_cache_cpu {
+...
+    struct page *partial;   /* Partially allocated frozen slabs */
     ...
-    unsigned long tid;  /* Globally unique transaction id */
-    ..
 };
 </code></pre>
-
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code>#ifdef CONFIG_PREEMPT
-/*
- * Calculate the next globally unique transaction for disambiguiation
- * during cmpxchg. The transactions start with the cpu number and are then
- * incremented by CONFIG_NR_CPUS.
-</code></pre>
-
-<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
-答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
-不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/slub_tid" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a> <span class="date">2017-01-12</span></h3>
-
-        <div class="summary ellipsis">
-<p>文来自本人旧博客:  blog.163.com/awaken_ing/blog/static/1206131972016316114114855</p>
-
-<p>平台 ARM Versatile Express for Cortex-A9 SMP<br>
-内核版本 3.10.86 (未定义 CONFIG_NUMA)  </p>
-
-<h1 id="toc_0"><h4>1. 概览</h4></h1>
-
-<p>The SLUB allocator 相比SLAB, 试图 remove the metadata overhead inside slabs, reduce the number of caches, and so on.
-The only metadata present in the SLUB allocator is the in-object “next-free-object” pointer, which allows us to link free objects together. struct kmem_cache 的成员 int offset 用来指明 指针在 object 中的偏移量, 这个指针指向的是下一个可用的object. How does the allocator manage to find the first free object? The answer lies in the approach of saving a pointer to such an object inside each page struct associated with the slab page.
-SLUB allocator 没有SLAB的full list 和 empty list.</p>
-
-<p><img src="/assets/media/slub_01.jpg"></p>
-
-<p>图片来自 <a href="http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf">http://events.linuxfoundation.org/sites/events/files/slides/slaballocators.pdf</a></p>
-
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code>slab_alloc() -&gt; slab_alloc_node()
-slab_alloc_node(struct kmem_cache *s, ...
-{
-    struct kmem_cache_cpu *c=__this_cpu_ptr(s-&gt;cpu_slab);
-    object = c-&gt;freelist;
-    if fastpath {
-        void *next_object = get_freepointer_safe(s, object);
-        c-&gt;freelist=next_object; //via  this_cpu_cmpxchg_double()
-    }else
-        ...
-    return object;
-}
-static inline void *get_freepointer(struct kmem_cache *s, void *object)
-{
-    return *(void **)(object + s-&gt;offset);
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/slub_slab_alloc" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
         </div>
       </div>
     

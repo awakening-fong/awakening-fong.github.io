@@ -54,74 +54,34 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_00_references">page reclaim 00:相关资料</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary">
-<ol>
-<li><p>[Professional Linux Kernel Architecture]</p></li>
-<li><p>Reducing Memory Access Latency by Satoru Moriya
-<a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf">http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf</a></p></li>
-<li><p><a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/</a></p></li>
-<li><p>[Understanding the Linux Kernel, 3rd Edition]</p></li>
-</ol>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_00_references" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/hw/iic">IIC相关内容的记忆</a> <span class="date">2017-02-15</span></h3>
 
         <div class="summary ellipsis">
-<p>未开启CONFIG<em>MEMCG, CONFIG</em>SWAP.</p>
+<p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
 
-<h1 id="toc_0"><h4>1. scan_control</h4></h1>
+<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
 
-<p>linux-3.10.86/mm/vmscan.c</p>
+<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.
+在时钟为高时, SDA若表示数据, 需维持稳定, 否则, 其表示起始或停止.</p>
 
-<pre><code>struct scan_control {
+<p><img src="/assets/media/IIC_start_stop.jpg"></p>
 
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
+<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
 
-    /* How many pages shrink_list() should reclaim 
-    问题:nr_to_reclaim和nr_scanned的关系?
-    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
-    通常是先给struct scan_control sc设置好这个目标, 
-    然后启动回收. 
-    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
+<p>假定是7bit地址的情况.
+先发送高位还是低位?<br>
+可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
 
-    /*
-    这里的may类似may I ..., may的意思是 是否可以, 是否允许
-    */
-    int may_writepage;
+<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
 
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
+<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
 
-};
+<p><img src="/assets/media/IIC_SCL_high_SDA_valid.jpg"></p>
 
-get_scan_count
-{
-        size = get_lru_size(lruvec, lru);
-        scan = size &gt;&gt; sc-&gt;priority;
-        //扫描的量 与 list的大小 成比例
-}
-
-shrink_lruvec
-|--//1. 根据优先级等 给数组nr[]赋值
-|--get_scan_count(lruvec, sc, nr); 
-</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
+          <a href="/posts/hw/iic" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -156,36 +116,34 @@ shrink_lruvec
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. page_referenced</h4></h1>
+<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
 
-<p>linux-3.10.86/mm/rmap.c</p>
+<p>本文不讨论 swapping (swap out to disk).  </p>
 
-<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
- * returns the number of ptes which referenced the page.
-这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
+<p>If a seldom-used page is backed by a block device (e.g., memory mappings
+of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
+通过Writing back cached data即可将这些page释放.</p>
 
- 问题:这个函数的用途?
- 答:用来反应在inactive list中的page的活跃程度.
- 返回数值1和返回数值2是有区别的, see page_check_references
- {
-     referenced_ptes = page_referenced(...);
-     if (... || referenced_ptes &gt; 1)
-        return PAGEREF_ACTIVATE;
+<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
 
- }
- */
-int page_referenced(struct page *page,
-        int is_locked,
-        struct mem_cgroup *memcg,
-        unsigned long *vm_flags)
-</code></pre>
+<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
+
+<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
+
+<p>如何找到这些内存呢? 啥链表吗?<br>
+答:see add<em>to</em>page<em>cache</em>lru(), page<em>add</em>new<em>anon</em>rmap()</p>
+
+<p>方式1:
+add<em>to</em>page<em>cache</em>lru 把page添加到 both the page cache and the LRU cache. 
+Most importantly, it is used by mpage<em>readpages and do</em>generic<em>mapping</em>read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_03_activity" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -218,6 +176,39 @@ kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
 
         <div class="more">
           <a href="/posts/mm/reclaim_02_implement" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. page_referenced</h4></h1>
+
+<p>linux-3.10.86/mm/rmap.c</p>
+
+<pre><code> * Quick test_and_clear_referenced for all mappings to a page,
+ * returns the number of ptes which referenced the page.
+这个注释过时了, 实际功能并不是返回指向该page的pte的个数. 
+
+ 问题:这个函数的用途?
+ 答:用来反应在inactive list中的page的活跃程度.
+ 返回数值1和返回数值2是有区别的, see page_check_references
+ {
+     referenced_ptes = page_referenced(...);
+     if (... || referenced_ptes &gt; 1)
+        return PAGEREF_ACTIVATE;
+
+ }
+ */
+int page_referenced(struct page *page,
+        int is_locked,
+        struct mem_cgroup *memcg,
+        unsigned long *vm_flags)
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_03_activity" class="btn btn-small">read more..</a>
         </div>
       </div>
     
