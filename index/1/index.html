@@ -29,7 +29,7 @@
     <div class="navbar">
       <div class="navbar-inner">
         <div class="container-narrow">
-          <a class="brand" href="/">HOMEPAGE</a>
+          <a class="brand" href="/">首页</a>
           <ul class="nav">
               
                 <li><a href="/archive">Archive</a></li>
@@ -56,7 +56,7 @@
       <div class="_root">
         <h3 class="title"><a href="/about-me">About Me</a> <span class="date"></span></h3>
 
-        <div class="summary">
+        <div class="summary ellipsis">
 <p>关注:</p>
 
 <ul>
@@ -67,6 +67,9 @@
 
 <p>邮箱: awaken_ing#163#com</p>
 
+<p>本博客使用github管理, 仓库地址:<br>
+<a href="https://github.com/awakening-fong/awakening-fong.github.io">https://github.com/awakening-fong/awakening-fong.github.io</a></p>
+
 <p>
 之前的博客是: http://blog.163.com/awaken_ing
 </p>
@@ -75,10 +78,6 @@
 
 <p>客官, 本博客文章的质量如何?   </p>
 
-<table><tr>
-<td><img src="/assets/media/wechat_facetoface_qrcode.jpg" border="0"></td>
-<td><img src="/assets/media/alipay_qrcode.jpg" border="0"></td>
-</tr></table>
 </div>
 
         <div class="more">
@@ -92,6 +91,12 @@
   <h2>2018</h2>
     <h3>January</h3>
     <ul>
+      <li>
+<span>2018-01-20</span> » <a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a>
+</li>
+      <li>
+<span>2018-01-20</span> » <a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a>
+</li>
       <li>
 <span>2018-01-12</span> » <a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a>
 </li>
@@ -118,16 +123,16 @@
 <span>2017-02-25</span> » <a href="/posts/mm/fixup_exception">fixup_exception</a>
 </li>
       <li>
-<span>2017-02-24</span> » <a href="/posts/mm/mmap_fault">mmap和fault handler</a>
-</li>
-      <li>
 <span>2017-02-24</span> » <a href="/posts/mm/do_fork_cow">do_fork和COW</a>
 </li>
       <li>
-<span>2017-02-23</span> » <a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a>
+<span>2017-02-24</span> » <a href="/posts/mm/mmap_fault">mmap和fault handler</a>
 </li>
       <li>
 <span>2017-02-23</span> » <a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a>
+</li>
+      <li>
+<span>2017-02-23</span> » <a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a>
 </li>
       <li>
 <span>2017-02-23</span> » <a href="/posts/other/optimize">内核中常见的优化方法</a>
@@ -139,22 +144,22 @@
 <span>2017-02-07</span> » <a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a>
 </li>
       <li>
-<span>2017-02-07</span> » <a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a>
-</li>
-      <li>
 <span>2017-02-07</span> » <a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a>
 </li>
       <li>
-<span>2017-02-07</span> » <a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a>
+<span>2017-02-07</span> » <a href="/posts/mm/reclaim_00_references">page reclaim 00:相关资料</a>
 </li>
       <li>
 <span>2017-02-07</span> » <a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a>
 </li>
       <li>
+<span>2017-02-07</span> » <a href="/posts/mm/reclaim_03_activity">page reclaim 03:活跃度的表示和状态转换</a>
+</li>
+      <li>
 <span>2017-02-07</span> » <a href="/posts/mm/reclaim_06_arm_l_pte_young">page reclaim 06:ARM和L_PTE_YOUNG</a>
 </li>
       <li>
-<span>2017-02-07</span> » <a href="/posts/mm/reclaim_00_references">page reclaim 00:相关资料</a>
+<span>2017-02-07</span> » <a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a>
 </li>
     </ul>
 </div>
@@ -172,7 +177,7 @@
     <a href="/categories#ARM-ref">ARM <span>12</span></a>
   </li>
   <li>
-    <a href="/categories#debug-ref">debug <span>2</span></a>
+    <a href="/categories#debug-ref">debug <span>4</span></a>
   </li>
   <li>
     <a href="/categories#file%20system-ref">file system <span>1</span></a>
@@ -209,29 +214,28 @@
         <h3 class="title"><a href="/">Home</a> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
+<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
 
-<p>drbd-8.4中有如下代码</p>
+<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
 
-<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
-{
-具体实现略
-}
+<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
+name: block_rq_complete
+ID: 828
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
+
+    field:dev_t dev;    offset:8;   size:4; signed:0;
+    field:sector_t sector;  offset:16;  size:8; signed:0;
+    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
+    field:int errors;   offset:28;  size:4; signed:1;
+    field:char rwbs[8]; offset:32;  size:8; signed:1;
+    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
+
+print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
 </code></pre>
-
-<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
-
-<h1 id="toc_1"><h4>2. 处理</h4></h1>
-
-<p>source insight版本4.0<br>
-option- file type option -<br>
-左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
-弹出的对话框中,<br>
-左侧选 c/c++ language, 右侧点击 properties...  </p>
-
-<p>弹出的对话框中, 
-标签页 custom parsing<br>
-打钩 Enable expressions below for parsing  </p>
 </div>
 
         <div class="more">

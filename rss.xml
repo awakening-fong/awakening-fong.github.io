@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <rss version="2.0">
   <channel>
-    <title>HOMEPAGE</title>
-    <description>HOMEPAGE</description>
+    <title>&#x9996;&#x9875;</title>
+    <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2018-01-12</pubDate>
+    <pubDate>2018-01-20</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -18,6 +18,9 @@
 
 &lt;p&gt;&#x90AE;&#x7BB1;: awaken_ing#163#com&lt;/p&gt;
 
+&lt;p&gt;&#x672C;&#x535A;&#x5BA2;&#x4F7F;&#x7528;github&#x7BA1;&#x7406;, &#x4ED3;&#x5E93;&#x5730;&#x5740;:&lt;br&gt;
+&lt;a href="https://github.com/awakening-fong/awakening-fong.github.io"&gt;https://github.com/awakening-fong/awakening-fong.github.io&lt;/a&gt;&lt;/p&gt;
+
 &lt;p&gt;
 &#x4E4B;&#x524D;&#x7684;&#x535A;&#x5BA2;&#x662F;: http://blog.163.com/awaken_ing
 &lt;/p&gt;
@@ -27,8 +30,8 @@
 &lt;p&gt;&#x5BA2;&#x5B98;, &#x672C;&#x535A;&#x5BA2;&#x6587;&#x7AE0;&#x7684;&#x8D28;&#x91CF;&#x5982;&#x4F55;?   &lt;/p&gt;
 
 &lt;table&gt;&lt;tr&gt;
-&lt;td&gt;&lt;img src="/assets/media/wechat_facetoface_qrcode.jpg" border=0&gt;&lt;/td&gt;
-&lt;td&gt;&lt;img src="/assets/media/alipay_qrcode.jpg" border=0&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src="/assets/media/wechat_reward.jpg"  width="50%" height="50%" border=0&gt;&lt;/td&gt;
+
 &lt;/tr&gt;&lt;/table&gt;
 </description>
     </item>
@@ -39,6 +42,8 @@
   &lt;h2&gt;2018&lt;/h2&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2018-01-20&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2018-01-20&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2018-01-12&lt;/span&gt; &amp;raquo; &lt;a href="/posts/tools/source_insight_custom_parsing"&gt;&#x8BA9;source insight&#x8BC6;&#x522B;&#x975E;&#x6807;&#x51C6;&#x7684;&#x51FD;&#x6570;&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2017&lt;/h2&gt;
@@ -54,30 +59,30 @@
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2017-02-26&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/signal"&gt;&#x4FE1;&#x53F7;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-25&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/fixup_exception"&gt;fixup_exception&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
@@ -116,7 +121,7 @@
     &lt;a href="/categories#ARM-ref"&gt;ARM &lt;span&gt;12&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -159,8 +164,10 @@
       &lt;li&gt;&lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
-  &lt;h3&gt;debug (2)&lt;/h3&gt;
+  &lt;h3&gt;debug (4)&lt;/h3&gt;
   &lt;ul&gt;
+      &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -228,6 +235,70 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt; &lt;span class="date"&gt;2018-01-20&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;&#x6709;&#x65F6;&#x9700;&#x8981;&#x5728;blktrace&#x8F93;&#x51FA;&#x4E2D;&#x63D2;&#x5165;&#x4E00;&#x4E9B;&#x6253;&#x5370;. &#x7531;&#x4E8E;blktrace&#x662F;&#x57FA;&#x4E8E;ftrace&#x7684;, &#x6545;&#x8003;&#x8651;&#x8F6C;&#x7528;ftrace&#x6765;&#x5B9E;&#x73B0;&#x8FD9;&#x4E2A;&#x76EE;&#x7684;.&lt;/p&gt;
+
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. ftrace&#x7684;&#x8FC7;&#x6EE4;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
+name: block_rq_complete
+ID: 828
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
+
+    field:dev_t dev;    offset:8;   size:4; signed:0;
+    field:sector_t sector;  offset:16;  size:8; signed:0;
+    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
+    field:int errors;   offset:28;  size:4; signed:1;
+    field:char rwbs[8]; offset:32;  size:8; signed:1;
+    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
+
+print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&amp;gt;dev) &amp;gt;&amp;gt; 20)), ((unsigned int) ((REC-&amp;gt;dev) &amp;amp; ((1U &amp;lt;&amp;lt; 20) - 1))), REC-&amp;gt;rwbs, __get_str(cmd), (unsigned long long)REC-&amp;gt;sector, REC-&amp;gt;nr_sector, REC-&amp;gt;errors
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/debug/blktrace_insert_print" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt; &lt;span class="date"&gt;2018-01-20&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x5F15;&#x8A00;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x4E0D;&#x540C;&#x4E8E;x86, x86-64&#x7684;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x6CA1;&#x6709;&#x538B;&#x6808;, &#x800C;&#x662F;&#x901A;&#x8FC7;&#x5BC4;&#x5B58;&#x5668;&#x4F20;&#x9012;. &#x8FD9;&#x6837;, &#x4F3C;&#x4E4E;&#x65E0;&#x6CD5;&#x901A;&#x8FC7;bt -f&#x6765;&#x83B7;&#x5F97;&#x53C2;&#x6570;.
+&#x672C;&#x6587;&#x7ED9;&#x51FA;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;, &#x8BF4;&#x660E;x86-64&#x5728;&#x4E00;&#x4E9B;&#x60C5;&#x51B5;&#x4E0B;, &#x4F9D;&#x65E7;&#x80FD;&#x591F;&#x83B7;&#x5F97;&#x51FD;&#x6570;&#x7684;&#x53C2;&#x6570;.&lt;/p&gt;
+
+&lt;p&gt;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x5206;&#x522B;&#x5B58;&#x653E;&#x5230;rdi, rsi, rdx, rcx, r8d, r9d.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4F8B;&#x5B50;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...&#x7565;...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8FD9;&#x91CC;&#x60F3;&#x77E5;&#x9053;&#x4F20;&#x9012;&#x7ED9;&lt;code&gt;structone_mod_free&lt;/code&gt;&#x7684;&#x53C2;&#x6570;&#x7684;&#x5177;&#x4F53;&#x503C;.
+&#x5176;&#x539F;&#x578B;&#x662F; &lt;code&gt;void structone_mod_free(struct structone *structone)&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/tools/source_insight_custom_parsing"&gt;&#x8BA9;source insight&#x8BC6;&#x522B;&#x975E;&#x6807;&#x51C6;&#x7684;&#x51FD;&#x6570;&#x5B9E;&#x73B0;&lt;/a&gt; &lt;span class="date"&gt;2018-01-12&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -321,71 +392,6 @@ static inline struct thread_info *current_thread_info(void)
     &lt;a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/other/signal"&gt;&#x4FE1;&#x53F7;&lt;/a&gt; &lt;span class="date"&gt;2017-02-26&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x53D1;&#x9001;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4EE5;tkill&#x4E3A;&#x4F8B;&#x6765;&#x8BF4;&#x660E;.
-linux-3.10.86/kernel/signal.c
-&#x5047;&#x5B9A;&#x4E0D;&#x662F;&#x53D1;&#x9001;&#x7ED9;&#x7EC4;&#x7684;, &#x5373;_&lt;em&gt;send&lt;/em&gt;signal()&#x7684;@group&#x4E3A;0&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;do_tkill -&amp;gt; do_send_specific
-|--find_task_by_vpid
-|--check_kill_permission
-|--do_send_sig_info -&amp;gt; send_signal
-|   |--__send_signal
-
-
-__send_signal
-|--q=__sigqueue_alloc //new sigqueue instance
-|--list_add_tail(&amp;amp;q-&amp;gt;list, &amp;amp;pending-&amp;gt;list);
-|--&#x8BBE;&#x7F6E;q-&amp;gt;info&#x7684;&#x5404;&#x57DF;
-|   |--q-&amp;gt;info.si_signo =
-|   |--q-&amp;gt;info.si_pid =
-|--complete_signal
-|   |--signal_wake_up -&amp;gt; signal_wake_up_state
-|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
-|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&amp;gt; try_to_wake_up
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/other/signal" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/mm/fixup_exception"&gt;fixup_exception&lt;/a&gt; &lt;span class="date"&gt;2017-02-25&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4EC0;&#x4E48;&#x60C5;&#x51B5;&#x4E0B;&#x4F1A;&#x8C03;&#x7528;fixup_exception&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/mm/fault.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static int __kprobes
-do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
-{
-
-    if (!user_mode(regs))
-        goto no_context;
-
-
-no_context:
-    __do_kernel_fault(mm, addr, fsr, regs);
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6240;&#x4EE5;,  &#x7528;&#x6237;&#x6001;(user&lt;em&gt;mode(regs))&#x53D1;&#x8D77;&#x7684; &#x8BFB;&#x6216;&#x5199; , 
-copy to/from user&#x7B49;&lt;em&gt;&#x4E0D;&#x4F1A;&lt;/em&gt;&#x8C03;&#x7528;&#x5230; _&lt;/em&gt;do&lt;em&gt;kernel&lt;/em&gt;fault, &#x4E5F;&#x5C31;&#x4E0D;&#x4F1A;&#x8C03;&#x7528;fixup&lt;em&gt;exception&#x7684;.
-(fixup&lt;/em&gt;exception &#x4EC5;&#x4F1A;&#x88AB; _&lt;em&gt;do&lt;/em&gt;kernel_fault&#x8C03;&#x7528;.)&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/mm/fixup_exception" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -456,6 +462,12 @@ copy to/from user&#x7B49;&lt;em&gt;&#x4E0D;&#x4F1A;&lt;/em&gt;&#x8C03;&#x7528;&#
     &lt;a href="/tags#thread_info-ref"&gt;thread_info &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#ftrace-ref"&gt;ftrace &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#crash-ref"&gt;crash &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#softlockup-ref"&gt;softlockup &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -490,9 +502,6 @@ copy to/from user&#x7B49;&lt;em&gt;&#x4E0D;&#x4F1A;&lt;/em&gt;&#x8C03;&#x7528;&#
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#flush_dcache_page-ref"&gt;flush_dcache_page &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;a href="/tags#ftrace-ref"&gt;ftrace &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#reclaim-ref"&gt;reclaim &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
@@ -554,6 +563,11 @@ copy to/from user&#x7B49;&lt;em&gt;&#x4E0D;&#x4F1A;&lt;/em&gt;&#x8C03;&#x7528;&#
     &lt;li&gt;&lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="thread_info-ref"&gt;thread_info&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="ftrace-ref"&gt;ftrace&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="crash-ref"&gt;crash&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="softlockup-ref"&gt;softlockup&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ext2-ref"&gt;ext2&lt;/h3&gt;
@@ -580,8 +594,6 @@ copy to/from user&#x7B49;&lt;em&gt;&#x4E0D;&#x4F1A;&lt;/em&gt;&#x8C03;&#x7528;&#
     &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="flush_dcache_page-ref"&gt;flush_dcache_page&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/mm/flush_dcache_page"&gt;flush_dcache_page&lt;/a&gt;&lt;/li&gt;
-  &lt;h3 id="ftrace-ref"&gt;ftrace&lt;/h3&gt;
-    &lt;li&gt;&lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="reclaim-ref"&gt;reclaim&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;

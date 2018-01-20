@@ -29,7 +29,7 @@
     <div class="navbar">
       <div class="navbar-inner">
         <div class="container-narrow">
-          <a class="brand" href="/">HOMEPAGE</a>
+          <a class="brand" href="/">首页</a>
           <ul class="nav">
               
                 <li><a href="/archive">Archive</a></li>
@@ -58,6 +58,70 @@
 <div class="row-fluid">
   <div class="span12">
     <div class="post">
+  <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
+
+  <div class="summary ellipsis">
+<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
+
+<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
+
+<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
+name: block_rq_complete
+ID: 828
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
+
+    field:dev_t dev;    offset:8;   size:4; signed:0;
+    field:sector_t sector;  offset:16;  size:8; signed:0;
+    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
+    field:int errors;   offset:28;  size:4; signed:1;
+    field:char rwbs[8]; offset:32;  size:8; signed:1;
+    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
+
+print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
+</code></pre>
+</div>
+
+  <div class="more">
+    <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
+
+  <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
+
+<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
+本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
+
+<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
+
+<h1 id="toc_1"><h4>2. 例子</h4></h1>
+
+<pre><code>crash&gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...略...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+</code></pre>
+
+<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
+其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
+</div>
+
+  <div class="more">
+    <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
   <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
 
   <div class="summary ellipsis">
@@ -149,71 +213,6 @@ static inline struct thread_info *current_thread_info(void)
 
   <div class="more">
     <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 发送</h4></h1>
-
-<p>以tkill为例来说明.
-linux-3.10.86/kernel/signal.c
-假定不是发送给组的, 即_<em>send</em>signal()的@group为0</p>
-
-<pre><code>do_tkill -&gt; do_send_specific
-|--find_task_by_vpid
-|--check_kill_permission
-|--do_send_sig_info -&gt; send_signal
-|   |--__send_signal
-
-
-__send_signal
-|--q=__sigqueue_alloc //new sigqueue instance
-|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
-|--设置q-&gt;info的各域
-|   |--q-&gt;info.si_signo =
-|   |--q-&gt;info.si_pid =
-|--complete_signal
-|   |--signal_wake_up -&gt; signal_wake_up_state
-|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
-|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
-</code></pre>
-</div>
-
-  <div class="more">
-    <a href="/posts/other/signal" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
-  <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
-
-  <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
-
-<p>linux-3.10.86/arch/arm/mm/fault.c</p>
-
-<pre><code>static int __kprobes
-do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
-{
-
-    if (!user_mode(regs))
-        goto no_context;
-
-
-no_context:
-    __do_kernel_fault(mm, addr, fsr, regs);
-    return 0;
-}
-</code></pre>
-
-<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
-copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
-(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
-</div>
-
-  <div class="more">
-    <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
   </div>
 </div>
 

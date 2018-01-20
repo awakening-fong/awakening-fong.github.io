@@ -29,7 +29,7 @@
     <div class="navbar">
       <div class="navbar-inner">
         <div class="container-narrow">
-          <a class="brand" href="/">HOMEPAGE</a>
+          <a class="brand" href="/">首页</a>
           <ul class="nav">
               
                 <li><a href="/archive">Archive</a></li>
@@ -53,6 +53,70 @@
       <div class="content">
         <div class="row-fluid">
   <div class="span12">
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
+</p>
+
+<p><img src="/assets/media/park_unpark.jpg"></p>
+
+<p>上图为smpboot<em>register</em>percpu<em>thread(), kthread</em>create<em>on</em>cpu(), kthread<em>create</em>on_node(), kthreadd()和kthread()之间的关系.</p>
+
+<p><img src="/assets/media/cpu_hotplug.jpg"></p>
+
+<p>上图为cpu hotplug对内核线程的操作, 以smpboot<em>thread</em>fn()为例.</p>
+
+<p>内核启动时, smpboot<em>register</em>percpu<em>thread()创建,绑定并启动primary cpu的内核线程, 并挂到链表hotplug</em>threads上.</p>
+
+<p>linux-3.10.86/kernel/smpboot.c</p>
+
+<pre><code>smpboot_register_percpu_thread
+{
+    __smpboot_create_thread(plug_thread, cpu);
+    smpboot_unpark_thread(plug_thread, cpu);
+    list_add(&amp;plug_thread-&gt;list, &amp;hotplug_threads);
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/kthread_park_unpark" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. flush<em>dcache</em>page的实现</h4></h1>
+
+<p>问题:flush<em>dcache</em>page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
+
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+{
+    /*
+     * Writeback ...
+    */
+
+}
+</code></pre>
+
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+
+<p>linux-3.10.86/mm/filemap.c</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
+        </div>
+      </div>
       <div class="posts">
         <h3 class="title"><a href="/posts/io/field_of_bh_and_address_space">address_space和buffer_head的一些field</a> <span class="date">2016-12-30</span></h3>
 
