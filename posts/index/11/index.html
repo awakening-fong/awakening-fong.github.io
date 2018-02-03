@@ -54,37 +54,6 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/field_of_bh_and_address_space">address_space和buffer_head的一些field</a> <span class="date">2016-12-30</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>这里从一个地址空间 到另一个地址空间, 是为啥?</p>
-
-<pre><code class="c">generic_file_fsync
-{
-    struct inode *inode = file-&gt;f_mapping-&gt;host;
-    ret = sync_mapping_buffers(inode-&gt;i_mapping);
-
-}
-
-sync_mapping_buffers(struct address_space *mapping)
-{
-    struct address_space *buffer_mapping = mapping-&gt;private_data;
-
-}
-</code></pre>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>linux-3.10.86/include/linux/fs.h</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/io/field_of_bh_and_address_space" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/io/read_write_lock_page">读写函数中的lock_page</a> <span class="date">2016-12-30</span></h3>
 
         <div class="summary">

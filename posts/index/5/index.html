@@ -71,6 +71,45 @@
         </div>
       </div>
       <div class="posts">
+        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
+
+<p>假定 CONFIG<em>MULTI</em>IRQ<em>HANDLER=y, handle</em>arch<em>irq 为 gic</em>handle_irq.<br>
+linux-3.10.86/arch/arm/kernel/setup.c</p>
+
+<pre><code>__irq_svc @entry-armv.S
+|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
+|   |--irq_handler
+|   |   |--handle_arch_irq =&gt; gic_handle_irq
+|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
+|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
+|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
+|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--handle_irq_event
+|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
+|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
+|   |   |   |       |   |--chip-&gt;irq_eoi
+|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
+|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
+|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
+|   |   |   |       |   |--if( ... ) invoke_softirq() 
+|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
+|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
+|   |   |   |       |   |    |    |--h-&gt;action(h)
+|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
+|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
+|   |--svc_exit r5, irq = 1  @entry-header.S
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
@@ -194,45 +233,6 @@ http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
 
         <div class="more">
           <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
-
-<p>假定 CONFIG<em>MULTI</em>IRQ<em>HANDLER=y, handle</em>arch<em>irq 为 gic</em>handle_irq.<br>
-linux-3.10.86/arch/arm/kernel/setup.c</p>
-
-<pre><code>__irq_svc @entry-armv.S
-|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
-|   |--irq_handler
-|   |   |--handle_arch_irq =&gt; gic_handle_irq
-|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
-|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
-|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
-|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--handle_irq_event
-|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
-|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--chip-&gt;irq_eoi
-|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
-|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
-|   |   |   |       |   |--if( ... ) invoke_softirq() 
-|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
-|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
-|   |   |   |       |   |    |    |--h-&gt;action(h)
-|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
-|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
-|   |--svc_exit r5, irq = 1  @entry-header.S
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
         </div>
       </div>
     
