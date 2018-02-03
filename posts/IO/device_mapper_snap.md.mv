@@ -1,0 +1,86 @@
+---
+title:  device mapper snap
+date: '2017-01-03'
+tags: [writeback]
+categories: I/O
+---
+
+
+##概念
+
+*  chunk 是多个sectors, see sector_to_chunk().
+
+*  例外 (exception)
+```
+ * An exception is used where an old chunk of data has been
+ * replaced by a new one.
+ * 
+struct dm_exception {
+	struct list_head hash_list;
+
+	chunk_t old_chunk;
+	chunk_t new_chunk;
+};
+```
+exception 可以理解为 用来反应映射关系.
+
+##流程
+
+###map
+
+linux-3.10.86/drivers/md/dm-snap.c
+```
+static int snapshot_map(struct dm_target *ti, struct bio *bio)
+{
+
+    /* If the block is already remapped - use that, else remap it */
+    e = dm_lookup_exception(&s->complete, chunk);
+    if (e) {
+        remap_exception(s, e, bio, chunk);
+        goto out_unlock;
+    }
+
+    if (bio_rw(bio) == WRITE) {
+        ....
+    } else { //read
+        bio->bi_bdev = s->origin->bdev;
+        track_chunk(s, bio, chunk);
+    }
+out_unlock:
+    
+}
+```
+
+对于读操作:
+
+dm_lookup_exception()成功，表明该chunk已经完成重映射，因此我们需要从cow卷对应的设备上读取，
+即将bio的设备号映射为快照结构的cow设备。上面代码中的remap_exception()完成流程.
+
+不在快照的已完成例外哈希表，我们从源设备上读取，即将bio的设备号映射为快照结构的源设备。当然，
+为了保证语义的正确性，如果有对应该chunk的待处理例外，必须保证它在读请求结束之前不会被变成已完成例外。
+
+###track
+
+linux-3.10.86/drivers/md/dm-snap.c
+
+```
+snapshot_map
+{
+	if (bio_rw(bio) == WRITE) {
+
+	} else { //read
+		...
+		track_chunk(s, bio, chunk);
+	}
+}
+
+pending_complete
+{
+
+	/* Check for conflicting reads */
+	__check_for_conflicting_io(s, pe->e.old_chunk);
+}
+```
+
+等读完成, 然后再开始处理那些原本会造成冲突的写.
+

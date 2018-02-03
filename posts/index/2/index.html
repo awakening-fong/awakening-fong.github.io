@@ -54,6 +54,36 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
+
+        <div class="summary">
+<p>本博文仅提出问题, 不给出答案. 祝玩得开心.   </p>
+
+<p>问题: 我们知道 当前task可以通过current来获得. ARM上, 其实现如下:</p>
+
+<pre><code>#define current (get_current()) 
+#define get_current() (current_thread_info()-&gt;task)
+static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<p>对于ARM, 其sp是banked的, irq模式和SVC模式的sp不是同一个. 这样, 中断handler还能通过sp来获得当前task吗?</p>
+
+<p>以下内容是本问题的提示.<br>
+为了避免干扰各位思考, 已设置背景色为黑色, 若要查看文字, 可通过按ctrl+a等方法查看.  </p>
+
+<p style="background-color: rgb(0, 0, 0);">中断handler在SVC模式下执行的.
+</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
 
         <div class="summary ellipsis">
@@ -116,37 +146,6 @@ copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也�
 
         <div class="more">
           <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -330,74 +329,34 @@ int main()
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
 
-        <div class="summary">
-<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
+<p>摘自APUE:</p>
 
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
-{
-    char *tmp;
-    ssize_t ret;
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
 
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND "sth_will_show_in_dmesg"
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP "sth_will_show_in_dmesg"
-                int fd=open("/dev/kmsg", O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
+<p>问题:哪里设置只读, 如何知道只读?</p>
 
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print("%d 0x%x %d",fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print("buf:%s\n",write_buf);
-            }
-            else
-            {
-                tmp_print("not valid_user_regs\n");
-            }
+<h1 id="toc_1"><h4>2. 解</h4></h1>
 
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
 
-        }
-        //end add
-        ret = printk("%s", tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
-}
-</code></pre>
+<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
+
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
+
 </div>
 
         <div class="more">
-          <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -413,6 +372,7 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
           <li><a href="/posts/index/8">8</a></li>
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
+          <li><a href="/posts/index/11">11</a></li>
       </ul>
     </div>
   </div>

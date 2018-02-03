@@ -54,129 +54,99 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_iounmap_master_table">arm linux的iounmap()如何处理主页表(master page table)的同步</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p>来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201510308269773</p>
+<p>文来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159</p>
 
-<h1 id="toc_0"><h4>1. 背景</h4></h1>
+<p>本篇只提问, 不解答, 祝开心.</p>
 
-<p>平台为qemu ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ, UP</p>
+<p>如果读写锁是unlocked, 然后cpu 0和cpu 1都想获取写锁,
+如表格所示, CPU 0在t2时刻执行的是wfene, 这时, CPU 1执行的是ldrex, 然后是否会有cpu能够获取到锁?
+源码来自
+linux-3.10.86/arch/arm/include/asm/spinlock.h
+arch<em>write</em>lock()</p>
 
-<p>我们知道进程的内核地址空间的页表 和 swapper<em>pg</em>dir 进行同步, 在进程创建时, do_fork()会拷贝一级页表.</p>
+<!--
+查看源码后, 将第1个<table>改为
+<table class="table table-bordered table-striped table-condensed">
 
-<h1 id="toc_1"><h4>2. 问题</h4></h1>
+时间 | CPU0                      |时间  |CPU1
+-----|---------------------------|------|----
+t0/t6| 1:    ldrex    %0, [%1]   |      |
+t1/t7| teq    %0, #0             |      |
+t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
+t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
+t4   |teq    %0, #0              |t4    |WFE("ne")
+t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
+t6   |                           |t6    |teq    %0, #0
+t7   |                           |t7    |bne    1b
+-->
 
-<p>vmalloc() area发生异常, 由do<em>translation</em>fault()处理, 处理的是一级页表无效的情况, 处理方法: If the init_task's first level page tables contains the relevant entry, we copy the it to this task.</p>
-
-<p>可以猜想, vmalloc区域的页表是 两级页表(低两位D1D0为0b01), 而不是section (D1D0为0b10)</p>
-
-<p><img src="/assets/media/first-level_descriptor.jpg"></p>
-
-<p>打印vmalloc区域的对应的页表, 可以看到 D1D0 既有0b01(指向二级页表), 也有0b10(无需二级页表) 的.</p>
-
-<p>从cat /proc/vmallocinfo可知, 可知0b10不是由vmalloc()引发的页表创建, 而是ioremap(). (这里并不是说ioremap创建的都是section)</p>
-
-<p>虚拟地址0xc9000000开始对应的一级页表entry</p>
+<table class="table table-bordered table-striped table-condensed">
+<thead>
+<tr>
+<th>时间</th>
+<th>CPU0</th>
+<th>时间</th>
+<th>CPU1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t0/t6</td>
+<td>1:    ldrex    %0, [%1]</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t1/t7</td>
+<td>teq    %0, #0</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t2</td>
+<td>WFE("ne")</td>
+<td>t2</td>
+<td>1:    ldrex    %0, [%1]</td>
+</tr>
+<tr>
+<td>t3</td>
+<td>strexeq    %0, %2, [%1]</td>
+<td>t3</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t4</td>
+<td>teq    %0, #0</td>
+<td>t4</td>
+<td>WFE("ne")</td>
+</tr>
+<tr>
+<td>t5</td>
+<td>bne    1b</td>
+<td>t5</td>
+<td>strexeq    %0, %2, [%1]</td>
+</tr>
+<tr>
+<td>t6</td>
+<td></td>
+<td>t6</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t7</td>
+<td></td>
+<td>t7</td>
+<td>bne    1b</td>
+</tr>
+</tbody>
+</table>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_iounmap_master_table" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客
-http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
-</p>
-
-<pre><code>模式   usr            exception                                   svc                             
------|----|--------------------------------|---------------------------------------------------                                                                                               
-函数                 vector_\name:                             usr_entry:                         
-
-
-                                                                            对应的汇编语句:                    
-                  +----------------+        0  +------------------+   ------------------------    
-           高地址 |spsr_&lt;exception&gt;|           |      r0          |      str     r1, [sp]         
-                  |                |        4  +------------------+    ----------------------     
-             ^    +----------------+           |      r1          |                               
-             |    |                |           |                  |                               
-             |    |lr_&lt;exception&gt;  |           |      .           |                               
-             |    |                |           |      .           |      stmib   sp, {r1 - r12}   
-             |    +----------------+           |      .           |                               
-                  |                |           |                  |                               
-           低地址 |      r0        |           |     r12          |                               
-                  |                |           |                  |                               
-                  +----------------+       52  +------------------+     ----------------------    
-                    struct stack               |      sp_usr      |                               
-                                               |                  |                               
-                                           56  +------------------+     stmdb   r0, {sp, lr}^     
-                                               |     lr_usr       |                               
-                                               |                  |                               
-                                           60  +------------------+      ---------------------    
-                                               |  lr_&lt;exception&gt;  |                               
-                                               |                  |                               
-                                           64  +------------------+                                
-                                               | spsr_&lt;exception&gt; |      stmia   r0, {r2 - r4}    
-                                               |                  |                               
-                                           68  +------------------+                               
-                                               |      -1          |                               
-                                               |                  |                               
-                                           72  +------------------+     -----------------------   
-                                                struct  pt_regs
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客
-http://blog.163.com/awaken_ing/blog/static/120613197201571932454226
-</p>
-
-<p>create<em>mapping会调用到alloc</em>init<em>pte(), 进而调用set</em>pte_ext()</p>
-
-<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
-</code></pre>
-
-<p>这里qemu模拟的versatilepb ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ</p>
-
-<p>所以set<em>pte</em>ext(pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
-
-<p>就是</p>
-
-<p>cpu<em>arm926</em>set<em>pte</em>ext (pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
-
-<pre><code>/*
- * cpu_arm926_set_pte_ext(ptep, pte, ext)
- *
- * Set a PTE and flush it out
- */
-    .align  5
-ENTRY(cpu_arm926_set_pte_ext)
-#ifdef CONFIG_MMU
-    armv3_set_pte_ext
-    mov r0, r0
-#ifndef CONFIG_CPU_DCACHE_WRITETHROUGH
-    mcr p15, 0, r0, c7, c10, 1      @ clean D entry
-#endif
-    mcr p15, 0, r0, c7, c10, 4      @ drain WB
-#endif
-    mov pc, lr
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -222,36 +192,127 @@ set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. tid</h4></h1>
+<p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157119242210
+</p>
 
-<p>linux-3.10.86/include/linux/slub_def.h</p>
+<h1 id="toc_0"><h4>1. _<em>create</em>page_tables</h4></h1>
 
-<pre><code>struct kmem_cache_cpu {
-    ...
-    unsigned long tid;  /* Globally unique transaction id */
-    ..
-};
+<pre><code>pgtbl r4 @ page table address
 </code></pre>
 
-<p>linux-3.10.86/mm/slub.c</p>
+<p>其中pgtbl为宏</p>
 
-<pre><code>#ifdef CONFIG_PREEMPT
-/*
- * Calculate the next globally unique transaction for disambiguiation
- * during cmpxchg. The transactions start with the cpu number and are then
- * incremented by CONFIG_NR_CPUS.
+<pre><code>.macro pgtbl, rd
+ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
+.endm
 </code></pre>
 
-<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
-答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
-不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
+<p>这里KERNEL<em>RAM</em>PADDR和zreladdr的值相等.</p>
+
+<h1 id="toc_1"><h4>1.1 identity mapping</h4></h1>
+
+<pre><code>/*
+* Create identity mapping for first MB of kernel to
+* cater for the MMU enable. This identity mapping
+* will be removed by paging_init(). We use our current program
+* counter to determine corresponding section base address.
+*/
+mov r6, pc
+mov r6, r6, lsr #20 @ start of kernel section
+orr r3, r7, r6, lsl #20 @ flags + kernel base
+str r3, [r4, r6, lsl #2] @ identity mapping
+@ 和arch\arm\boot\compressed\head.S类似
+@ r3内容:
+@ 31       20       19                 0  
+@  PC高12bit       __cpu_mm_mmu_flags
+@存放的地址:
+@   31          14           13            2                1 0  
+@  页表基址(0x4000)         页表index(pc高12bit)              00  
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/slub_tid" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157611510386
+</p> 
+
+<h1 id="toc_0"><h4>1. 方法</h4></h1>
+
+<p>qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux -S -s</p>
+
+<p>需要留意, 这里-kernel的参数不是/opt/qemu_arm/linux-2.6.35.7/vmlinux</p>
+
+<pre><code>arm-none-linux-gnueabi-gdb -tui -q /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux
+Reading symbols from /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux...done.
+(gdb) target extended-remote localhost:1234
+Remote debugging using localhost:1234
+warning: Source file is more recent than executable.
+start () at arch/arm/boot/compressed/head.S:115
+(gdb) b __setup_mmu
+Breakpoint 1 at 0x200: file arch/arm/boot/compressed/head.S, line 409.
+(gdb) c
+Continuing.
+Breakpoint 1, __setup_mmu () at arch/arm/boot/compressed/head.S:409
+(gdb) i r r3 r4
+r3 0x4000 16384
+r4 0x8000 32768
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_qemu_01" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_map_io">关于arm linux的map_io</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p> 文来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972016226674429
+</p>
+
+<h1 id="toc_0"><h4>1. 主要流程</h4></h1>
+
+<p>平台:versatilepb ARM Versatile/PB (ARM926EJ-S) 内核版本2.6.35.7</p>
+
+<pre><code>paging_init
+|--devicemaps_init
+|   |--from VMALLOC_END, pmd_clear(pmd_off_k(addr))
+|   |--mdesc-&gt;map_io() =&gt; versatile_map_io  
+|   |   |--iotable_init
+|   |   |   |--create_mapping
+</code></pre>
+
+<h1 id="toc_1"><h4>2. 为何是 MT_DEVICE</h4></h1>
+
+<p>linux-2.6.35.7/arch/arm/mach-versatile/core.c</p>
+
+<pre><code>void __init versatile_map_io(void)
+{
+    iotable_init(versatile_io_desc, ARRAY_SIZE(versatile_io_desc));
+}
+
+static struct map_desc versatile_io_desc[] __initdata = {
+    {
+        ...
+        .type       = MT_DEVICE
+    },
+    ...
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_map_io" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -267,6 +328,7 @@ set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
           <li><a href="/posts/index/8">8</a></li>
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
+          <li><a href="/posts/index/11">11</a></li>
       </ul>
     </div>
   </div>

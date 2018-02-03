@@ -196,6 +196,39 @@ cpu02不能从该page中取obj, 只能把obj还给该page.</p>
         </div>
       </div>
       <div class="posts">
+        <h3 class="title"><a href="/posts/mm/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. tid</h4></h1>
+
+<p>linux-3.10.86/include/linux/slub_def.h</p>
+
+<pre><code>struct kmem_cache_cpu {
+    ...
+    unsigned long tid;  /* Globally unique transaction id */
+    ..
+};
+</code></pre>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code>#ifdef CONFIG_PREEMPT
+/*
+ * Calculate the next globally unique transaction for disambiguiation
+ * during cmpxchg. The transactions start with the cpu number and are then
+ * incremented by CONFIG_NR_CPUS.
+</code></pre>
+
+<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
+答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
+不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/slub_tid" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/mm/slub_slab_alloc">SLUB 01:the SLUB allocator的相关数据结构和主要流程</a> <span class="date">2017-01-12</span></h3>
 
         <div class="summary ellipsis">
@@ -271,44 +304,6 @@ static inline void *get_freepointer(struct kmem_cache *s, void *object)
           <a href="/posts/scheduler/scheduler_01_lost_wake-up" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/scheduler/scheduler_02_preempt">仅检查TIF_NEED_RESCHED,不检查preempt_count?</a> <span class="date">2017-01-11</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 何时设置 TIF<em>NEED</em>RESCHED</h4></h1>
-
-<p>任务task01还没有完成, 但调度器认为 其运行的够久了, 就设置TIF<em>NEED</em>RESCHED, 这样, 在合适的时机, task01就会被调度走, 由其他task使用cpu.</p>
-
-<p>除了scheduler<em>tick会设置外, 当一个优先级高的进程进入可执行状态的时候, try</em>to<em>wake</em>up()也会设置这个标志。</p>
-
-<h1 id="toc_1"><h4>2. 不检查preempt_count?</h4></h1>
-
-<p>例 linux-3.10.86/arch/arm/kernel/entry-armv.S</p>
-
-<pre><code>__vector_irq()
-|--__irq_usr()  @entry-armv.S
-|   |--usr_entry()
-|   |--irq_handler()
-|   |--ret_to_user_from_irq() @entry-common.S
-|   |   |--work_pending()   
-|   |   |   |--do_work_pending @signal.c
-
-do_work_pending
-{
-    do {
-        if (likely(thread_flags &amp; _TIF_NEED_RESCHED))
-            schedule();
-        else
-           ...
-    }
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/scheduler/scheduler_02_preempt" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -322,6 +317,7 @@ do_work_pending
           <li><a href="/posts/index/8">8</a></li>
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
+          <li><a href="/posts/index/11">11</a></li>
       </ul>
     </div>
   </div>
