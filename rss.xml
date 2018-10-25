@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2018-10-17</pubDate>
+    <pubDate>2018-10-25</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -43,6 +43,8 @@
   &lt;h2&gt;2018&lt;/h2&gt;
     &lt;h3&gt;October&lt;/h3&gt;
     &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2018-10-25&lt;/span&gt; &amp;raquo; &lt;a href="/posts/fs/jbd"&gt;JBD&#x521D;&#x6B65;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2018-10-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/database/db_recovery_concept.MD"&gt;&#x6570;&#x636E;&#x5E93;recovery&#x7684;&#x4E00;&#x4E9B;&#x57FA;&#x672C;&#x6982;&#x5FF5;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2018-10-16&lt;/span&gt; &amp;raquo; &lt;a href="/posts/distributed_system/raft_mit_6-824.MD"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
@@ -56,8 +58,8 @@
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2018-01-20&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2018-01-20&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2018-01-20&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2018-01-12&lt;/span&gt; &amp;raquo; &lt;a href="/posts/tools/source_insight_custom_parsing"&gt;&#x8BA9;source insight&#x8BC6;&#x522B;&#x975E;&#x6807;&#x51C6;&#x7684;&#x51FD;&#x6570;&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2017&lt;/h2&gt;
@@ -73,31 +75,31 @@
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2017-02-26&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/signal"&gt;&#x4FE1;&#x53F7;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-25&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/fixup_exception"&gt;fixup_exception&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_frozen"&gt;SLUB 02:frozen&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
@@ -107,8 +109,8 @@
       &lt;li&gt;&lt;span&gt;2017-01-11&lt;/span&gt; &amp;raquo; &lt;a href="/posts/scheduler/scheduler_01_lost_wake-up"&gt;&#x8C03;&#x5EA6;&#x5668;, &#x4ECE;lost wake-up problem&#x8BF4;&#x8D77;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-10&lt;/span&gt; &amp;raquo; &lt;a href="/posts/scheduler/scheduler_00_implementation"&gt;&#x8C03;&#x5EA6;&#x5668;CFS&#x7684;&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-06&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/deadline-iosched"&gt;deadline-iosched&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/readahead"&gt;do_generic_file_read&#x4E2D;&#x7684;readahead&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;h2&gt;2016&lt;/h2&gt;
@@ -135,13 +137,16 @@
     &lt;a href="/categories#ARM-ref"&gt;ARM &lt;span&gt;12&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/categories#database-ref"&gt;database &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#distributed system-ref"&gt;distributed system &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#hardware-ref"&gt;hardware &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -182,6 +187,8 @@
     &lt;li&gt;&lt;a href="/posts/arm/current_in_interrupt_handler"&gt;&#x4E3A;&#x4F55;&#x4E2D;&#x65AD;handler&#x4E2D;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;current&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="database-ref"&gt;database&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/database/db_recovery_concept.MD"&gt;&#x6570;&#x636E;&#x5E93;recovery&#x7684;&#x4E00;&#x4E9B;&#x57FA;&#x672C;&#x6982;&#x5FF5;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="debug-ref"&gt;debug&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
@@ -192,6 +199,7 @@
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824.MD"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="file system-ref"&gt;file system&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/fs/jbd"&gt;JBD&#x521D;&#x6B65;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="hardware-ref"&gt;hardware&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="I/O-ref"&gt;I/O&lt;/h3&gt;
@@ -241,6 +249,76 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/fs/jbd"&gt;JBD&#x521D;&#x6B65;&lt;/a&gt; &lt;span class="date"&gt;2018-10-25&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6982;&#x5FF5;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5355;&#x4E2A;handle&#x662F;&#x539F;&#x5B50;&#x64CD;&#x4F5C;. 
+&#x591A;&#x4E2A;handle&#x6253;&#x5305;&#x4E3A;&#x4E00;&#x4E2A;transaction.&lt;/p&gt;
+
+&lt;p&gt;disk is used to indicate the actual block device,
+whereas the term journal is used for the log area.&lt;/p&gt;
+
+&lt;p&gt;Log record: Describes a single update of a disk block of the journaling filesystem.(&#x6765;&#x81EA;[Understanding the Linux Kernel, 3rd Edition]) &lt;/p&gt;
+
+&lt;p&gt;commit record:
+a special block, called the commit record, is written to the journal. The commit record is used to indicate that all the blocks belonging to a single atomic operation are written to the journal.
+fong:&#x8FD9;&#x6837;, &#x5982;&#x679C;crash, &#x5C31;&#x53EF;&#x4EE5;&#x77E5;&#x9053;&#x90A3;&#x4E9B;log&#x662F;&#x5B8C;&#x6210;&#x7684;.
+The commit record indicates that this is a completed operation and could be written to the disk. &lt;/p&gt;
+
+&lt;p&gt;checkpointing: &#x5C06; finished transactions &#x5199;&#x5165;&#x78C1;&#x76D8;(&#x975E;log&#x533A;&#x57DF;), &#x7528;&#x4E8E;&#x56DE;&#x6536;&#x76F8;&#x5E94;log&#x7A7A;&#x95F4;&#x7684;&#x8FC7;&#x7A0B;.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x72B6;&#x6001;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;T_RUNNING&lt;/code&gt;&lt;br&gt;
+the transaction can accept new handles. &lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/fs/jbd" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/database/db_recovery_concept.MD"&gt;&#x6570;&#x636E;&#x5E93;recovery&#x7684;&#x4E00;&#x4E9B;&#x57FA;&#x672C;&#x6982;&#x5FF5;&lt;/a&gt; &lt;span class="date"&gt;2018-10-24&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;h2 id="toc_0"&gt;&lt;h5&gt;1. REDO, UNDO, checkpoint&lt;/h5&gt;&lt;/h2&gt;
+
+&lt;p&gt;Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL's central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]&lt;br&gt;
+&#x5DF2;commit&#x4F46;&#x4E3A;apply&#x7684;, &#x6267;&#x884C;REDO, &#x800C;&#x7531; &#x672A;commit&#x7684;&#x4E8B;&#x52A1; &#x7684;&#x4FEE;&#x6539; &#x9700;&#x8981;&#x6267;&#x884C;UNDO.   &lt;/p&gt;
+
+&lt;p&gt;------------------ &lt;/p&gt;
+
+&lt;p&gt;Its transaction recovery log contains log records of the following form:&lt;br&gt;
+&lt;code&gt;
+&amp;lt;txnId, objectId, beforeValue, afterValue&amp;gt;
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&#x6709;&#x5982;&#x4E0B;log:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;1 &amp;lt;T1 BEGIN&amp;gt;
+2 &amp;lt;T1, X, 1, 2&amp;gt;
+3 &amp;lt;T2 BEGIN&amp;gt;
+4 &amp;lt;T3 BEGIN&amp;gt;
+5 &amp;lt;T2, Y, 1, 2&amp;gt;
+6 &amp;lt;T2 COMMIT&amp;gt;
+7 &amp;lt;T1, Y, 2, 3&amp;gt;
+8 &amp;lt;T3, Z, 1, 2&amp;gt;
+9 &amp;lt;CHECKPOINT&amp;gt;
+10 &amp;lt;T1, X, 2, 3&amp;gt;
+11 &amp;lt;T1, Y, 3, 4&amp;gt;
+12 &amp;lt;T3, Z, 2, 3&amp;gt;
+13 &amp;lt;T3 COMMIT&amp;gt;
+14 &amp;lt;T1, Z, 3, 4&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/database/db_recovery_concept.MD" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824.MD"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt; &lt;span class="date"&gt;2018-10-16&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -369,83 +447,6 @@ Call Trace:
     &lt;a href="/posts/io/bi_end_io_occur_but_irqs_disabled" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/debug/ftrace_data_analysis_interval"&gt;&#x4F7F;&#x7528;ftrace&#x5206;&#x6790;&#x4E24;&#x65F6;&#x95F4;&#x70B9;&#x95F4;&#x9694;&lt;/a&gt; &lt;span class="date"&gt;2018-02-03&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4F7F;&#x7528; python &#x63D0;&#x53D6;&#x51FA; interval&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;# -*- coding: utf-8 -*
-
-#&#x6DFB;&#x52A0;&#x76F8;&#x5E94;trace_printk, ftrace&#x8F93;&#x51FA;&#x7C7B;&#x4F3C;:
-#           &amp;lt;...&amp;gt;-3084  [000] 352166.459260: your_func_01: your_point_01
-#           &amp;lt;...&amp;gt;-2892  [000] 352166.459529: your_func_02: your_point_02
-
-read_point_start = 1
-f_in=open('interval.ftrace', 'r')
-f_out = open("interval.dat", "wb")
-line_no = 1
-
-while 1:
-    line = f_in.readline()
-    if not line:
-        break
-    #print line
-
-    if read_point_start == 1:
-        if "your_func_01" in line:
-            val_point_start=line.split(":")[0].split(" ")[-1]
-            read_point_start = 0
-            print val_point_start,
-    elif "your_func_02" in line:
-            val_point_end=line.split(":")[0].split(" ")[-1]
-            print val_point_end,
-            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
-            print interval
-            f_out.write(str(line_no) + " " + str(interval)+'\n')    
-            line_no+=1
-            read_point_start = 1
-
-f_out.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/debug/ftrace_data_analysis_interval" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt; &lt;span class="date"&gt;2018-01-20&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x5F15;&#x8A00;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E0D;&#x540C;&#x4E8E;x86, x86-64&#x7684;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x6CA1;&#x6709;&#x538B;&#x6808;, &#x800C;&#x662F;&#x901A;&#x8FC7;&#x5BC4;&#x5B58;&#x5668;&#x4F20;&#x9012;. &#x8FD9;&#x6837;, &#x4F3C;&#x4E4E;&#x65E0;&#x6CD5;&#x901A;&#x8FC7;bt -f&#x6765;&#x83B7;&#x5F97;&#x53C2;&#x6570;.
-&#x672C;&#x6587;&#x7ED9;&#x51FA;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;, &#x8BF4;&#x660E;x86-64&#x5728;&#x4E00;&#x4E9B;&#x60C5;&#x51B5;&#x4E0B;, &#x4F9D;&#x65E7;&#x80FD;&#x591F;&#x83B7;&#x5F97;&#x51FD;&#x6570;&#x7684;&#x53C2;&#x6570;.&lt;/p&gt;
-
-&lt;p&gt;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x5206;&#x522B;&#x5B58;&#x653E;&#x5230;rdi, rsi, rdx, rcx, r8d, r9d.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4F8B;&#x5B50;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...&#x7565;...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x60F3;&#x77E5;&#x9053;&#x4F20;&#x9012;&#x7ED9;&lt;code&gt;structone_mod_free&lt;/code&gt;&#x7684;&#x53C2;&#x6570;&#x7684;&#x5177;&#x4F53;&#x503C;.
-&#x5176;&#x539F;&#x578B;&#x662F; &lt;code&gt;void structone_mod_free(struct structone *structone)&lt;/code&gt;&lt;/p&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -460,6 +461,7 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
       &lt;li&gt;&lt;a href="/posts/index/9"&gt;9&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/10"&gt;10&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/11"&gt;11&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/12"&gt;12&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -517,6 +519,9 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
     &lt;a href="/tags#thread_info-ref"&gt;thread_info &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#database-ref"&gt;database &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#ftrace-ref"&gt;ftrace &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -530,6 +535,9 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#ext2-ref"&gt;ext2 &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#JBD-ref"&gt;JBD &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#IIC-ref"&gt;IIC &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -630,6 +638,8 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
     &lt;li&gt;&lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="thread_info-ref"&gt;thread_info&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="database-ref"&gt;database&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/database/db_recovery_concept.MD"&gt;&#x6570;&#x636E;&#x5E93;recovery&#x7684;&#x4E00;&#x4E9B;&#x57FA;&#x672C;&#x6982;&#x5FF5;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ftrace-ref"&gt;ftrace&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/ftrace_data_analysis_interval"&gt;&#x4F7F;&#x7528;ftrace&#x5206;&#x6790;&#x4E24;&#x65F6;&#x95F4;&#x70B9;&#x95F4;&#x9694;&lt;/a&gt;&lt;/li&gt;
@@ -642,6 +652,8 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824.MD"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ext2-ref"&gt;ext2&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="JBD-ref"&gt;JBD&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/fs/jbd"&gt;JBD&#x521D;&#x6B65;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="IIC-ref"&gt;IIC&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="bio-ref"&gt;bio&lt;/h3&gt;

@@ -54,6 +54,76 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_02_preempt">仅检查TIF_NEED_RESCHED,不检查preempt_count?</a> <span class="date">2017-01-11</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 何时设置 TIF<em>NEED</em>RESCHED</h4></h1>
+
+<p>任务task01还没有完成, 但调度器认为 其运行的够久了, 就设置TIF<em>NEED</em>RESCHED, 这样, 在合适的时机, task01就会被调度走, 由其他task使用cpu.</p>
+
+<p>除了scheduler<em>tick会设置外, 当一个优先级高的进程进入可执行状态的时候, try</em>to<em>wake</em>up()也会设置这个标志。</p>
+
+<h1 id="toc_1"><h4>2. 不检查preempt_count?</h4></h1>
+
+<p>例 linux-3.10.86/arch/arm/kernel/entry-armv.S</p>
+
+<pre><code>__vector_irq()
+|--__irq_usr()  @entry-armv.S
+|   |--usr_entry()
+|   |--irq_handler()
+|   |--ret_to_user_from_irq() @entry-common.S
+|   |   |--work_pending()   
+|   |   |   |--do_work_pending @signal.c
+
+do_work_pending
+{
+    do {
+        if (likely(thread_flags &amp; _TIF_NEED_RESCHED))
+            schedule();
+        else
+           ...
+    }
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_02_preempt" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/scheduler/scheduler_01_lost_wake-up">调度器, 从lost wake-up problem说起</a> <span class="date">2017-01-11</span></h3>
+
+        <div class="summary ellipsis">
+<p>文来自本人的旧博客 blog.163.com/awaken_ing/blog/static/1206131972016124113539444/</p>
+
+<h1 id="toc_0"><h4>0. 引言</h4></h1>
+
+<p>The lost wake-up problem 请参考 <a href="http://www.linuxjournal.com/article/8144">http://www.linuxjournal.com/article/8144</a><br>
+本篇主要解释为何修改后的代码没有问题.
+修改后的代码为:</p>
+
+<pre><code>1  set_current_state(TASK_INTERRUPTIBLE);
+2  spin_lock(&amp;list_lock);
+3  if(list_empty(&amp;list_head)) {
+4         spin_unlock(&amp;list_lock); //如果这里面让出cpu?
+//如果在这个点被生产者唤醒会如何?
+5         schedule();
+6         spin_lock(&amp;list_lock);
+7  }
+8  set_current_state(TASK_RUNNING);
+9
+10 /* Rest of the code ... */
+11 spin_unlock(&amp;list_lock);
+</code></pre>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/scheduler/scheduler_01_lost_wake-up" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/scheduler/scheduler_00_implementation">调度器CFS的实现</a> <span class="date">2017-01-10</span></h3>
 
         <div class="summary ellipsis">
@@ -116,17 +186,6 @@ linux-3.10.86/block/blk.h</p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/tag_towrie_livelock">tag TOWRITE to avoid livelocking?</a> <span class="date">2017-01-03</span></h3>
-
-        <div class="summary">
-主要介绍writeback中的livelocking.
-</div>
-
-        <div class="more">
-          <a href="/posts/io/tag_towrie_livelock" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/io/readahead">do_generic_file_read中的readahead</a> <span class="date">2017-01-03</span></h3>
 
         <div class="summary ellipsis">
@@ -164,40 +223,6 @@ generic_file_aio_read -&gt; do_generic_file_read -&gt;  page_cache_async_readahe
           <a href="/posts/io/readahead" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/io/writeback_routine">回写路径</a> <span class="date">2017-01-01</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>方式1. 前期tag dirty</h4></h1>
-
-<p>linux-3.10.86/mm/page-writeback.c</p>
-
-<pre><code class="c">
-write_cache_pages
-{
-
-    while (...) {
-
-        nr_pages = pagevec_lookup_tag(&amp;pvec, mapping, &amp;index, tag,
-                  min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
-        if (nr_pages == 0)
-            break;
-
-        ...
-            lock_page(page);
-        ...
-            /*常见的有__mpage_writepage 或者 __writepage*/
-            ret = (*writepage)(page, wbc, data);
-
-
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/io/writeback_routine" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -212,6 +237,7 @@ write_cache_pages
           <li class="active"><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
           <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
       </ul>
     </div>
   </div>

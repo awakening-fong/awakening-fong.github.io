@@ -4,7 +4,196 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2018-10-17</pubDate>
+    <pubDate>2018-10-25</pubDate>
+    <item>
+      <title>JBD&#x521D;&#x6B65;</title>
+      <link>https://awakening-fong.github.io/posts/fs/jbd</link>
+      <pubDate>2018-10-25</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6982;&#x5FF5;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x5355;&#x4E2A;handle&#x662F;&#x539F;&#x5B50;&#x64CD;&#x4F5C;. 
+&#x591A;&#x4E2A;handle&#x6253;&#x5305;&#x4E3A;&#x4E00;&#x4E2A;transaction.&lt;/p&gt;
+
+&lt;p&gt;disk is used to indicate the actual block device,
+whereas the term journal is used for the log area.&lt;/p&gt;
+
+&lt;p&gt;Log record: Describes a single update of a disk block of the journaling filesystem.(&#x6765;&#x81EA;[Understanding the Linux Kernel, 3rd Edition]) &lt;/p&gt;
+
+&lt;p&gt;commit record:
+a special block, called the commit record, is written to the journal. The commit record is used to indicate that all the blocks belonging to a single atomic operation are written to the journal.
+fong:&#x8FD9;&#x6837;, &#x5982;&#x679C;crash, &#x5C31;&#x53EF;&#x4EE5;&#x77E5;&#x9053;&#x90A3;&#x4E9B;log&#x662F;&#x5B8C;&#x6210;&#x7684;.
+The commit record indicates that this is a completed operation and could be written to the disk. &lt;/p&gt;
+
+&lt;p&gt;checkpointing: &#x5C06; finished transactions &#x5199;&#x5165;&#x78C1;&#x76D8;(&#x975E;log&#x533A;&#x57DF;), &#x7528;&#x4E8E;&#x56DE;&#x6536;&#x76F8;&#x5E94;log&#x7A7A;&#x95F4;&#x7684;&#x8FC7;&#x7A0B;.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x72B6;&#x6001;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;T_RUNNING&lt;/code&gt;&lt;br&gt;
+the transaction can accept new handles. &lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;T_LOCKED&lt;/code&gt;&lt;br&gt;
+the transaction does not accept any new handles but existing handles are not complete. 
+fong:&#x8FD9;&#x91CC;&#x7684;handle completed, &#x610F;&#x601D;&#x662F;&#x666E;&#x901A;&#x7684;&#x5199;&#x5165;&#x5B8C;&#x6210;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;T_FLUSH&lt;/code&gt;&lt;br&gt;
+all the handles in a transaction are complete. The transaction is writing itself to the journal. 
+itself&#x6307;&#x7684;&#x662F; log, &#x5C06;log&#x5199;&#x5165;log&#x533A;&#x57DF;.
+&#x4EE3;&#x7801;&#x4E2D;journal&lt;em&gt;submit&lt;/em&gt;data&lt;em&gt;buffers()&#x5E76;unplug, 
++ journal&lt;/em&gt;write&lt;em&gt;revoke&lt;/em&gt;records()&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;T_COMMIT&lt;/code&gt;&lt;br&gt;
+&#x53C2;&#x8003; linux-3.10.86_utf8/fs/jbd/commit.c
+we have now written out all of the data for a transaction.  Now comes the tricky part: we need to write out metadata. &lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;T_COMMIT_RECORD&lt;/code&gt;&lt;br&gt;
+&#x5F00;&#x59CB;&#x5199; write commit record and do cleanup.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;T_FINISHED&lt;/code&gt;  &lt;/p&gt;
+
+&lt;p&gt;[Understanding the Linux Kernel, 3rd Edition]
+All log records included in the transaction have been physically written onto the journal. When recovering from a system failure, e2fsck considers every complete transaction of the journal and writes the corresponding blocks into the filesystem. 
+&#x56E0;&#x4E3A;checkpointing&#x4F1A;&#x5C06;transaction&#x4ECE;&#x65E5;&#x5FD7;&#x533A;&#x79FB;&#x9664;, &#x6240;&#x4EE5;, &#x5728;&#x65E5;&#x5FD7;&#x533A;&#x5C31;&#x9700;&#x8981;replay.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x4E3B;&#x8981;&#x8FC7;&#x7A0B;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;Phase 1: the transaction enters into the flush state (T_FLUSH).&lt;br&gt;
+Phase 2: the actual buffers of the transaction are flushed to the disk. Data buffers go first. There are no complications here, as data buffers are not saved in the log area. Instead, they are flushed directly to their actual positions on the disk. This phase ends when the I/O completion notifications for all such buffers are received.&lt;br&gt;
+date&#x4E0D;&#x4F1A;&#x5148;&#x5199;&#x5230;log&#x533A;&#x57DF;, &#x800C;&#x662F;&#x76F4;&#x63A5;&#x5199;&#x5F80;&#x5B9E;&#x9645;&#x7684;&#x78C1;&#x76D8;.&lt;/p&gt;
+
+&lt;p&gt;(&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x5C42;&#x9762;&#x624D;&#x6709;data=writeback, ordered, journal&#x8FD9;&#x4E2A;&#x6982;&#x5FF5;, &#x6240;&#x4EE5;, &#x5728;jbd&#x770B;&#x6765;, data&#x4E0D;&#x4F1A;journal)&lt;/p&gt;
+
+&lt;p&gt;Phase 3: all the data buffers are written to a disk but their metadata still is in the volatile memory.   &#x8FD9;&#x65F6;, metadata&#x8FD8;&#x5728;&#x6613;&#x5931;&#x6027;&#x5B58;&#x50A8;&#x4E2D;.  Metadata flushing is not as straightforward as data buffer flushing, because metadata needs to be written to the log area and the actual positions on the disk need to be remembered.  &#x5199;metadata, &#x6211;&#x4EEC;&#x9700;&#x8981;&#x8BB0;&#x5F55;&#x6620;&#x5C04;&#x5173;&#x7CFB;.
+This phase starts with flushing these metadata buffers, for which a journal descriptor block is acquired. The journal descriptor block stores the mapping of each metadata buffer in the journal to its actual location on the disk in the form of tags. 
+&#x4EE5;tag&#x65B9;&#x5F0F;&#x6765;&#x8BB0;&#x5F55;&#x6620;&#x5C04;&#x5173;&#x7CFB;.&lt;/p&gt;
+
+&lt;p&gt;Phase 4 and Phase 5: both phase 4 and phase 5 wait on I/O completion notifications.  &lt;/p&gt;
+
+&lt;p&gt;Phase 6: all the data and metadata is on safe storage, data at its actual locations and metadata in the journal. Now transactions need to be marked as committed so that it can be known that all the updates are safe in the journal. After this, the transaction is moved to the committed state, T_COMMIT.&lt;/p&gt;
+
+&lt;p&gt;Phase 7:do checkpoint processing.
+Phase 8: the transaction is marked as being in the finished state, T_FINISHED. &lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. revoke(&#x64A4;&#x9500;)&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;For example consider the following sequence of steps when the filesystem is mounted in metadata only journalling mode. &#x8003;&#x8651;&#x5728;&#x4EC5;&#x5BF9;metadata&#x4F5C;&#x65E5;&#x5FD7;&#x4E0B;&#x7684;&#x5982;&#x4E0B;&#x60C5;&#x666F;:&lt;/p&gt;
+
+&lt;p&gt;a) A metadata block &amp;#39;B&amp;#39; is journalled and contents are copied to journal.&lt;br&gt;
+b) Later &amp;#39;B&amp;#39; gets freed&lt;br&gt;
+c) &amp;#39;B&amp;#39; is now used to write contents of user data, this is not journalled.&lt;br&gt;
+&#x539F;&#x5148;&#x5757;&#x5185;&#x5BB9;&#x662F;metadata, &#x540E;&#x6765;&#x6539;&#x5176;&#x7528;&#x9014;&#x4E3A;&#x5B58;&#x50A8;data.&lt;/p&gt;
+
+&lt;p&gt;Now if we crash and replay, we need to avoid replaying the contents of block &amp;#39;B&amp;#39; in journal over the user contents.&lt;/p&gt;
+
+&lt;p&gt;&#x5728;crash&#x4E4B;&#x540E;&#x7684;replay&#x4E2D;, &#x6211;&#x4EEC;&#x8981;&#x907F;&#x514D;&#x5BF9; &#x539F;&#x5148;&#x662F;&#x65E5;&#x5FD7;&#x5757;, &#x4E4B;&#x540E;&#x6539;&#x4F5C;&#x4ED6;&#x7528;&#x7684;&#x5757; &#x8FDB;&#x884C;&#x64CD;&#x4F5C;.&lt;/p&gt;
+
+&lt;p&gt;If there are transactions for the block after the last revoke record of a block, these ops are safe to replay. Any transactions which appear before the revoke record aren&amp;#39;t replayed.
+ &#x5757;&#x51FA;&#x73B0;&#x5728;revoke record&#x4E4B;&#x540E;&#x7684;&#x4E8B;&#x52A1;&#x4E2D;, &#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x5B89;&#x5168;&#x5730;replay.
+ The basic idea is that you don&amp;#39;t want to replay ops corresponding to a block which may have been freed. Also note that if there are multiple revoke records corresponding to a block in a journal, we only need to worry about the latest record ie...one with highest transaction id.
+&#x57FA;&#x672C;&#x601D;&#x60F3;&#x662F;&#x4E0D;&#x8981;&#x5BF9;&#x5DF2;&#x7ECF;&#x91CA;&#x653E;&#x6389;&#x7684;&#x5757;&#x8FDB;&#x884C;replay&#x64CD;&#x4F5C;.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;linux-3.10.86/fs/jbd/revoke.c&lt;/p&gt;
+
+&lt;p&gt;Revoke is the mechanism used to prevent old log records for deleted metadata from being replayed on top of newer data(data&#x65E0;&#x9700;&#x65E5;&#x5FD7;) using the same  blocks.  The revoke mechanism is used in two separate places:&lt;br&gt;
+ Commit: during commit we write the entire list of the current transaction&amp;#39;s revoked blocks to the journal&lt;br&gt;
+ Recovery: during recovery we record the transaction ID of all revoked blocks.  If there are multiple revoke records in the log for a single block, only the last one counts, and if there is a log entry for a block beyond the last revoke(&#x8FD9;&#x91CC;&#x7684;beyond&#x53EF;&#x4EE5;&#x7406;&#x89E3;&#x4E3A;&#x5728;revoke&#x7684;&#x8303;&#x56F4;&#x4E4B;&#x5916;, &#x4E5F;&#x5C31;&#x662F;&#x65F6;&#x95F4;&#x4E0A;&#x53D1;&#x751F;&#x5728;revoke&#x4E4B;&#x540E;), then that log entry still  gets replayed.&lt;/p&gt;
+
+&lt;p&gt;We can get interactions between revokes and new log data within a single transaction:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Block is revoked and then journaled:&lt;br&gt;
+The desired end result is the journaling of the new block, so we cancel the revoke before the transaction commits.&lt;br&gt;
+&#x6211;&#x4EEC;&#x5148;&#x5BF9;&#x5757;revoked, &#x7136;&#x540E;&#x5BF9;&#x8BE5;&#x5757;journaled, &#x8FD9;&#x6837;, &#x8FD9;&#x4E2A;&#x5757;&#x7684;&#x6700;&#x7EC8;&#x6548;&#x679C;&#x662F;&#x8981;&#x8BB0;&#x5F55;&#x5230;log&#x533A;&#x57DF;.
+&#x6240;&#x4EE5;, &#x5728;transaction commits&#x65F6;, &#x65E0;&#x9700;&#x8BB0;&#x5F55;&#x8FD9;&#x4E2A;revoked&#x52A8;&#x4F5C;.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Block is journaled and then revoked:&lt;br&gt;
+The revoke must take precedence over the write of the block, so we need either to cancel the journal entry or to write the revoke later in the log than the log block.  In this case(&#x6307;&#x7684;&#x662F;Block is journaled and then revoked), we choose the latter: journaling a block cancels any revoke record for that block in the current transaction, so any revoke for that block in the transaction must have happened after the block was journaled and so the revoke must take precedence(&#x4F18;&#x5148;&#x6743;).&lt;br&gt;
+&#x6709;&#x4E24;&#x79CD;&#x5904;&#x7406;&#x65B9;&#x5F0F;, &#x7B2C;2&#x79CD;&#x662F; &#x5148;&#x5B8C;&#x6210;journaled, &#x4E4B;&#x540E;&#x5199;revoked. TODO &#x539F;&#x56E0;&#x7684;&#x8BDD;, &#x8FD9;&#x91CC;&#x7684;&#x89E3;&#x91CA;&#x8FD8;&#x6CA1;&#x770B;&#x61C2;.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Block is revoked and then written as data:&lt;br&gt;
+The data write is allowed to succeed, but the revoke is &lt;em&gt;not&lt;/em&gt; cancelled.  We still need to prevent old log records from overwriting the new data.  We don&amp;#39;t even need to clear the revoke bit here.  &lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;Linux: The Journaling Block Device
+&lt;a href="https://web.archive.org/web/20070926223043/http://kerneltrap.org/node/6741"&gt;https://web.archive.org/web/20070926223043/http://kerneltrap.org/node/6741&lt;/a&gt;
+&lt;a href="http://mkatiyar.blogspot.com/2011/07/journal-jbd-revoke-mechanism.html"&gt;http://mkatiyar.blogspot.com/2011/07/journal-jbd-revoke-mechanism.html&lt;/a&gt;&lt;br&gt;
+Understanding the Linux Kernel, 3rd Edition&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x6570;&#x636E;&#x5E93;recovery&#x7684;&#x4E00;&#x4E9B;&#x57FA;&#x672C;&#x6982;&#x5FF5;</title>
+      <link>https://awakening-fong.github.io/posts/database/db_recovery_concept.MD</link>
+      <pubDate>2018-10-24</pubDate>
+      <description>&lt;h2 id="toc_0"&gt;&lt;h5&gt;1. REDO, UNDO, checkpoint&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL&amp;#39;s central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]&lt;br&gt;
+&#x5DF2;commit&#x4F46;&#x4E3A;apply&#x7684;, &#x6267;&#x884C;REDO, &#x800C;&#x7531; &#x672A;commit&#x7684;&#x4E8B;&#x52A1; &#x7684;&#x4FEE;&#x6539; &#x9700;&#x8981;&#x6267;&#x884C;UNDO.   &lt;/p&gt;
+
+&lt;p&gt;------------------ &lt;/p&gt;
+
+&lt;p&gt;Its transaction recovery log contains log records of the following form:&lt;br&gt;
+&lt;code&gt;
+&amp;lt;txnId, objectId, beforeValue, afterValue&amp;gt;
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&#x6709;&#x5982;&#x4E0B;log:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;1 &amp;lt;T1 BEGIN&amp;gt;
+2 &amp;lt;T1, X, 1, 2&amp;gt;
+3 &amp;lt;T2 BEGIN&amp;gt;
+4 &amp;lt;T3 BEGIN&amp;gt;
+5 &amp;lt;T2, Y, 1, 2&amp;gt;
+6 &amp;lt;T2 COMMIT&amp;gt;
+7 &amp;lt;T1, Y, 2, 3&amp;gt;
+8 &amp;lt;T3, Z, 1, 2&amp;gt;
+9 &amp;lt;CHECKPOINT&amp;gt;
+10 &amp;lt;T1, X, 2, 3&amp;gt;
+11 &amp;lt;T1, Y, 3, 4&amp;gt;
+12 &amp;lt;T3, Z, 2, 3&amp;gt;
+13 &amp;lt;T3 COMMIT&amp;gt;
+14 &amp;lt;T1, Z, 3, 4&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Assume that the DBMS flushes all dirty pages when the recovery process finishes. What are the values of X, Y, and Z after the DBMS recovers the state of the database ?&lt;br&gt;
+&#x7B54;: X=1, Y=2, Z=3&lt;br&gt;
+checkpoint &#x5E76;&#x4E0D;&#x6697;&#x793A;&#x7740;commit, &#x672C;&#x4F8B;&#x4E2D;&#x6CA1;&#x6709;&#x5BF9;T1&#x8FDB;&#x884C;commit,&lt;br&gt;
+&#x6240;&#x4EE5;, x&#x7EF4;&#x6301;&#x65E7;&#x503C;, &#x4E3A;1.&lt;br&gt;
+Y&#x7684;&#x8BDD;, &#x770B; 6 &lt;T2 COMMIT&gt; &#x4E4B;&#x524D;, &#x4E3A;2.&lt;br&gt;
+Z&#x7684;&#x8BDD;, &#x770B; 13 &lt;T3 COMMIT&gt;&#x4E4B;&#x524D;, &#x4E3A;3.  &lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;While doing deferred updates with WAL, if we prevent the DBMS from writing dirty records to disk until the transaction commits, then we do not need to store their original values.
+fong:&#x7531;&#x4E8E;&#x4E0D;&#x662F;steal, &#x4E0D;commit&#x5C31;&#x4E0D;&#x4F1A;&#x56DE;&#x5199;, &#x8FD9;&#x6837;, &#x5C31;&#x4E0D;&#x9700;&#x8981;undo, &#x4E5F;&#x5C31;&#x4E0D;&#x9700;&#x8981;&#x8BB0;&#x5F55;&#x65E7;&#x503C;.&lt;/p&gt;
+
+&lt;p&gt;The undo operation not only restores the data items to their old value,
+but also writes log records to record the updates performed as part of the undo process. These log records are special &lt;strong&gt;&lt;em&gt;redo-only log&lt;/em&gt;&lt;/strong&gt; records, since they do not need to contain the old-value of the updated data item. [2]
+&#x4E4B;&#x6240;&#x4EE5;&#x79F0;&#x4E3A; redo-only log, &#x5728;recovery&#x65F6;, &#x65E0;&#x9700;&#x8FDB;&#x884C;undo&#x64CD;&#x4F5C;.
+&#x6BD4;&#x5982;&#x8BF4;,&lt;br&gt;
+T1, X, 1, 2  (&#x683C;&#x5F0F;&#x4E3A; &#x4E8B;&#x52A1;id, key, &#x65E7;&#x503C;1, &#x65B0;&#x503C;2)&lt;br&gt;
+&#x6CA1;&#x6709;commit, &#x7136;&#x540E;&#x6389;&#x7535;(&#x7B2C;1&#x56DE;)&lt;br&gt;
+&#x91CD;&#x542F;&#x540E;, &#x6267;&#x884C;recovery, &#x5BF9;&#x4E8E;T1, &#x751F;&#x6210;&lt;br&gt;
+CLR undo T1 ....&lt;br&gt;
+&#x7136;&#x540E;&#x8FD8;&#x6709;&#x5176;&#x4ED6;log&#x8981;recovery, &#x7ED3;&#x679C;&#x7A81;&#x7136;&#x6389;&#x7535;(&#x7B2C;2&#x56DE;)&#x4E86;,&lt;br&gt;
+&#x91CD;&#x542F;&#x540E;, &#x6267;&#x884C;recovery, &#x770B;&#x5230;&#x6709;CLR undo T1 ....&lt;br&gt;
+&#x5BF9;&#x4E8E;&#x8FD9;&#x6761;&#x8BB0;&#x5F55;&#x662F;&#x4E0D;&#x4F1A; undo such an undo operation, &#x6240;&#x4EE5;,&#x662F; redo-only log.&lt;/p&gt;
+
+&lt;h2 id="toc_1"&gt;&lt;h5&gt;2. no-steal, force policy&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;One might expect that transactions would force-output all modified blocks to disk when they commit. Such a policy is called &lt;strong&gt;&lt;em&gt;the force policy&lt;/em&gt;&lt;/strong&gt;. The alternative, the no-force policy, allows a transaction to commit even if it has modified some blocks that have not yet been written back to disk. [2]&lt;br&gt;
+&#x5982;&#x679C;&#x662F;the force policy, &#x90A3;&#x4E48;, &#x5F53;commit&#x65F6;, &#x5F3A;&#x5236;&#x8981;&#x6C42;&#x6240;&#x6709;&#x4FEE;&#x6539;&#x8FC7;&#x7684;&#x5757;&#x90FD;&#x5DF2;&#x7ECF;&#x5199;&#x5165;&#x78C1;&#x76D8;. &#x800C;no-force&#x7B56;&#x7565;, &#x5219;&#x4E0D;&#x8981;&#x6C42;&#x5DF2;&#x5199;&#x5165;&#x78C1;&#x76D8;, &#x5C31;&#x53EF;&#x4EE5;commit.  &lt;/p&gt;
+
+&lt;p&gt;one might expect that blocks modified by a transaction that is still active should not be written to disk. This policy is called &lt;strong&gt;&lt;em&gt;the no-steal policy&lt;/em&gt;&lt;/strong&gt;. The alternative, &lt;strong&gt;&lt;em&gt;the steal policy&lt;/em&gt;&lt;/strong&gt;, allows the system to write modified blocks to disk even if the transactions that made those modifications have not all committed. [2]  &lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;&lt;h5&gt;3. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="https://www.postgresql.org/docs/7.3/static/wal.html"&gt;https://www.postgresql.org/docs/7.3/static/wal.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Database System Concepts 6th edition&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     <item>
       <title>&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft</title>
       <link>https://awakening-fong.github.io/posts/distributed_system/raft_mit_6-824.MD</link>
@@ -396,113 +585,6 @@ unset key
 </description>
     </item>
     <item>
-      <title>x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;</title>
-      <link>https://awakening-fong.github.io/posts/debug/crash_func_args_x86_64</link>
-      <pubDate>2018-01-20</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x5F15;&#x8A00;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E0D;&#x540C;&#x4E8E;x86, x86-64&#x7684;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x6CA1;&#x6709;&#x538B;&#x6808;, &#x800C;&#x662F;&#x901A;&#x8FC7;&#x5BC4;&#x5B58;&#x5668;&#x4F20;&#x9012;. &#x8FD9;&#x6837;, &#x4F3C;&#x4E4E;&#x65E0;&#x6CD5;&#x901A;&#x8FC7;bt -f&#x6765;&#x83B7;&#x5F97;&#x53C2;&#x6570;.
-&#x672C;&#x6587;&#x7ED9;&#x51FA;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;, &#x8BF4;&#x660E;x86-64&#x5728;&#x4E00;&#x4E9B;&#x60C5;&#x51B5;&#x4E0B;, &#x4F9D;&#x65E7;&#x80FD;&#x591F;&#x83B7;&#x5F97;&#x51FD;&#x6570;&#x7684;&#x53C2;&#x6570;.&lt;/p&gt;
-
-&lt;p&gt;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x5206;&#x522B;&#x5B58;&#x653E;&#x5230;rdi, rsi, rdx, rcx, r8d, r9d.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4F8B;&#x5B50;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: &amp;quot;your_cmd&amp;quot;
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...&#x7565;...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x60F3;&#x77E5;&#x9053;&#x4F20;&#x9012;&#x7ED9;&lt;code&gt;structone_mod_free&lt;/code&gt;&#x7684;&#x53C2;&#x6570;&#x7684;&#x5177;&#x4F53;&#x503C;.
-&#x5176;&#x539F;&#x578B;&#x662F; &lt;code&gt;void structone_mod_free(struct structone *structone)&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt -f
-...&#x7701;&#x7565;...
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
-    ffff8801836b3bd0: ffffffff8302e658 ffffffff810ace2a 
-    ffff8801836b3be0: ffffffff8302e640 ffff8801bb635810 
-    ffff8801836b3bf0: ffff8801bb635828 0000000000000046 
-    ffff8801836b3c00: ffff8801bb635810 0000000000000282 
-    ffff8801836b3c10: 0000000000000282 ffff8801bb635810 
-    ffff8801836b3c20: ffff8801836b3c30 ffffffff810c6cad 
-    ffff8801836b3c30: ffff8801836b3c50 0000000000000282 
-    ffff8801836b3c40: ffff8801bb635810 0000000000000000 
-    ffff8801836b3c50: ffff8801836b3c90 00000000bc3fea60 
-    ffff8801836b3c60: ffff8801836b3ce0 ffff8801bb635800 
-    ffff8801836b3c70: ffff8801836b3ca0 ffff8801b6d5eb60 (r13)
-    ffff8801836b3c80: ffff8801bb635810(r14) 7fffffffffffffff  (r15)
-    ffff8801836b3c90: ffff8801836b3d00 (bp)    ffffffffa0771156(ra) 
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
-    ffff8801836b3ca0: 0000000000000000 ffff8801b7af0880 
-    ffff8801836b3cb0: ffffffff810acb20 ffff8801bb635850 
-    ffff8801836b3cc0: ffff8801bb635850 0000000000000282 
-    ffff8801836b3cd0: ffff8801836b3ce0 ffff8801b6d5eb60 
-    ffff8801836b3ce0: ffff8801b5fe76b8 ffff8801bb1091e0 
-    ffff8801836b3cf0: 0000000000000000 0000000000000000 
-    ffff8801836b3d00: ffff8801836b3d30 ffffffffa077146b 
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...&#x7701;&#x7565;...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass structone_mod_free
-Dump of assembler code for function structone_mod_free:
-   0xffffffffa07710b0 &amp;lt;+0&amp;gt;:     push   %rbp   #&#x5E94;&#x8BE5;&#x662F; ffff8801836b3d30
-   0xffffffffa07710b1 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
-   0xffffffffa07710b4 &amp;lt;+4&amp;gt;:     sub    $0x60,%rsp
-   0xffffffffa07710b8 &amp;lt;+8&amp;gt;:     mov    %rbx,-0x28(%rbp)  #
-   0xffffffffa07710bc &amp;lt;+12&amp;gt;:    mov    %r12,-0x20(%rbp)
-   0xffffffffa07710c0 &amp;lt;+16&amp;gt;:    mov    %r13,-0x18(%rbp)
-   0xffffffffa07710c4 &amp;lt;+20&amp;gt;:    mov    %r14,-0x10(%rbp)
-   0xffffffffa07710c8 &amp;lt;+24&amp;gt;:    mov    %r15,-0x8(%rbp)
-
-
-
-   0xffffffffa07710cc &amp;lt;+28&amp;gt;:    nopl   0x0(%rax,%rax,1)
-   0xffffffffa07710d1 &amp;lt;+33&amp;gt;:    mov    0x88(%rdi),%rbx   #&#x8BBF;&#x95EE;structone&#x7684;&#x6210;&#x5458;
-   0xffffffffa07710d8 &amp;lt;+40&amp;gt;:    mov    %rdi,%r13  #&#x5907;&#x4EFD;&#x53C2;&#x6570;struct structone *structone
-   0xffffffffa07710db &amp;lt;+43&amp;gt;:    test   %rbx,%rbx
-
-   ...
-   0xffffffffa077114e &amp;lt;+158&amp;gt;:   mov    %r15,%rdi
-   0xffffffffa0771151 &amp;lt;+161&amp;gt;:   callq  0xffffffff8157da10 &amp;lt;schedule_timeout&amp;gt;  #&#x8FD9;&#x91CC;
-   0xffffffffa0771156 &amp;lt;+166&amp;gt;:   test   %rax,%rax    
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E0A;&#x9762;&#x7701;&#x7565;&#x4E86;&#x90E8;&#x5206;&#x6C47;&#x7F16;, &#x7701;&#x7565;&#x7684;&#x90A3;&#x90E8;&#x5206;&#x6CA1;&#x6709;&#x4FEE;&#x6539;&#x5230; %r13.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass schedule_timeout
-Dump of assembler code for function schedule_timeout:
-   0xffffffff8157da10 &amp;lt;+0&amp;gt;:     push   %rbp
-   0xffffffff8157da11 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
-   0xffffffff8157da14 &amp;lt;+4&amp;gt;:     sub    $0xc0,%rsp
-   0xffffffff8157da1b &amp;lt;+11&amp;gt;:    mov    %rbx,-0x28(%rbp)
-   0xffffffff8157da1f &amp;lt;+15&amp;gt;:    mov    %r12,-0x20(%rbp)
-   0xffffffff8157da23 &amp;lt;+19&amp;gt;:    mov    %r13,-0x18(%rbp)
-   0xffffffff8157da27 &amp;lt;+23&amp;gt;:    mov    %r14,-0x10(%rbp)
-   0xffffffff8157da2b &amp;lt;+27&amp;gt;:    mov    %r15,-0x8(%rbp)   
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x770B;&#x5230;&#x5C06;r13&#x7B2C;3&#x4E2A;&#x538B;&#x6808;. &lt;/p&gt;
-
-&lt;p&gt;&#x7ED3;&#x5408;bt -f, &#x53EF;&#x77E5;&#x53C2;&#x6570;&#x5B58;&#x653E;&#x7684;&#x5730;&#x5740;&#x662F; 0xffff8801b6d5eb60.&lt;br&gt;
-crash&amp;gt; p *(struct structone *)0xffff8801b6d5eb60&lt;br&gt;
-&#x6216;&#x8005;  crash&amp;gt; structone 0xffff8801b6d5eb60&lt;br&gt;
-&#x5373;&#x53EF;&#x77E5; structone &#x7684;&#x5177;&#x4F53;&#x503C;&#x4E86;.&lt;/p&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href="https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html"&gt;https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href="http://www.x86-64.org/documentation/abi.pdf"&gt;http://www.x86-64.org/documentation/abi.pdf&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    <item>
       <title>&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;</title>
       <link>https://awakening-fong.github.io/posts/debug/blktrace_insert_print</link>
       <pubDate>2018-01-20</pubDate>
@@ -619,6 +701,113 @@ trace_block_bio_complete(bdev_get_queue(wrapper-&amp;gt;bio-&amp;gt;bi_bdev), wr
 &lt;pre&gt;&lt;code&gt;sshd-2911  [000] d.H.   246.153491: my_read_endio: my_read_endio error:1935632128
 sshd-2911  [000] d.H.   246.153491: block_bio_complete: 252,0 R 2056064 + 8 [1935632128]
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
+      <title>x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;</title>
+      <link>https://awakening-fong.github.io/posts/debug/crash_func_args_x86_64</link>
+      <pubDate>2018-01-20</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x5F15;&#x8A00;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x4E0D;&#x540C;&#x4E8E;x86, x86-64&#x7684;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x6CA1;&#x6709;&#x538B;&#x6808;, &#x800C;&#x662F;&#x901A;&#x8FC7;&#x5BC4;&#x5B58;&#x5668;&#x4F20;&#x9012;. &#x8FD9;&#x6837;, &#x4F3C;&#x4E4E;&#x65E0;&#x6CD5;&#x901A;&#x8FC7;bt -f&#x6765;&#x83B7;&#x5F97;&#x53C2;&#x6570;.
+&#x672C;&#x6587;&#x7ED9;&#x51FA;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;, &#x8BF4;&#x660E;x86-64&#x5728;&#x4E00;&#x4E9B;&#x60C5;&#x51B5;&#x4E0B;, &#x4F9D;&#x65E7;&#x80FD;&#x591F;&#x83B7;&#x5F97;&#x51FD;&#x6570;&#x7684;&#x53C2;&#x6570;.&lt;/p&gt;
+
+&lt;p&gt;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x5206;&#x522B;&#x5B58;&#x653E;&#x5230;rdi, rsi, rdx, rcx, r8d, r9d.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4F8B;&#x5B50;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: &amp;quot;your_cmd&amp;quot;
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...&#x7565;...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8FD9;&#x91CC;&#x60F3;&#x77E5;&#x9053;&#x4F20;&#x9012;&#x7ED9;&lt;code&gt;structone_mod_free&lt;/code&gt;&#x7684;&#x53C2;&#x6570;&#x7684;&#x5177;&#x4F53;&#x503C;.
+&#x5176;&#x539F;&#x578B;&#x662F; &lt;code&gt;void structone_mod_free(struct structone *structone)&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt -f
+...&#x7701;&#x7565;...
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+    ffff8801836b3bd0: ffffffff8302e658 ffffffff810ace2a 
+    ffff8801836b3be0: ffffffff8302e640 ffff8801bb635810 
+    ffff8801836b3bf0: ffff8801bb635828 0000000000000046 
+    ffff8801836b3c00: ffff8801bb635810 0000000000000282 
+    ffff8801836b3c10: 0000000000000282 ffff8801bb635810 
+    ffff8801836b3c20: ffff8801836b3c30 ffffffff810c6cad 
+    ffff8801836b3c30: ffff8801836b3c50 0000000000000282 
+    ffff8801836b3c40: ffff8801bb635810 0000000000000000 
+    ffff8801836b3c50: ffff8801836b3c90 00000000bc3fea60 
+    ffff8801836b3c60: ffff8801836b3ce0 ffff8801bb635800 
+    ffff8801836b3c70: ffff8801836b3ca0 ffff8801b6d5eb60 (r13)
+    ffff8801836b3c80: ffff8801bb635810(r14) 7fffffffffffffff  (r15)
+    ffff8801836b3c90: ffff8801836b3d00 (bp)    ffffffffa0771156(ra) 
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+    ffff8801836b3ca0: 0000000000000000 ffff8801b7af0880 
+    ffff8801836b3cb0: ffffffff810acb20 ffff8801bb635850 
+    ffff8801836b3cc0: ffff8801bb635850 0000000000000282 
+    ffff8801836b3cd0: ffff8801836b3ce0 ffff8801b6d5eb60 
+    ffff8801836b3ce0: ffff8801b5fe76b8 ffff8801bb1091e0 
+    ffff8801836b3cf0: 0000000000000000 0000000000000000 
+    ffff8801836b3d00: ffff8801836b3d30 ffffffffa077146b 
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...&#x7701;&#x7565;...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass structone_mod_free
+Dump of assembler code for function structone_mod_free:
+   0xffffffffa07710b0 &amp;lt;+0&amp;gt;:     push   %rbp   #&#x5E94;&#x8BE5;&#x662F; ffff8801836b3d30
+   0xffffffffa07710b1 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
+   0xffffffffa07710b4 &amp;lt;+4&amp;gt;:     sub    $0x60,%rsp
+   0xffffffffa07710b8 &amp;lt;+8&amp;gt;:     mov    %rbx,-0x28(%rbp)  #
+   0xffffffffa07710bc &amp;lt;+12&amp;gt;:    mov    %r12,-0x20(%rbp)
+   0xffffffffa07710c0 &amp;lt;+16&amp;gt;:    mov    %r13,-0x18(%rbp)
+   0xffffffffa07710c4 &amp;lt;+20&amp;gt;:    mov    %r14,-0x10(%rbp)
+   0xffffffffa07710c8 &amp;lt;+24&amp;gt;:    mov    %r15,-0x8(%rbp)
+
+
+
+   0xffffffffa07710cc &amp;lt;+28&amp;gt;:    nopl   0x0(%rax,%rax,1)
+   0xffffffffa07710d1 &amp;lt;+33&amp;gt;:    mov    0x88(%rdi),%rbx   #&#x8BBF;&#x95EE;structone&#x7684;&#x6210;&#x5458;
+   0xffffffffa07710d8 &amp;lt;+40&amp;gt;:    mov    %rdi,%r13  #&#x5907;&#x4EFD;&#x53C2;&#x6570;struct structone *structone
+   0xffffffffa07710db &amp;lt;+43&amp;gt;:    test   %rbx,%rbx
+
+   ...
+   0xffffffffa077114e &amp;lt;+158&amp;gt;:   mov    %r15,%rdi
+   0xffffffffa0771151 &amp;lt;+161&amp;gt;:   callq  0xffffffff8157da10 &amp;lt;schedule_timeout&amp;gt;  #&#x8FD9;&#x91CC;
+   0xffffffffa0771156 &amp;lt;+166&amp;gt;:   test   %rax,%rax    
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E0A;&#x9762;&#x7701;&#x7565;&#x4E86;&#x90E8;&#x5206;&#x6C47;&#x7F16;, &#x7701;&#x7565;&#x7684;&#x90A3;&#x90E8;&#x5206;&#x6CA1;&#x6709;&#x4FEE;&#x6539;&#x5230; %r13.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass schedule_timeout
+Dump of assembler code for function schedule_timeout:
+   0xffffffff8157da10 &amp;lt;+0&amp;gt;:     push   %rbp
+   0xffffffff8157da11 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
+   0xffffffff8157da14 &amp;lt;+4&amp;gt;:     sub    $0xc0,%rsp
+   0xffffffff8157da1b &amp;lt;+11&amp;gt;:    mov    %rbx,-0x28(%rbp)
+   0xffffffff8157da1f &amp;lt;+15&amp;gt;:    mov    %r12,-0x20(%rbp)
+   0xffffffff8157da23 &amp;lt;+19&amp;gt;:    mov    %r13,-0x18(%rbp)
+   0xffffffff8157da27 &amp;lt;+23&amp;gt;:    mov    %r14,-0x10(%rbp)
+   0xffffffff8157da2b &amp;lt;+27&amp;gt;:    mov    %r15,-0x8(%rbp)   
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x770B;&#x5230;&#x5C06;r13&#x7B2C;3&#x4E2A;&#x538B;&#x6808;. &lt;/p&gt;
+
+&lt;p&gt;&#x7ED3;&#x5408;bt -f, &#x53EF;&#x77E5;&#x53C2;&#x6570;&#x5B58;&#x653E;&#x7684;&#x5730;&#x5740;&#x662F; 0xffff8801b6d5eb60.&lt;br&gt;
+crash&amp;gt; p *(struct structone *)0xffff8801b6d5eb60&lt;br&gt;
+&#x6216;&#x8005;  crash&amp;gt; structone 0xffff8801b6d5eb60&lt;br&gt;
+&#x5373;&#x53EF;&#x77E5; structone &#x7684;&#x5177;&#x4F53;&#x503C;&#x4E86;.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href="https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html"&gt;https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="http://www.x86-64.org/documentation/abi.pdf"&gt;http://www.x86-64.org/documentation/abi.pdf&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     <item>
@@ -1279,98 +1468,6 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
 </description>
     </item>
     <item>
-      <title>do_fork&#x548C;COW</title>
-      <link>https://awakening-fong.github.io/posts/mm/do_fork_cow</link>
-      <pubDate>2017-02-24</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6458;&#x81EA;APUE:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;&#x7531;&#x4E8E;&#x5728;fork&#x4E4B;&#x540E;&#x8FDB;&#x7A0B;&#x8DDF;&#x968F;&#x7740;exec, &#x6240;&#x4EE5;&#x73B0;&#x5728;&#x7684;&#x5F88;&#x591A;&#x5B9E;&#x73B0;&#x5E76;&#x4E0D;&#x6267;&#x884C;&#x4E00;&#x4E2A;&#x7236;&#x8FDB;&#x7A0B;&#x6570;&#x636E;&#x6BB5;, &#x6808;&#x548C;&#x5806;&#x7684;&#x5B8C;&#x5168;&#x590D;&#x5236;. &#x4F5C;&#x4E3A;&#x66FF;&#x4EE3;, &#x4F7F;&#x7528;&#x4E86;COW&#x6280;&#x672F;. &#x8FD9;&#x4E9B;&#x533A;&#x57DF;&#x7531;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x5171;&#x4EAB;, &#x800C;&#x4E14;&#x5185;&#x6838;&#x5C06;&#x5B83;&#x4EEC;&#x7684;&#x8BBF;&#x95EE;&#x6743;&#x9650;&#x6539;&#x53D8;&#x4E3A;&#x53EA;&#x8BFB;&#x7684;. &#x5982;&#x679C;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x4E2D;&#x7684;&#x4EFB;&#x4E00;&#x4E2A;&#x8BD5;&#x56FE;&#x4FEE;&#x6539;&#x8FD9;&#x4E9B;&#x533A;&#x57DF;, &#x5219;&#x5185;&#x6838;&#x53EA;&#x4E3A;&#x4FEE;&#x6539;&#x533A;&#x57DF;&#x7684;&#x90A3;&#x5757;&#x5185;&#x5B58;&#x5236;&#x4F5C;&#x4E00;&#x4E2A;&#x526F;&#x672C;, &#x901A;&#x5E38;&#x662F;&#x865A;&#x62DF;&#x5B58;&#x50A8;&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4E00;&amp;quot;&#x9875;&amp;quot;.  &lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&#x95EE;&#x9898;:&#x54EA;&#x91CC;&#x8BBE;&#x7F6E;&#x53EA;&#x8BFB;, &#x5982;&#x4F55;&#x77E5;&#x9053;&#x53EA;&#x8BFB;?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x5FEB;&#x901F;tips:&lt;br&gt;
-PTE entry is marked as un-writeable.&lt;br&gt;
-But VMA is marked as writeable.  &lt;/p&gt;
-
-&lt;p&gt;copy&lt;em&gt;one&lt;/em&gt;pte()&#x4F1A;&#x8C03;&#x7528; ptep&lt;em&gt;set&lt;/em&gt;wrprotect()&lt;/p&gt;
-
-&lt;p&gt;&#x8FD8;&#x662F;&#x5148;&#x4ECE;dup_mm()&#x5F00;&#x59CB;&#x770B;&#x5427;.&lt;br&gt;
-linux-3.10.86/kernel/fork.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct mm_struct *dup_mm(struct task_struct *tsk)
-{
-    struct mm_struct *mm, *oldmm = current-&amp;gt;mm;
-    mm = allocate_mm();
-    memcpy(mm, oldmm, sizeof(*mm)); 
-
-    mm_init(mm, tsk)); //&#x91CC;&#x9762;&#x6D89;&#x53CA;&#x9875;&#x8868;
-    err = dup_mmap(mm, oldmm);
-
-}
-
-static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
-|-- mm_alloc_pgd(mm)
-|   |--mm-&amp;gt;pgd = pgd_alloc(mm); //&#x5206;&#x914D;&#x9875;&#x8868;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/arch/arm/mm/pgd.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;pgd_alloc
-{
-    new_pgd = __pgd_alloc();
-    memset(new_pgd, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));  //&#x6E05;&#x7A7A;&#x9875;&#x8868;
-
-    /*
-     * Copy over the kernel and IO PGD entries  &#x62F7;&#x8D1D;&#x5185;&#x6838;&#x7684;&#x9875;&#x8868;, &#x4E14;&#x662F;first level&#x9875;&#x8868;
-     */
-    init_pgd = pgd_offset_k(0);  //&#x5185;&#x6838;&#x7684;&#x9875;&#x8868;
-    memcpy(new_pgd + USER_PTRS_PER_PGD, init_pgd + USER_PTRS_PER_PGD,
-               (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t)); 
-
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;linux-3.10.86/kernel/fork.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
-{
-    struct vm_area_struct *mpnt;
-    //&#x8FD9;&#x4E2A;&#x662F;&#x8FDB;&#x7A0B;&#x7684;&#x865A;&#x62DF;&#x5730;&#x5740;&#x533A;&#x57DF;, &#x975E;&#x5185;&#x6838;&#x7684;&#x865A;&#x62DF;&#x5730;&#x5740;&#x533A;&#x57DF;
-    for (mpnt = oldmm-&amp;gt;mmap; mpnt; mpnt = mpnt-&amp;gt;vm_next) { 
-        copy_page_range(mm, oldmm, mpnt);
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x5C31;&#x662F;&#x6211;&#x4EEC;&#x8981;&#x5173;&#x6CE8;&#x7684;&#x90E8;&#x5206;&#x4E86;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;copy_page_range
-|--copy_pud_range
-|   |--copy_pmd_range
-|   |   |--copy_pte_range
-|   |   |   |--copy_one_pte
-
-copy_one_pte
-{
-    /*
-     * If it&amp;#39;s a COW mapping, write protect it both
-     * in the parent and the child
-     */
-    if (is_cow_mapping(vm_flags)) {
-        ptep_set_wrprotect(src_mm, addr, src_pte);
-        pte = pte_wrprotect(pte);
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
       <title>mmap&#x548C;fault handler</title>
       <link>https://awakening-fong.github.io/posts/mm/mmap_fault</link>
       <pubDate>2017-02-24</pubDate>
@@ -1566,105 +1663,94 @@ find_get_page &amp;lt;-filemap_fault
 </description>
     </item>
     <item>
-      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
-      <link>https://awakening-fong.github.io/posts/arm/thread_start_sp</link>
-      <pubDate>2017-02-23</pubDate>
+      <title>do_fork&#x548C;COW</title>
+      <link>https://awakening-fong.github.io/posts/mm/do_fork_cow</link>
+      <pubDate>2017-02-24</pubDate>
       <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
-&#x4E2D;&#x8BF4;&#x5230; start&lt;em&gt;kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init&lt;/em&gt;thread&lt;em&gt;union + THREAD&lt;/em&gt;START_SP&lt;/p&gt;
+&lt;p&gt;&#x6458;&#x81EA;APUE:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
-&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&#x7531;&#x4E8E;&#x5728;fork&#x4E4B;&#x540E;&#x8FDB;&#x7A0B;&#x8DDF;&#x968F;&#x7740;exec, &#x6240;&#x4EE5;&#x73B0;&#x5728;&#x7684;&#x5F88;&#x591A;&#x5B9E;&#x73B0;&#x5E76;&#x4E0D;&#x6267;&#x884C;&#x4E00;&#x4E2A;&#x7236;&#x8FDB;&#x7A0B;&#x6570;&#x636E;&#x6BB5;, &#x6808;&#x548C;&#x5806;&#x7684;&#x5B8C;&#x5168;&#x590D;&#x5236;. &#x4F5C;&#x4E3A;&#x66FF;&#x4EE3;, &#x4F7F;&#x7528;&#x4E86;COW&#x6280;&#x672F;. &#x8FD9;&#x4E9B;&#x533A;&#x57DF;&#x7531;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x5171;&#x4EAB;, &#x800C;&#x4E14;&#x5185;&#x6838;&#x5C06;&#x5B83;&#x4EEC;&#x7684;&#x8BBF;&#x95EE;&#x6743;&#x9650;&#x6539;&#x53D8;&#x4E3A;&#x53EA;&#x8BFB;&#x7684;. &#x5982;&#x679C;&#x7236;&#x5B50;&#x8FDB;&#x7A0B;&#x4E2D;&#x7684;&#x4EFB;&#x4E00;&#x4E2A;&#x8BD5;&#x56FE;&#x4FEE;&#x6539;&#x8FD9;&#x4E9B;&#x533A;&#x57DF;, &#x5219;&#x5185;&#x6838;&#x53EA;&#x4E3A;&#x4FEE;&#x6539;&#x533A;&#x57DF;&#x7684;&#x90A3;&#x5757;&#x5185;&#x5B58;&#x5236;&#x4F5C;&#x4E00;&#x4E2A;&#x526F;&#x672C;, &#x901A;&#x5E38;&#x662F;&#x865A;&#x62DF;&#x5B58;&#x50A8;&#x7CFB;&#x7EDF;&#x4E2D;&#x7684;&#x4E00;&amp;quot;&#x9875;&amp;quot;.  &lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+&lt;p&gt;&#x95EE;&#x9898;:&#x54EA;&#x91CC;&#x8BBE;&#x7F6E;&#x53EA;&#x8BFB;, &#x5982;&#x4F55;&#x77E5;&#x9053;&#x53EA;&#x8BFB;?&lt;/p&gt;
 
 &lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+&lt;p&gt;&#x5FEB;&#x901F;tips:&lt;br&gt;
+PTE entry is marked as un-writeable.&lt;br&gt;
+But VMA is marked as writeable.  &lt;/p&gt;
+
+&lt;p&gt;copy&lt;em&gt;one&lt;/em&gt;pte()&#x4F1A;&#x8C03;&#x7528; ptep&lt;em&gt;set&lt;/em&gt;wrprotect()&lt;/p&gt;
+
+&lt;p&gt;&#x8FD8;&#x662F;&#x5148;&#x4ECE;dup_mm()&#x5F00;&#x59CB;&#x770B;&#x5427;.&lt;br&gt;
+linux-3.10.86/kernel/fork.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;struct mm_struct *dup_mm(struct task_struct *tsk)
 {
-    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
-    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+    struct mm_struct *mm, *oldmm = current-&amp;gt;mm;
+    mm = allocate_mm();
+    memcpy(mm, oldmm, sizeof(*mm)); 
+
+    mm_init(mm, tsk)); //&#x91CC;&#x9762;&#x6D89;&#x53CA;&#x9875;&#x8868;
+    err = dup_mmap(mm, oldmm);
+
+}
+
+static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
+|-- mm_alloc_pgd(mm)
+|   |--mm-&amp;gt;pgd = pgd_alloc(mm); //&#x5206;&#x914D;&#x9875;&#x8868;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;linux-3.10.86/arch/arm/mm/pgd.c&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;pgd_alloc
+{
+    new_pgd = __pgd_alloc();
+    memset(new_pgd, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));  //&#x6E05;&#x7A7A;&#x9875;&#x8868;
+
+    /*
+     * Copy over the kernel and IO PGD entries  &#x62F7;&#x8D1D;&#x5185;&#x6838;&#x7684;&#x9875;&#x8868;, &#x4E14;&#x662F;first level&#x9875;&#x8868;
+     */
+    init_pgd = pgd_offset_k(0);  //&#x5185;&#x6838;&#x7684;&#x9875;&#x8868;
+    memcpy(new_pgd + USER_PTRS_PER_PGD, init_pgd + USER_PTRS_PER_PGD,
+               (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t)); 
+
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD&lt;em&gt;SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
-&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD&lt;/em&gt;SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
-&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+&lt;p&gt;linux-3.10.86/kernel/fork.c&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
-                |    | A           |     |                  
-                8    |             |     |            ^     
-                |    |             |                  |     
-          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
-                     |             |     .            |     
-                     |             |     |            |     
-                     |             |     |            |     
-                     |             |     |            |     
-  thread_info ---&amp;gt;   |.C           |  ------          |     
-                     |             |                  |     
-                     |             |                  |     
-                     |             |                  |      
-                     |             |                        
-                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
+&lt;pre&gt;&lt;code&gt;static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+{
+    struct vm_area_struct *mpnt;
+    //&#x8FD9;&#x4E2A;&#x662F;&#x8FDB;&#x7A0B;&#x7684;&#x865A;&#x62DF;&#x5730;&#x5740;&#x533A;&#x57DF;, &#x975E;&#x5185;&#x6838;&#x7684;&#x865A;&#x62DF;&#x5730;&#x5740;&#x533A;&#x57DF;
+    for (mpnt = oldmm-&amp;gt;mmap; mpnt; mpnt = mpnt-&amp;gt;vm_next) { 
+        copy_page_range(mm, oldmm, mpnt);
+    }
+}
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
-      <link>https://awakening-fong.github.io/posts/other/optimize</link>
-      <pubDate>2017-02-23</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6279;&#x91CF;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;add&lt;em&gt;to&lt;/em&gt;page&lt;em&gt;cache&lt;/em&gt;lru,  &#x64CD;&#x4F5C;lru&#x7684;&#x8BDD;, &#x5148;&#x653E;&#x5230;per cpu&#x7684;lru cache (struct pagevec), &#x5F85;lru cache&#x5B58;&#x6EE1;&#x540E;drain.&lt;/p&gt;
+&lt;p&gt;&#x8FD9;&#x91CC;&#x5C31;&#x662F;&#x6211;&#x4EEC;&#x8981;&#x5173;&#x6CE8;&#x7684;&#x90E8;&#x5206;&#x4E86;.&lt;/p&gt;
 
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x541E;&#x5410;&#x91CF;&#xFF08;Throughput&#xFF09;&#x548C;&#x65F6;&#x5EF6;&#xFF08;Latency&#xFF09;&lt;/h4&gt;&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;copy_page_range
+|--copy_pud_range
+|   |--copy_pmd_range
+|   |   |--copy_pte_range
+|   |   |   |--copy_one_pte
 
-&lt;p&gt;2.1   HZ &#x8BBE;&#x7F6E;&#x4E3A; 250, 1000&#x7B49;.&lt;/p&gt;
-
-&lt;p&gt;2.2 
-&#x4E2D;&#x65AD;&#x7EBF;&#x7A0B;&#x5316;&#x540E;, &#x541E;&#x5410;&#x91CF;&#x53EF;&#x80FD;&#x4E0B;&#x964D;, &#x4F46;&#x7CFB;&#x7EDF;&#x5176;&#x5B83;&#x5730;&#x65B9;&#x7684;&#x65F6;&#x5EF6;&#x53EF;&#x80FD;&#x6539;&#x5584;.&lt;/p&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x7528;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x8BA1;&#x7B97;&#x7ED3;&#x679C;&#x7F13;&#x5B58;&#x4E4B;&#x7C7B;&#x7684;, &#x6BD4;&#x5982; &#x4E00;&#x4E9B;&#x6570;&#x503C;&#x8BA1;&#x7B97;, &#x5F00;&#x6839;&#x53F7;&#x4EC0;&#x4E48;&#x7684;.&lt;/p&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x6536;&#x655B;?&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;radix tree&#x7684;tag, &#x4E0D;&#x5FC5;&#x9010;&#x4E2A;&#x5224;&#x65AD;&#x8BE5;&#x8282;&#x70B9; &#x5B50;&#x6811; &#x4E0B;&#x7684;&#x53F6;&#x5B50;. &#x8FD9;&#x4E2A;&#x53EF;&#x80FD;&#x4E5F;&#x53EF;&#x4EE5;&#x5F52;&#x5230;  &#x7F13;&#x5B58; &#x4E2D;.&lt;/p&gt;
-
-&lt;p&gt;hash&#x5E94;&#x8BE5;&#x4E5F;&#x7B97;&#x8FD9;&#x4E2A;&#x7C7B;&#x522B;.&lt;/p&gt;
-
-&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x7F13;&#x5B58;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;buddy system &#x4E00;&#x5F00;&#x59CB;&#x4ECE;zone&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x5206;&#x914D;, &#x91CA;&#x653E;&#x65F6;&#x653E;&#x5230;per cpu&#x7684;pcp, &#x540E;&#x7EED;&#x4ECE;pcp&#x4E2D;&#x53D6;, &#x51CF;&#x5C11;&#x4E86;&#x9501;&#x7684;&#x95EE;&#x9898;.&lt;/p&gt;
-
-&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x9501;&#x7684;&#x95EE;&#x9898;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;6.1 &#x4F7F;&#x7528;per cpu.
-&#x6BD4;&#x5982; lru&#x95EE;&#x9898; per cpu&#x7684; pagevec.&lt;/p&gt;
-
-&lt;p&gt;6.2&lt;br&gt;
-1. lock&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;,&lt;br&gt;
-2. &#x4ECE;&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x6311;&#x9009;&#x653E;&#x5165;on a local list,&lt;br&gt;
-3. unlock &#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&lt;br&gt;
-4. &#x5BF9; local list&#x8FDB;&#x884C;&#x76F8;&#x5BF9;&#x6BD4;&#x8F83;&#x8017;&#x65F6;&#x7684;&#x64CD;&#x4F5C;&lt;/p&gt;
-
-&lt;p&gt;&#x8FD9;&#x4E2A;&#x6BD4;&#x8F83;&#x5E38;&#x89C1;, &#x6BD4;&#x5982; ...&lt;/p&gt;
-
-&lt;p&gt;6.3 RCU&#x7684;&#x9002;&#x7528;&#x8303;&#x56F4;
-...&lt;/p&gt;
-
-&lt;p&gt;6.4 &#x628A;&#x76F8;&#x5173;&#x4FE1;&#x606F; &#x6324;&#x5230;  int &#x4E2D;, &#x66F4;&#x65B0;int&#x662F;&#x539F;&#x5B50;&#x7684;, &#x5C31;&#x7701;&#x6389;&#x4E86;&#x9501;.
-&#x6BD4;&#x5982;, 
-strct page&#x4E2D;&#x6709;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct { /* SLUB */
-    unsigned inuse:16;
-    unsigned objects:15;
-    unsigned frozen:1; 
-};
+copy_one_pte
+{
+    /*
+     * If it&amp;#39;s a COW mapping, write protect it both
+     * in the parent and the child
+     */
+    if (is_cow_mapping(vm_flags)) {
+        ptep_set_wrprotect(src_mm, addr, src_pte);
+        pte = pte_wrprotect(pte);
+    }
+}
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -1736,6 +1822,109 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 </description>
     </item>
     <item>
+      <title>&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
+      <link>https://awakening-fong.github.io/posts/other/optimize</link>
+      <pubDate>2017-02-23</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6279;&#x91CF;&#x5904;&#x7406;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;add&lt;em&gt;to&lt;/em&gt;page&lt;em&gt;cache&lt;/em&gt;lru,  &#x64CD;&#x4F5C;lru&#x7684;&#x8BDD;, &#x5148;&#x653E;&#x5230;per cpu&#x7684;lru cache (struct pagevec), &#x5F85;lru cache&#x5B58;&#x6EE1;&#x540E;drain.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x541E;&#x5410;&#x91CF;&#xFF08;Throughput&#xFF09;&#x548C;&#x65F6;&#x5EF6;&#xFF08;Latency&#xFF09;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;2.1   HZ &#x8BBE;&#x7F6E;&#x4E3A; 250, 1000&#x7B49;.&lt;/p&gt;
+
+&lt;p&gt;2.2 
+&#x4E2D;&#x65AD;&#x7EBF;&#x7A0B;&#x5316;&#x540E;, &#x541E;&#x5410;&#x91CF;&#x53EF;&#x80FD;&#x4E0B;&#x964D;, &#x4F46;&#x7CFB;&#x7EDF;&#x5176;&#x5B83;&#x5730;&#x65B9;&#x7684;&#x65F6;&#x5EF6;&#x53EF;&#x80FD;&#x6539;&#x5584;.&lt;/p&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x7528;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x8BA1;&#x7B97;&#x7ED3;&#x679C;&#x7F13;&#x5B58;&#x4E4B;&#x7C7B;&#x7684;, &#x6BD4;&#x5982; &#x4E00;&#x4E9B;&#x6570;&#x503C;&#x8BA1;&#x7B97;, &#x5F00;&#x6839;&#x53F7;&#x4EC0;&#x4E48;&#x7684;.&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x6536;&#x655B;?&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;radix tree&#x7684;tag, &#x4E0D;&#x5FC5;&#x9010;&#x4E2A;&#x5224;&#x65AD;&#x8BE5;&#x8282;&#x70B9; &#x5B50;&#x6811; &#x4E0B;&#x7684;&#x53F6;&#x5B50;. &#x8FD9;&#x4E2A;&#x53EF;&#x80FD;&#x4E5F;&#x53EF;&#x4EE5;&#x5F52;&#x5230;  &#x7F13;&#x5B58; &#x4E2D;.&lt;/p&gt;
+
+&lt;p&gt;hash&#x5E94;&#x8BE5;&#x4E5F;&#x7B97;&#x8FD9;&#x4E2A;&#x7C7B;&#x522B;.&lt;/p&gt;
+
+&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x7F13;&#x5B58;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;buddy system &#x4E00;&#x5F00;&#x59CB;&#x4ECE;zone&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x5206;&#x914D;, &#x91CA;&#x653E;&#x65F6;&#x653E;&#x5230;per cpu&#x7684;pcp, &#x540E;&#x7EED;&#x4ECE;pcp&#x4E2D;&#x53D6;, &#x51CF;&#x5C11;&#x4E86;&#x9501;&#x7684;&#x95EE;&#x9898;.&lt;/p&gt;
+
+&lt;h1 id="toc_5"&gt;&lt;h4&gt;6. &#x9501;&#x7684;&#x95EE;&#x9898;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;6.1 &#x4F7F;&#x7528;per cpu.
+&#x6BD4;&#x5982; lru&#x95EE;&#x9898; per cpu&#x7684; pagevec.&lt;/p&gt;
+
+&lt;p&gt;6.2&lt;br&gt;
+1. lock&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;,&lt;br&gt;
+2. &#x4ECE;&#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&#x4E2D;&#x6311;&#x9009;&#x653E;&#x5165;on a local list,&lt;br&gt;
+3. unlock &#x5168;&#x5C40;&#x7684;&#x94FE;&#x8868;&lt;br&gt;
+4. &#x5BF9; local list&#x8FDB;&#x884C;&#x76F8;&#x5BF9;&#x6BD4;&#x8F83;&#x8017;&#x65F6;&#x7684;&#x64CD;&#x4F5C;&lt;/p&gt;
+
+&lt;p&gt;&#x8FD9;&#x4E2A;&#x6BD4;&#x8F83;&#x5E38;&#x89C1;, &#x6BD4;&#x5982; ...&lt;/p&gt;
+
+&lt;p&gt;6.3 RCU&#x7684;&#x9002;&#x7528;&#x8303;&#x56F4;
+...&lt;/p&gt;
+
+&lt;p&gt;6.4 &#x628A;&#x76F8;&#x5173;&#x4FE1;&#x606F; &#x6324;&#x5230;  int &#x4E2D;, &#x66F4;&#x65B0;int&#x662F;&#x539F;&#x5B50;&#x7684;, &#x5C31;&#x7701;&#x6389;&#x4E86;&#x9501;.
+&#x6BD4;&#x5982;, 
+strct page&#x4E2D;&#x6709;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;struct { /* SLUB */
+    unsigned inuse:16;
+    unsigned objects:15;
+    unsigned frozen:1; 
+};
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x5173;&#x4E8E;THREAD_START_SP</title>
+      <link>https://awakening-fong.github.io/posts/arm/thread_start_sp</link>
+      <pubDate>2017-02-23</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&#x5F15;&#x5165;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02"&gt;https://awakening-fong.github.io/posts/arm/arm_qemu_02&lt;/a&gt;
+&#x4E2D;&#x8BF4;&#x5230; start&lt;em&gt;kernel&#x524D;&#x8BBE;&#x7F6E;sp&#x4E3A; init&lt;/em&gt;thread&lt;em&gt;union + THREAD&lt;/em&gt;START_SP&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#define THREAD_START_SP (THREAD_SIZE - 8)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x4E3A;&#x4F55;&#x8981;-8?  &lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm (&amp;quot;sp&amp;quot;);
+    return (struct thread_info *)(sp &amp;amp; ~(THREAD_SIZE - 1));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;(&#x56FE;&#x793A;&#x4E2D;A&#x70B9;&#x5230;B&#x70B9;  &#x5927;&#x5C0F;&#x662F;8&#x5B57;&#x8282;)&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP0, &#x90A3;&#x4E48;,(sp &amp;amp; ~(THREAD&lt;em&gt;SIZE - 1)) &#x540E;&#x8FD8;&#x662F;&#x6307;&#x5411;SP0 (A&#x70B9;);&lt;br&gt;
+&#x5982;&#x679C;sp&#x662F;SP1, &#x90A3;&#x4E48;, (sp &amp;amp; ~(THREAD&lt;/em&gt;SIZE - 1)) &#x540E;&#x6307;&#x5411;&#x7684;&#x662F;thread_info (C&#x70B9;).&lt;br&gt;
+&#x6240;&#x4EE5;, &#x9700;&#x8981;-8.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;          SP0 ----&amp;gt;  +.------------+   --.--        &#x9AD8;&#x5730;&#x5740;  
+                |    | A           |     |                  
+                8    |             |     |            ^     
+                |    |             |                  |     
+          SP1 ----&amp;gt;  |.B           |  THREAD_SIZE     |     
+                     |             |     .            |     
+                     |             |     |            |     
+                     |             |     |            |     
+                     |             |     |            |     
+  thread_info ---&amp;gt;   |.C           |  ------          |     
+                     |             |                  |     
+                     |             |                  |     
+                     |             |                  |      
+                     |             |                        
+                     +-------------+                 &#x4F4E;&#x5730;&#x5740; 
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
       <title>IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;</title>
       <link>https://awakening-fong.github.io/posts/hw/iic</link>
       <pubDate>2017-02-15</pubDate>
@@ -1769,143 +1958,6 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
 &lt;p&gt;ACK&#x8981;&#x80FD;&#x591F;&#x88AB;&#x68C0;&#x6D4B;&#x5230;, &#x6545;&#x4E0D;&#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x4E0D;&#x80FD;&#x53BB;&#x5E72;&#x6270;SDA, &#x6545;&#x4FDD;&#x6301;&#x9AD8;&#x7535;&#x4F4D;, &#x53D1;&#x9001;ACK&#x7684;&#x90A3;&#x65B9;&#x62C9;&#x4F4E;SDA.&lt;/p&gt;
 
 &lt;p&gt;&#x5982;&#x679C; &#x4ECE;&#x673A;&#x63A5;&#x6536;&#x597D;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;(&#x542B;&#x54CD;&#x5E94;&#x4F4D;) &#x540E;,  &#x8981;&#x5B8C;&#x6210;&#x4E00;&#x4E9B;&#x5176;&#x4ED6;&#x529F;&#x80FD;&#x540E; (&#x4F8B;&#x5982;&#x4E00;&#x4E2A;&#x5185;&#x90E8;&#x4E2D;&#x65AD;&#x670D;&#x52A1;&#x7A0B;&#x5E8F;), &#x624D;&#x80FD;&#x63A5;&#x6536;&#x6216;&#x53D1;&#x9001;&#x4E0B;&#x4E00;&#x4E2A;&#x5B8C;&#x6574;&#x7684;&#x6570;&#x636E;&#x5B57;&#x8282;, &#x53EF;&#x4EE5;&#x4F7F;&#x65F6;&#x949F;&#x7EBF; SCL &#x4FDD;&#x6301;&#x4F4E;&#x7535;&#x5E73;&#x8FEB;&#x4F7F;&#x4E3B;&#x673A;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x72B6;&#x6001;. &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 04:&#x53C2;&#x6570;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_04_parameter</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;p&gt;&#x672A;&#x5F00;&#x542F;CONFIG&lt;em&gt;MEMCG, CONFIG&lt;/em&gt;SWAP.&lt;/p&gt;
-
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. scan_control&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct scan_control {
-
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
-
-    /* How many pages shrink_list() should reclaim 
-    &#x95EE;&#x9898;:nr_to_reclaim&#x548C;nr_scanned&#x7684;&#x5173;&#x7CFB;?
-    &#x7B54;:nr_to_reclaim&#x662F;&#x4E2A;setting data, nr_reclaimed&#x662F;runtime date.
-    &#x901A;&#x5E38;&#x662F;&#x5148;&#x7ED9;struct scan_control sc&#x8BBE;&#x7F6E;&#x597D;&#x8FD9;&#x4E2A;&#x76EE;&#x6807;, 
-    &#x7136;&#x540E;&#x542F;&#x52A8;&#x56DE;&#x6536;. 
-    &#x5728; sum of shrink_list() &amp;gt; nr_to_reclaim&#x540E;&#x4E2D;&#x65AD;&#x56DE;&#x6536;, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
-
-    /*
-    &#x8FD9;&#x91CC;&#x7684;may&#x7C7B;&#x4F3C;may I ..., may&#x7684;&#x610F;&#x601D;&#x662F; &#x662F;&#x5426;&#x53EF;&#x4EE5;, &#x662F;&#x5426;&#x5141;&#x8BB8;
-    */
-    int may_writepage;
-
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
-
-};
-
-get_scan_count
-{
-        size = get_lru_size(lruvec, lru);
-        scan = size &amp;gt;&amp;gt; sc-&amp;gt;priority;
-        //&#x626B;&#x63CF;&#x7684;&#x91CF; &#x4E0E; list&#x7684;&#x5927;&#x5C0F; &#x6210;&#x6BD4;&#x4F8B;
-}
-
-shrink_lruvec
-|--//1. &#x6839;&#x636E;&#x4F18;&#x5148;&#x7EA7;&#x7B49; &#x7ED9;&#x6570;&#x7EC4;nr[]&#x8D4B;&#x503C;
-|--get_scan_count(lruvec, sc, nr); 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. watermark &lt;/h4&gt;&lt;/h1&gt;
-
-&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 low watermark&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x53D1;&#x73B0;&#x4F4E;&#x4E8E;low watermark&#x65F6;, &#x5524;&#x9192;kswapd:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__alloc_pages_nodemask
-|-- int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
-|--page = get_page_from_freelist(,alloc_flags,)
-|--if (unlikely(!page)) 
-|   |--__alloc_pages_slowpath()
-|   |   |--if (!(gfp_mask &amp;amp; __GFP_NO_KSWAPD))
-|   |   |   |--wake_all_kswapd(order, ...)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 high watermark&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x8FBE;&#x5230;high watermark&#x65F6;&#x505C;&#x6B62;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;zone_balanced(, balance_gap:0,)  //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x5FFD;&#x7565;CONFIG_COMPACTION
-|--free &amp;gt; high_wmark_pages+balance_gap 
-|-- and ...
-
-pgdat_balanced //&#x7B80;&#x5316;&#x95EE;&#x9898;, &#x53EA;&#x770B;order&#x4E3A;0&#x7684;&#x60C5;&#x51B5;
-{
-    if (zone_balanced(..,balance_gap:0, ))
-        return true
-}
-
-
-kswapd -&amp;gt; balance_pgdat
-{
-    ...
-            shrink_zone
-            shrink_slab
-
-    if (pgdat_balanced(...))
-        break;      /* kswapd: all done */
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 min&lt;em&gt;free&lt;/em&gt;kbytes&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;linux-3.10.86/Documentation/sysctl/vm.txt&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;min&lt;em&gt;free&lt;/em&gt;kbytes:&lt;/p&gt;
-
-&lt;p&gt;This is used to force the Linux VM to keep a minimum number of kilobytes free.  The VM uses this number to compute a watermark[WMARK_MIN] value for each lowmem zone in the system. Each lowmem zone gets a number of reserved free pages based proportionally on its size.&lt;/p&gt;
-
-&lt;p&gt;Some minimal amount of memory is needed to satisfy PF_MEMALLOC allocations; if you set this to lower than 1024KB, your system will become subtly broken, and prone to deadlock under high loads.&lt;/p&gt;
-
-&lt;p&gt;Setting this too high will OOM your machine instantly. &lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;linux-3.10.86/mm/vmscan.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;pfmemalloc_watermark_ok
-{
-    pfmemalloc_reserve += min_wmark_pages(zone);
-    wmark_ok = free_pages &amp;gt; pfmemalloc_reserve / 2;
-
-    if (!wmark_ok &amp;amp;&amp;amp; waitqueue_active(&amp;amp;pgdat-&amp;gt;kswapd_wait)) {
-        ...
-        /*&#x5982;&#x679C;&#x7761;&#x7720;&#x4E2D;(waitqueue_active()), &#x5219;&#x5524;&#x9192;kswapd*/
-        wake_up_interruptible(&amp;amp;pgdat-&amp;gt;kswapd_wait);
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;a href="https://lwn.net/Articles/422291/"&gt;https://lwn.net/Articles/422291/&lt;/a&gt;&lt;br&gt;
-The thresholds kswapd/direct reclaim starts(ends) depend on
-watermark[min,low,high] and currently all watermarks are set
-based on min&lt;em&gt;free&lt;/em&gt;kbytes. min&lt;em&gt;free&lt;/em&gt;kbytes is the amount of
-free memory that Linux VM should keep at least.&lt;/p&gt;
-
-&lt;p&gt;linux-3.10.86/mm/page_alloc.c&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;__setup_per_zone_wmarks
-{
-
-    zone-&amp;gt;watermark[WMARK_MIN] = ...
-    zone-&amp;gt;watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 2);
-    zone-&amp;gt;watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp &amp;gt;&amp;gt; 1);
-}
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     <item>
@@ -1995,19 +2047,6 @@ generic_perform_write -&amp;gt; mark_page_accessed(page)
 &lt;p&gt;per zone : active list, inactive list&lt;br&gt;
 per node :kswapd&lt;br&gt;
 per cpu  :lru cache, &#x4E5F;&#x5C31;&#x662F; pagevec  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;</title>
-      <link>https://awakening-fong.github.io/posts/mm/reclaim_00_references</link>
-      <pubDate>2017-02-07</pubDate>
-      <description>&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;[Professional Linux Kernel Architecture]&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;Reducing Memory Access Latency by Satoru Moriya
-&lt;a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf"&gt;http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/"&gt;https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;[Understanding the Linux Kernel, 3rd Edition]&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
 </description>
     </item>
   </channel>

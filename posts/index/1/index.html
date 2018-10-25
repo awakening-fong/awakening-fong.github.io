@@ -54,6 +54,76 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/fs/jbd">JBD初步</a> <span class="date">2018-10-25</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 概念</h4></h1>
+
+<p>单个handle是原子操作. 
+多个handle打包为一个transaction.</p>
+
+<p>disk is used to indicate the actual block device,
+whereas the term journal is used for the log area.</p>
+
+<p>Log record: Describes a single update of a disk block of the journaling filesystem.(来自[Understanding the Linux Kernel, 3rd Edition]) </p>
+
+<p>commit record:
+a special block, called the commit record, is written to the journal. The commit record is used to indicate that all the blocks belonging to a single atomic operation are written to the journal.
+fong:这样, 如果crash, 就可以知道那些log是完成的.
+The commit record indicates that this is a completed operation and could be written to the disk. </p>
+
+<p>checkpointing: 将 finished transactions 写入磁盘(非log区域), 用于回收相应log空间的过程.</p>
+
+<h1 id="toc_1"><h4>2. 状态</h4></h1>
+
+<p><code>T_RUNNING</code><br>
+the transaction can accept new handles. </p>
+</div>
+
+        <div class="more">
+          <a href="/posts/fs/jbd" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/database/db_recovery_concept.MD">数据库recovery的一些基本概念</a> <span class="date">2018-10-24</span></h3>
+
+        <div class="summary ellipsis">
+<h2 id="toc_0"><h5>1. REDO, UNDO, checkpoint</h5></h2>
+
+<p>Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL's central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]<br>
+已commit但为apply的, 执行REDO, 而由 未commit的事务 的修改 需要执行UNDO.   </p>
+
+<p>------------------ </p>
+
+<p>Its transaction recovery log contains log records of the following form:<br>
+<code>
+&lt;txnId, objectId, beforeValue, afterValue&gt;
+</code></p>
+
+<p>有如下log:</p>
+
+<pre><code>1 &lt;T1 BEGIN&gt;
+2 &lt;T1, X, 1, 2&gt;
+3 &lt;T2 BEGIN&gt;
+4 &lt;T3 BEGIN&gt;
+5 &lt;T2, Y, 1, 2&gt;
+6 &lt;T2 COMMIT&gt;
+7 &lt;T1, Y, 2, 3&gt;
+8 &lt;T3, Z, 1, 2&gt;
+9 &lt;CHECKPOINT&gt;
+10 &lt;T1, X, 2, 3&gt;
+11 &lt;T1, Y, 3, 4&gt;
+12 &lt;T3, Z, 2, 3&gt;
+13 &lt;T3 COMMIT&gt;
+14 &lt;T1, Z, 3, 4&gt;
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/database/db_recovery_concept.MD" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/distributed_system/raft_mit_6-824.MD">使用lab来理解raft</a> <span class="date">2018-10-16</span></h3>
 
         <div class="summary ellipsis">
@@ -182,83 +252,6 @@ Call Trace:
           <a href="/posts/io/bi_end_io_occur_but_irqs_disabled" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/debug/ftrace_data_analysis_interval">使用ftrace分析两时间点间隔</a> <span class="date">2018-02-03</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 使用 python 提取出 interval</h4></h1>
-
-<pre><code># -*- coding: utf-8 -*
-
-#添加相应trace_printk, ftrace输出类似:
-#           &lt;...&gt;-3084  [000] 352166.459260: your_func_01: your_point_01
-#           &lt;...&gt;-2892  [000] 352166.459529: your_func_02: your_point_02
-
-read_point_start = 1
-f_in=open('interval.ftrace', 'r')
-f_out = open("interval.dat", "wb")
-line_no = 1
-
-while 1:
-    line = f_in.readline()
-    if not line:
-        break
-    #print line
-
-    if read_point_start == 1:
-        if "your_func_01" in line:
-            val_point_start=line.split(":")[0].split(" ")[-1]
-            read_point_start = 0
-            print val_point_start,
-    elif "your_func_02" in line:
-            val_point_end=line.split(":")[0].split(" ")[-1]
-            print val_point_end,
-            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
-            print interval
-            f_out.write(str(line_no) + " " + str(interval)+'\n')    
-            line_no+=1
-            read_point_start = 1
-
-f_out.close()
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/debug/ftrace_data_analysis_interval" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
-
-<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
-本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
-
-<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
-
-<h1 id="toc_1"><h4>2. 例子</h4></h1>
-
-<pre><code>crash&gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...略...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
-</code></pre>
-
-<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
-其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
-</div>
-
-        <div class="more">
-          <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -273,6 +266,7 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
           <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
       </ul>
     </div>
   </div>

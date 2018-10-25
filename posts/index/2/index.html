@@ -54,6 +54,51 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/debug/ftrace_data_analysis_interval">使用ftrace分析两时间点间隔</a> <span class="date">2018-02-03</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 使用 python 提取出 interval</h4></h1>
+
+<pre><code># -*- coding: utf-8 -*
+
+#添加相应trace_printk, ftrace输出类似:
+#           &lt;...&gt;-3084  [000] 352166.459260: your_func_01: your_point_01
+#           &lt;...&gt;-2892  [000] 352166.459529: your_func_02: your_point_02
+
+read_point_start = 1
+f_in=open('interval.ftrace', 'r')
+f_out = open("interval.dat", "wb")
+line_no = 1
+
+while 1:
+    line = f_in.readline()
+    if not line:
+        break
+    #print line
+
+    if read_point_start == 1:
+        if "your_func_01" in line:
+            val_point_start=line.split(":")[0].split(" ")[-1]
+            read_point_start = 0
+            print val_point_start,
+    elif "your_func_02" in line:
+            val_point_end=line.split(":")[0].split(" ")[-1]
+            print val_point_end,
+            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
+            print interval
+            f_out.write(str(line_no) + " " + str(interval)+'\n')    
+            line_no+=1
+            read_point_start = 1
+
+f_out.close()
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/debug/ftrace_data_analysis_interval" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
 
         <div class="summary ellipsis">
@@ -83,6 +128,38 @@ print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&g
 
         <div class="more">
           <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
+
+<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
+本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
+
+<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
+
+<h1 id="toc_1"><h4>2. 例子</h4></h1>
+
+<pre><code>crash&gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...略...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+</code></pre>
+
+<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
+其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
+</div>
+
+        <div class="more">
+          <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -149,70 +226,6 @@ option- file type option -<br>
           <a href="/posts/debug/softlockup" class="btn btn-small">read more..</a>
         </div>
       </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
-
-        <div class="summary">
-<p>本博文仅提出问题, 不给出答案. 祝玩得开心.   </p>
-
-<p>问题: 我们知道 当前task可以通过current来获得. ARM上, 其实现如下:</p>
-
-<pre><code>#define current (get_current()) 
-#define get_current() (current_thread_info()-&gt;task)
-static inline struct thread_info *current_thread_info(void)
-{
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
-}
-</code></pre>
-
-<p>对于ARM, 其sp是banked的, irq模式和SVC模式的sp不是同一个. 这样, 中断handler还能通过sp来获得当前task吗?</p>
-
-<p>以下内容是本问题的提示.<br>
-为了避免干扰各位思考, 已设置背景色为黑色, 若要查看文字, 可通过按ctrl+a等方法查看.  </p>
-
-<p style="background-color: rgb(0, 0, 0);">中断handler在SVC模式下执行的.
-</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 发送</h4></h1>
-
-<p>以tkill为例来说明.
-linux-3.10.86/kernel/signal.c
-假定不是发送给组的, 即_<em>send</em>signal()的@group为0</p>
-
-<pre><code>do_tkill -&gt; do_send_specific
-|--find_task_by_vpid
-|--check_kill_permission
-|--do_send_sig_info -&gt; send_signal
-|   |--__send_signal
-
-
-__send_signal
-|--q=__sigqueue_alloc //new sigqueue instance
-|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
-|--设置q-&gt;info的各域
-|   |--q-&gt;info.si_signo =
-|   |--q-&gt;info.si_pid =
-|--complete_signal
-|   |--signal_wake_up -&gt; signal_wake_up_state
-|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
-|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/other/signal" class="btn btn-small">read more..</a>
-        </div>
-      </div>
     
     <div class="pagination">
       <ul>
@@ -227,6 +240,7 @@ __send_signal
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
           <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
       </ul>
     </div>
   </div>

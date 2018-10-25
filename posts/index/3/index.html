@@ -54,6 +54,70 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
+
+        <div class="summary">
+<p>本博文仅提出问题, 不给出答案. 祝玩得开心.   </p>
+
+<p>问题: 我们知道 当前task可以通过current来获得. ARM上, 其实现如下:</p>
+
+<pre><code>#define current (get_current()) 
+#define get_current() (current_thread_info()-&gt;task)
+static inline struct thread_info *current_thread_info(void)
+{
+    register unsigned long sp asm ("sp");
+    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<p>对于ARM, 其sp是banked的, irq模式和SVC模式的sp不是同一个. 这样, 中断handler还能通过sp来获得当前task吗?</p>
+
+<p>以下内容是本问题的提示.<br>
+为了避免干扰各位思考, 已设置背景色为黑色, 若要查看文字, 可通过按ctrl+a等方法查看.  </p>
+
+<p style="background-color: rgb(0, 0, 0);">中断handler在SVC模式下执行的.
+</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 发送</h4></h1>
+
+<p>以tkill为例来说明.
+linux-3.10.86/kernel/signal.c
+假定不是发送给组的, 即_<em>send</em>signal()的@group为0</p>
+
+<pre><code>do_tkill -&gt; do_send_specific
+|--find_task_by_vpid
+|--check_kill_permission
+|--do_send_sig_info -&gt; send_signal
+|   |--__send_signal
+
+
+__send_signal
+|--q=__sigqueue_alloc //new sigqueue instance
+|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
+|--设置q-&gt;info的各域
+|   |--q-&gt;info.si_signo =
+|   |--q-&gt;info.si_pid =
+|--complete_signal
+|   |--signal_wake_up -&gt; signal_wake_up_state
+|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
+|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/signal" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
 
         <div class="summary ellipsis">
@@ -82,37 +146,6 @@ copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也�
 
         <div class="more">
           <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -296,67 +329,34 @@ int main()
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
 
         <div class="summary ellipsis">
 <h1 id="toc_0"><h4>1. 问题引入</h4></h1>
 
-<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
-中说到 start<em>kernel前设置sp为 init</em>thread<em>union + THREAD</em>START_SP</p>
+<p>摘自APUE:</p>
 
-<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
-</code></pre>
+<blockquote>
+<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
+</blockquote>
 
-<p>为何要-8?  </p>
+<p>问题:哪里设置只读, 如何知道只读?</p>
 
 <h1 id="toc_1"><h4>2. 解</h4></h1>
 
-<pre><code>static inline struct thread_info *current_thread_info(void)
-{
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
-}
-</code></pre>
+<p>快速tips:<br>
+PTE entry is marked as un-writeable.<br>
+But VMA is marked as writeable.  </p>
 
-<p>(图示中A点到B点  大小是8字节)<br>
-如果sp是SP0, 那么,(sp &amp; ~(THREAD<em>SIZE - 1)) 后还是指向SP0 (A点);<br>
-如果sp是SP1, 那么, (sp &amp; ~(THREAD</em>SIZE - 1)) 后指向的是thread_info (C点).<br>
-所以, 需要-8.</p>
-</div>
+<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
 
-        <div class="more">
-          <a href="/posts/arm/thread_start_sp" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/optimize">内核中常见的优化方法</a> <span class="date">2017-02-23</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
-
-<p>add<em>to</em>page<em>cache</em>lru,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
-
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
-
-<p>2.1   HZ 设置为 250, 1000等.</p>
-
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
-
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
-
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
-
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
-
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
-
-<p>hash应该也算这个类别.</p>
+<p>还是先从dup_mm()开始看吧.<br>
+linux-3.10.86/kernel/fork.c</p>
 
 </div>
 
         <div class="more">
-          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -373,6 +373,7 @@ int main()
           <li><a href="/posts/index/9">9</a></li>
           <li><a href="/posts/index/10">10</a></li>
           <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
       </ul>
     </div>
   </div>

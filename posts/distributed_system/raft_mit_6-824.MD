@@ -158,7 +158,7 @@ votedFor 未写入完成, 回复候选人. follower crash并重启, 再投给另
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next disabled"><a>Next &rarr;</a>
+          <li class="next"><a href="/posts/database/db_recovery_concept.MD" title="数据库recovery的一些基本概念">Next &rarr;</a></li>
       </ul>
     </div>
     <hr>
