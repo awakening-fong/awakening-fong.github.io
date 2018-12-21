@@ -65,7 +65,7 @@
       <h2 id="toc_0"><h5>1. REDO, UNDO, checkpoint</h4></h2>
 
 <p>Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL&#39;s central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]<br>
-已commit但为apply的, 执行REDO, 而由 未commit的事务 的修改 需要执行UNDO.   </p>
+已commit但未apply的, 执行REDO, 而由 未commit的事务 的修改 需要执行UNDO.   </p>
 
 <p>------------------ </p>
 
