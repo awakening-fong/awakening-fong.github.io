@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>数据库recovery的一些基本概念</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>数据库recovery的一些基本概念 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2018-10-24</strong>
+    </div>
+    <div class="content">
+      <h2 id="toc_0"><h5>1. REDO, UNDO, checkpoint</h5></h2>
+
+<p>Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL&#39;s central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]<br>
+已commit但未apply的, 执行REDO, 而由 未commit的事务 的修改 需要执行UNDO.   </p>
+
+<p>------------------ </p>
+
+<p>Its transaction recovery log contains log records of the following form:<br>
+<code>
+&lt;txnId, objectId, beforeValue, afterValue&gt;
+</code></p>
+
+<p>有如下log:</p>
+
+<pre><code>1 &lt;T1 BEGIN&gt;
+2 &lt;T1, X, 1, 2&gt;
+3 &lt;T2 BEGIN&gt;
+4 &lt;T3 BEGIN&gt;
+5 &lt;T2, Y, 1, 2&gt;
+6 &lt;T2 COMMIT&gt;
+7 &lt;T1, Y, 2, 3&gt;
+8 &lt;T3, Z, 1, 2&gt;
+9 &lt;CHECKPOINT&gt;
+10 &lt;T1, X, 2, 3&gt;
+11 &lt;T1, Y, 3, 4&gt;
+12 &lt;T3, Z, 2, 3&gt;
+13 &lt;T3 COMMIT&gt;
+14 &lt;T1, Z, 3, 4&gt;
+</code></pre>
+
+<p>Assume that the DBMS flushes all dirty pages when the recovery process finishes. What are the values of X, Y, and Z after the DBMS recovers the state of the database ?<br>
+答: X=1, Y=2, Z=3<br>
+checkpoint 并不暗示着commit, 本例中没有对T1进行commit,<br>
+所以, x维持旧值, 为1.<br>
+Y的话, 看 6 <T2 COMMIT> 之前, 为2.<br>
+Z的话, 看 13 <T3 COMMIT>之前, 为3.  </p>
+
+<hr>
+
+<p>While doing deferred updates with WAL, if we prevent the DBMS from writing dirty records to disk until the transaction commits, then we do not need to store their original values.
+fong:由于不是steal, 不commit就不会回写, 这样, 就不需要undo, 也就不需要记录旧值.</p>
+
+<p>The undo operation not only restores the data items to their old value,
+but also writes log records to record the updates performed as part of the undo process. These log records are special <strong><em>redo-only log</em></strong> records, since they do not need to contain the old-value of the updated data item. [2]
+之所以称为 redo-only log, 在recovery时, 无需进行undo操作.
+比如说,<br>
+T1, X, 1, 2  (格式为 事务id, key, 旧值1, 新值2)<br>
+没有commit, 然后掉电(第1回)<br>
+重启后, 执行recovery, 对于T1, 生成<br>
+CLR undo T1 ....<br>
+然后还有其他log要recovery, 结果突然掉电(第2回)了,<br>
+重启后, 执行recovery, 看到有CLR undo T1 ....<br>
+对于这条记录是不会 undo such an undo operation, 所以,是 redo-only log.</p>
+
+<h2 id="toc_1"><h5>2. no-steal, force policy</h5></h2>
+
+<p>One might expect that transactions would force-output all modified blocks to disk when they commit. Such a policy is called <strong><em>the force policy</em></strong>. The alternative, the no-force policy, allows a transaction to commit even if it has modified some blocks that have not yet been written back to disk. [2]<br>
+如果是the force policy, 那么, 当commit时, 强制要求所有修改过的块都已经写入磁盘. 而no-force策略, 则不要求已写入磁盘, 就可以commit.  </p>
+
+<p>one might expect that blocks modified by a transaction that is still active should not be written to disk. This policy is called <strong><em>the no-steal policy</em></strong>. The alternative, <strong><em>the steal policy</em></strong>, allows the system to write modified blocks to disk even if the transactions that made those modifications have not all committed. [2]  </p>
+
+<h2 id="toc_2"><h5>3. 参考资料</h5></h2>
+
+<ol>
+<li><a href="https://www.postgresql.org/docs/7.3/static/wal.html">https://www.postgresql.org/docs/7.3/static/wal.html</a></li>
+<li>Database System Concepts 6th edition</li>
+</ol>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/database/db_recovery_concept>https://awakening-fong.github.io/posts/database/db_recovery_concept</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#database-ref">database <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#database-ref">database <span>6</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/distributed_system/raft_mit_6-824" title="使用lab来理解raft">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/fs/jbd" title="JBD初步">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>

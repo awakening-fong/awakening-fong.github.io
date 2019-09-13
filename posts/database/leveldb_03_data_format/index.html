@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>LevelDB 03: 数据格式</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>LevelDB 03: 数据格式 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2019-09-11</strong>
+    </div>
+    <div class="content">
+      <p>目录:
+<li> <a href="#toc_0"> 1. log的格式</a>  </li>
+<li> <a href="#toc_1"> 1.1 整体格式</a>  </li>
+<li> <a href="#toc_2"> 1.2 log文件的 header</a>  </li>
+<li> <a href="#toc_3"> 1.3 大小端</a>  </li>
+<li> <a href="#toc_4"> 1.4 trailer</a>  </li>
+<li> <a href="#toc_5"> 1.5 fragment  </a>  </li>
+<li> <a href="#toc_6"> 2. MemTable</a>  </li>
+<li> <a href="#toc_7"> 2.1 SkipList</a>  </li>
+<li> <a href="#toc_8"> 3. WriteBatch</a>  </li>
+<li> <a href="#toc_9"> 4. get</a>  </li>
+<li> <a href="#toc_10"> 5. ldb, sst格式</a>  </li>
+<li> <a href="#toc_11"> 6. BlockBuilder</a>  </li>
+<li> <a href="#toc_12"> 7. 杂</a>  </li>
+<li> <a href="#toc_13"> 7.1 个人标记方法</a>  </li>
+<li> <a href="#toc_14"> 7.2 tag</a>  </li></p>
+
+<hr>
+
+<h2 id="toc_0">1. log的格式</h2>
+
+<h3 id="toc_1">1.1 整体格式</h3>
+
+<p>参考 Writer::AddRecord -&gt; Writer::EmitPhysicalRecord</p>
+
+<pre><code>kHeader   WriteBatch::rep_
+|-------|-------------------|
+
+
+
+kHeader   WriteBatch::rep_   kHeader rep_(1/2) trailer kHeader rep_(2/2)
+|-------|-------------------|-------|.........|------|-------|.........|
+\-------------------------v--------------------------/
+                     kBlockSize(32KB)
+</code></pre>
+
+<h3 id="toc_2">1.2 log文件的 header</h3>
+
+<pre><code>checksum  len type
+|--------|---|---|--------------|
+\------- v -----/\------v------/
+    kHeader          len
+</code></pre>
+
+<p>kHeaderSize:  <br/>
+checksum (4B), length (2B), type (1B)</p>
+
+<p>header中的len为 header后面跟的数据的长度.
+根据<br>
+leveldb/db/log_reader.cc<br>
+ReadPhysicalRecord()<br>
+if (kHeaderSize + length &gt; buffer_.size()) {错误情况处理}</p>
+
+<pre><code>unsigned int Reader::ReadPhysicalRecord(Slice* result) {
+  ...略...
+  *result = Slice(header + kHeaderSize, length);
+  return type;
+}
+</code></pre>
+
+<h3 id="toc_3">1.3 大小端</h3>
+
+<pre><code>unsigned int Reader::ReadPhysicalRecord(...) {
+  // Parse the header
+  const char* header = buffer_.data();
+  const uint32_t a = static_cast&lt;uint32_t&gt;(header[4]) &amp; 0xff;
+  const uint32_t b = static_cast&lt;uint32_t&gt;(header[5]) &amp; 0xff;
+  const unsigned int type = header[6];
+  const uint32_t length = a | (b &lt;&lt; 8);
+}
+</code></pre>
+
+<p>写入时:</p>
+
+<pre><code>Writer::EmitPhysicalRecord
+{
+  char buf[kHeaderSize];
+  buf[4] = static_cast&lt;char&gt;(n &amp; 0xff);
+  buf[5] = static_cast&lt;char&gt;(n &gt;&gt; 8);
+  buf[6] = static_cast&lt;char&gt;(t);
+}
+</code></pre>
+
+<h3 id="toc_4">1.4 trailer</h3>
+
+<p><a href="https://github.com/google/leveldb/blob/master/doc/log_format.md">https://github.com/google/leveldb/blob/master/doc/log_format.md</a></p>
+
+<p>A record never starts within the last six bytes of a block (since it won&#39;t fit). Any leftover bytes here form the trailer, which must consist entirely of zero bytes and must be skipped by readers.
+若一个记录块只剩下6个字节的空余, 那么, 这些空间不会用来存储key-value, 我们称块的这最后几个字节空间(可以小于6字节)为 trailer.</p>
+
+<p>awakening-fong注释: see Writer::AddRecord()</p>
+
+<h3 id="toc_5">1.5 fragment</h3>
+
+<p>leveldb/db/log_format.h</p>
+
+<pre><code>enum RecordType {
+  // Zero is reserved for preallocated files
+  kZeroType = 0,
+
+  kFullType = 1,
+
+  // For fragments
+  kFirstType = 2,
+  kMiddleType = 3,
+  kLastType = 4
+};
+</code></pre>
+
+<p>一个完整块 被分为 多个fragment 来存储.</p>
+
+<h2 id="toc_6">2. MemTable</h2>
+
+<p>leveldb/db/write_batch.cc</p>
+
+<pre><code>class MemTableInserter : public WriteBatch::Handler {
+
+};
+</code></pre>
+
+<p>leveldb/db/memtable.cc
+void MemTable::Add(....)</p>
+
+<p>每条记录在内存中的格式:</p>
+
+<pre><code>size+8     userkey  seq|type size  value
+|--------|--------|---------|-----|------|
+内部大小              8字节
+</code></pre>
+
+<h3 id="toc_7">2.1 SkipList</h3>
+
+<pre><code> MemTable::Add
+ |--typedef SkipList&lt;const char*, KeyComparator&gt; Table;
+ |--Table table_;
+ |--char* buf = arena_.Allocate(encoded_len)
+ |--buf = xxx
+ |--table_.Insert(buf)
+</code></pre>
+
+<p>参考 MemTable::Get
+SkipList节点的格式:</p>
+
+<pre><code>                               也称为tag
+                               /---^---\   
+|  internal_key_size | user key|seq type|val size|val|
+\--user key size +8--/          \--8B--/
+
+                     ^
+                  key_ptr   
+</code></pre>
+
+<p>MemTable::Get()中 称seq+type为tag.
+是不是只有type是tag??</p>
+
+<p>SkipList 的内存组织:</p>
+
+<pre><code>template&lt;typename Key, class Comparator&gt;
+struct SkipList&lt;Key,Comparator&gt;::Node {
+  explicit Node(const Key&amp; k) : key(k) { }
+
+  // Array of length equal to the node height.  next_[0] is lowest level link.
+port::AtomicPointer next_[1];
+
+};
+</code></pre>
+
+<pre><code>class MemTable {
+
+typedef SkipList&lt;const char*, KeyComparator&gt; Table;
+};
+</code></pre>
+
+<p><img src="/assets/media/Skip_list_add_element.gif"></p>
+
+<p><img src="/../../media/Skip_list_add_element.gif" alt="Skiplist add element"></p>
+
+<p>(图片来源 <a href="https://en.wikipedia.org/wiki/Skip_list">https://en.wikipedia.org/wiki/Skip_list</a>)</p>
+
+<p>wiki动图中, 何时要放在第2层?<br>
+答:好像是随机的, wiki上的动图中的coin flip就是这个意思.</p>
+
+<p>问题: leveldb代码上, 如何体现这点?<br>
+答:
+wiki上, 高是固定的; 对新的节点, 随机地决定, 是否移动到较高的level上.<br>
+而leveldb中,  在新添加一个节点时, 总是尝试生成一个新的高度,</p>
+
+<pre><code>level3  o&#39;     o&#39;       o     
+level2  o      o&#39;       o      o
+level1  o      o        o      o
+level0  o      o        o      o
+新节点值 11      17      24    43          
+生成高度 3       2       4      3
+插入顺序 A       B       D      C
+</code></pre>
+
+<p>然后对新节点x执行:  </p>
+
+<pre><code>x-&gt;NoBarrier_SetNext(i, prev[i]-&gt;NoBarrier_Next(i));
+prev[i]-&gt;SetNext(i, x);
+</code></pre>
+
+<p>上图中 B 上方后续会有两个o&#39; 吗?<br>
+答: 会的.</p>
+
+<pre><code>
+void SkipList&lt;Key,Comparator&gt;::Insert(const Key&amp; key) {
+
+  int height = RandomHeight();
+  if (height &gt; GetMaxHeight()) {
+    对新的高度, prev[i] = head_;
+  }
+}
+</code></pre>
+
+<h2 id="toc_8">3. WriteBatch</h2>
+
+<p>根据 WriteBatch::Put() 以及 WriteBatch 的ctor</p>
+
+<p>rep_:</p>
+
+<pre><code>  seq     cnt  type len+key  len+value
+|--------|---|-----|--------|----------|
+    8B    4B  \----------v------------/
+                      一条记录
+cnt为记录的个数
+
+根据 WriteBatch::Iterate
+type为: kTypeValue 或 kTypeDeletion                      
+</code></pre>
+
+<h2 id="toc_9">4. get</h2>
+
+<p>see LookupKey ctor</p>
+
+<pre><code>                   internal key
+           -------------v--------------
+          /                            \
+|usize + 8| user_key  | seq(7B) type(1B)|
+^         ^                             ^
+start_   kstart_                       end_
+
+\-------------------v------------------/
+               memtable_key
+</code></pre>
+
+<h2 id="toc_10">5. ldb, sst格式</h2>
+
+<p>doc/table_format.md</p>
+
+<p>footer(参考Table::Open):</p>
+
+<pre><code>      metaindex     index
+|off(8B)|size(8B)|off|size|--------  |magic(8B)|
+  kEncodedLength
+</code></pre>
+
+<p>size不包括 kBlockTrailerSize,</p>
+
+<p>kBlockTrailerSize:
+// 1-byte type + 32-bit crc<br>
+type:kNoCompression 或 kSnappyCompression</p>
+
+<p>metaindex 用来告知每段meta block的起始位置和长度.<br>
+index 用来告知每段data block的起始位置和长度.</p>
+
+<p>block:</p>
+
+<pre><code>          /-----NumRestarts个-------\
+|        |restart|restart|...|restart|NumRestarts| kBlockTrailerSize |
+         ^
+    restart_offset_
+\--------------------size (handle给出)-----------/    
+</code></pre>
+
+<ol>
+<li>读foot  file-&gt;Read()<br></li>
+<li>读index   ReadBlock(,,index_handle,)<br></li>
+<li>读meta   ReadMeta<br></li>
+<li>得到 Filter<br></li>
+</ol>
+
+<pre><code>// An entry for a particular key-value pair has the form:
+//     shared_bytes: varint32
+//     unshared_bytes: varint32
+//     value_length: varint32
+//     key_delta: char[unshared_bytes]
+//     value: char[value_length]
+// shared_bytes == 0 for restart points.
+</code></pre>
+
+<pre><code>Table::ReadMeta() {
+ if (rep_-&gt;options.filter_policy == nullptr) {
+   return;  // Do not need any metadata
+ }
+}
+</code></pre>
+
+<pre><code>Table::ReadMeta
+|--Block* meta = new Block(contents);
+|--std::string key = &quot;filter.&quot;;
+|--key.append(rep_-&gt;options.filter_policy-&gt;Name());
+|--iter-&gt;Seek(key)
+|--ReadFilter(iter-&gt;value()) //参数是 BlockHandle
+|       |--ReadBlock()  // 读出 filter
+|       |--FilterBlockReader //用来读取 filter block
+</code></pre>
+
+<p>filter block: see FilterBlockReader()</p>
+
+<pre><code>          /-- num_*4个--\
+|........ |.............|offset array(4B)|base_lg_(1B)|
+^         ^
+data_     offset_
+</code></pre>
+
+<pre><code>The filter block is formatted as follows:
+
+    [filter 0]
+    [filter 1]
+    [filter 2]
+    ...
+    [filter N-1]
+
+    [offset of filter 0]                  : 4 bytes
+    [offset of filter 1]                  : 4 bytes
+    [offset of filter 2]                  : 4 bytes
+    ...
+    [offset of filter N-1]                : 4 bytes
+
+    [offset of beginning of offset array] : 4 bytes
+    lg(base)                              : 1 byte
+</code></pre>
+
+<h2 id="toc_11">6. BlockBuilder</h2>
+
+<p>see BlockBuilder::Add()</p>
+
+<pre><code>&lt;shared&gt;&lt;non_shared&gt;&lt;value_size&gt;&lt;key中non_shared的那部分&gt;&lt;value&gt;
+</code></pre>
+
+<h2 id="toc_12">7. 杂</h2>
+
+<h3 id="toc_13">7.1 个人标记方法</h3>
+
+<p><code>^</code> 表示读出
+<code>\---v---/</code> 表示圈定的范围</p>
+
+<pre><code>static Slice GetLengthPrefixedSlice(const char* data) {
+  uint32_t len;
+  const char* p = data;
+  /*
+  开头给出长度,
+   len
+    ^
+  |---|--------------|
+       \------v-----/
+             len
+  */
+  p = GetVarint32Ptr(p, p + 5, &amp;len);  // +5: we assume &quot;p&quot; is not corrupted
+  return Slice(p, len);
+}
+</code></pre>
+
+<p>所以, 上面表示, 开头内容为len, 随后是长度为len的数据.</p>
+
+<h3 id="toc_14">7.2 tag</h3>
+
+<p>leveldb/db/version_set.cc:</p>
+
+<pre><code>VersionSet::Recover()
+{
+  reader.ReadRecord(&amp;record, &amp;scratch);
+  VersionEdit edit;
+  edit.DecodeFrom(record)
+}
+</code></pre>
+
+<pre><code>Status VersionEdit::DecodeFrom(..)
+{
+
+  /*
+  MANIFEST文件 record的数据是:
+
+  |------|------|-----|
+   header  tags
+  */
+  while (msg == nullptr &amp;&amp; GetVarint32(&amp;input, &amp;tag)) {
+    switch (tag) {
+      case kComparator: ...
+      case kLogNumber: ...
+      case kPrevLogNumber: ...
+      ...
+  }
+}
+</code></pre>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/database/leveldb_03_data_format>https://awakening-fong.github.io/posts/database/leveldb_03_data_format</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#database-ref">database <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#database-ref">database <span>6</span></a>
+      </li>
+      <li>
+        <a href="/tags#leveldb-ref">leveldb <span>5</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/database/leveldb_02_snapshot" title="LevelDB 02: snapshot">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/database/leveldb_04_compact" title="LevelDB 04: Compact">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+    
+  </body>
+</html>
