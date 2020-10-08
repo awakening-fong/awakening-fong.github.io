@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2019-10-09</pubDate>
+    <pubDate>2020-10-08</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -42,6 +42,15 @@
       <title>Archive</title>
       <link>https://awakening-fong.github.io/archive</link>
       <description>
+  &lt;h2&gt;2020&lt;/h2&gt;
+    &lt;h3&gt;October&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2020-10-06&lt;/span&gt; &amp;raquo; &lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;h3&gt;July&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2020-07-12&lt;/span&gt; &amp;raquo; &lt;a href="/posts/lang/stl_trap"&gt;C++ STL &#x7684;&#x4E00;&#x4E9B;trap(&#x5F85;&#x66F4;&#x65B0;)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2019&lt;/h2&gt;
     &lt;h3&gt;September&lt;/h3&gt;
     &lt;ul&gt;
@@ -92,29 +101,29 @@
       &lt;li&gt;&lt;span&gt;2017-02-25&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/fixup_exception"&gt;fixup_exception&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-24&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/thread_start_sp"&gt;&#x5173;&#x4E8E;THREAD_START_SP&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-23&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/optimize"&gt;&#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/hw/iic"&gt;IIC&#x76F8;&#x5173;&#x5185;&#x5BB9;&#x7684;&#x8BB0;&#x5FC6;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_00_references"&gt;page reclaim 00:&#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_02_implement"&gt;page reclaim 02:&#x5B9E;&#x73B0;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_03_activity"&gt;page reclaim 03:&#x6D3B;&#x8DC3;&#x5EA6;&#x7684;&#x8868;&#x793A;&#x548C;&#x72B6;&#x6001;&#x8F6C;&#x6362;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_04_parameter"&gt;page reclaim 04:&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_06_arm_l_pte_young"&gt;page reclaim 06:ARM&#x548C;L_PTE_YOUNG&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_05_page_count"&gt;page reclaim 05:page count&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-02-07&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/reclaim_01_overview"&gt;page reclaim 01:&#x6982;&#x8FF0;&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
     &lt;h3&gt;January&lt;/h3&gt;
     &lt;ul&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_01"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;01&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_map_io"&gt;&#x5173;&#x4E8E;arm linux&#x7684;map_io&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_qemu_02"&gt;qemu&#x89C2;&#x5BDF;arm linux&#x542F;&#x52A8;&#x8FC7;&#x7A0B;02&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_smp_rwlock"&gt;arm linux&#x591A;&#x6838;&#x540C;&#x65F6;&#x83B7;&#x53D6;&#x8BFB;&#x5199;&#x9501;, &#x4F1A;&#x6B7B;&#x5FAA;&#x73AF;&#x5417;, &#x8FD8;&#x662F;&#x90FD;&#x5F97;&#x5230;&#x5199;&#x9501;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_int_pt_regs"&gt;arm linux&#x4E2D;&#x65AD;&#x5904;&#x7406;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BC4;&#x5B58;&#x5668;&#x7684;&#x4FDD;&#x5B58;&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/interrupt_softirq_in_arm"&gt;&#x4E2D;&#x65AD;, softirq, tasklet&#x7684;&#x533A;&#x522B;&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_create_mapping_page_table"&gt;&#x4ECE;create_mapping()&#x770B;arm linux&#x7684;&#x9875;&#x8868;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_iounmap_master_table"&gt;arm linux&#x7684;iounmap()&#x5982;&#x4F55;&#x5904;&#x7406;&#x4E3B;&#x9875;&#x8868;(master page table)&#x7684;&#x540C;&#x6B65;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2017-01-18&lt;/span&gt; &amp;raquo; &lt;a href="/posts/arm/arm_asid"&gt;arm linux&#x7684;ASID (Address Space ID)&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_frozen"&gt;SLUB 02:frozen&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_partial"&gt;SLUB 03:partial&#x548C;cpu partial&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;span&gt;2017-01-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/mm/slub_tid"&gt;SLUB 04:tid&lt;/a&gt;&lt;/li&gt;
@@ -158,7 +167,7 @@
     &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#distributed system-ref"&gt;distributed system &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#distributed system-ref"&gt;distributed system &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
@@ -168,6 +177,9 @@
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#I/O-ref"&gt;I/O &lt;span&gt;9&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/categories#lang-ref"&gt;lang &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406; &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
@@ -216,6 +228,7 @@
     &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="distributed system-ref"&gt;distributed system&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="file system-ref"&gt;file system&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
@@ -232,6 +245,8 @@
     &lt;li&gt;&lt;a href="/posts/io/set_buffer_new"&gt;set_buffer_new&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="lang-ref"&gt;lang&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/lang/stl_trap"&gt;C++ STL &#x7684;&#x4E00;&#x4E9B;trap(&#x5F85;&#x66F4;&#x65B0;)&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="&#x5185;&#x5B58;&#x7BA1;&#x7406;-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406;&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/fixup_exception"&gt;fixup_exception&lt;/a&gt;&lt;/li&gt;
@@ -270,6 +285,51 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt; &lt;span class="date"&gt;2020-10-06&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;&#x4EE5;&#x4E0B;&#x5185;&#x5BB9;&#x672A;&#x7ECF;&#x8FC7;&#x6E90;&#x7801;&#x67E5;&#x9A8C;. &#x5982;&#x6709;&#x9519;&#x8BEF;, &#x6B22;&#x8FCE;&#x6307;&#x51FA;.&lt;/p&gt;
+
+&lt;p&gt;&#x4E00;&#x5757;1G&#x7684;&#x78C1;&#x76D8;, &#x8981;&#x5148;&#x5212;&#x5B9A;&#x7528;&#x6765;&#x5B58;&#x50A8; &#x5FEB;&#x7167;&#x7684;&#x533A;&#x57DF;, &#x8FD9;&#x6837;, &#x5B9E;&#x9645;&#x6700;&#x5927;&#x5BFB;&#x5740;&#x7684; &#x5C31;&#x4E0D;&#x662F;1G, &#x6BD4;&#x5982;&#x8BF4;, &#x53EA;&#x6709;800MB, &#x662F;&#x8FD9;&#x6837;&#x5417;?&lt;br&gt;
+&#x7B54;: &#x4E0D;&#x662F;&#x8FD9;&#x6837;&#x7684;, &#x800C;&#x662F;&#x5C31;&#x6CA1;&#x6709;&#x76F4;&#x63A5;&#x5BFB;&#x5740;&#x7684;. &#x8BFB;&#x53D6;&#x90FD;&#x9700;&#x8981;&#x67E5;&#x8BE2;&#x6620;&#x5C04;&#x8868;. &#x6362;&#x53E5;&#x8BDD;&#x8BF4;, &#x6574;&#x5757;&#x78C1;&#x76D8;&#x90FD;&#x7528;&#x6765;&#x5B58;&#x653E;&#x5FEB;&#x7167;.&lt;/p&gt;
+
+&lt;p&gt;&#x5FEB;&#x7167;&#x662F;&#x5B58;&#x653E;&#x5728;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x4E0A;, &#x8FD8;&#x662F; &#x6CA1;&#x6709;&#x5757;&#x8BBE;&#x5907;&#x4E0A;, &#x5212;&#x4E00;&#x5757;&#x533A;&#x57DF; &#x5B58;&#x5FEB;&#x7167;?&lt;br&gt;
+&#x7B54;: &#x4E0D;&#x662F;&#x5B58;&#x653E;&#x5728;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x4E0A;.&lt;/p&gt;
+
+&lt;p&gt;live data&#x662F;&#x5199;&#x5230; &#x5B9E;&#x9645;&#x78C1;&#x76D8;&#x4F4D;&#x7F6E;&#x4E0A;(&#x4E0D;&#x9700;&#x8981;&#x6620;&#x5C04;), &#x5BF9;&#x5417;?&lt;br&gt;
+&#x7B54;: &#x597D;&#x50CF;&#x4E0D;&#x662F;.&lt;/p&gt;
+
+&lt;p&gt;backup &#x8FD8;&#x662F; &#x8DDF; &#x5FEB;&#x7167;&#x5B58;&#x653E;&#x5728;&#x540C;&#x4E00;&#x5757;&#x78C1;&#x76D8;&#x4E0A;&#x5417;?&lt;br&gt;
+&#x7B54;: &#x4E0D;&#x662F;&#x7684;.
+&#x5FEB;&#x7167;&#x5411;&#x4E0A;&#x5C42; &#x5C55;&#x793A;&#x4E86; &#x7EBF;&#x6027;&#x7684;&#x78C1;&#x76D8;, &#x800C;&#x5176;&#x5B9E;&#x73B0;&#x662F; &#x6620;&#x5C04;&#x8868;.
+backup&#x662F;&#x5BF9; &#x5FEB;&#x7167;&#x7684;&#x6574;&#x5408;, &#x82E5;&#x653E;&#x5728;&#x540C;&#x4E00;&#x4E2A;&#x78C1;&#x76D8;&#x4E0A;, &#x5219;&#x4F1A;&#x5E72;&#x6270; &#x6620;&#x5C04;&#x5173;&#x7CFB;.&lt;/p&gt;
+
+&lt;p&gt;&#x5FEB;&#x7167;&#x81EA;&#x8EAB;&#x662F;&#x9700;&#x8981;&#x5B58;&#x50A8; &#x5730;&#x5740;&#x7684;, &#x5426;&#x5219;&#x65E0;&#x6CD5;&#x901A;&#x8FC7; &#x5FEB;&#x7167;&#x6765;&#x6784;&#x5EFA; backup.
+backup&#x5C55;&#x793A;&#x7684;&#x662F; &#x7EBF;&#x6027;&#x7684;&#x7A7A;&#x95F4;, &#x8FD8;&#x662F;&#x9700;&#x8981;&#x6620;&#x5C04;? &#x6216;&#x8005;&#x8BF4;, backup&#x662F;&#x5426;&#x9700;&#x8981;&#x5B58;&#x50A8; &#x5757;&#x7684;&#x5730;&#x5740;(&#x8D77;&#x59CB;&#x5730;&#x5740;)?&lt;br&gt;
+&#x7B54;:  &#x6587;&#x6863;&#x63D0;&#x5230; backup&#x6BCF;&#x5757;&#x662F;2M, &#x7531;&#x6B64;&#x53EF;&#x731C;&#x60F3;, 
+backup&#x7684;&#x7EC4;&#x7EC7;&#x5F62;&#x5F0F; &#x5730;&#x5740;&#x662F;&#x9012;&#x589E;&#x7684;, &#x4F46;&#x5730;&#x5740;&#x53EF;&#x4EE5;&#x4E0D;&#x8FDE;&#x8D2F;, &#x4E5F;&#x5C31;&#x662F;&#x5141;&#x8BB8; 2M&#x7684;&#x5757; &#x4E4B;&#x95F4;&#x6709; &#x65AD;&#x5F00;. &#x6240;&#x4EE5;, &#x9700;&#x8981;&#x5B58;&#x50A8;&#x5757;&#x7684;&#x8D77;&#x59CB;&#x5730;&#x5740;.
+disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#x59CB;&#x5730;&#x5740;&#x7684;, &#x56E0;&#x4E3A;&#x662F;volume.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/distributed_system/longhorn_snapshot_qa" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/lang/stl_trap"&gt;C++ STL &#x7684;&#x4E00;&#x4E9B;trap(&#x5F85;&#x66F4;&#x65B0;)&lt;/a&gt; &lt;span class="date"&gt;2020-07-12&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary"&gt;
+&lt;h2 id="toc_0"&gt;&#x904D;&#x5386;&#x8FC7;&#x7A0B;&#x4E2D;&#x5220;&#x9664;&#x8282;&#x70B9;, it=your_stl.erase(it) &#x5C31;&#x53EF;&#x4EE5;&#x5417;?&lt;/h2&gt;
+
+&lt;p&gt;&#x7B54;: &#x8003;&#x8651;map&#x7684;&#x60C5;&#x666F;, &#x7531;&#x4E8E;&#x5220;&#x9664;&#x540E;, &#x4F1A;&#x505A;&#x5E73;&#x8861;&#x52A8;&#x4F5C;, &#x5BFC;&#x81F4;&#x7EE7;&#x7EED;&#x5F80;&#x4E0B;&#x904D;&#x5386;, &#x5B58;&#x5728; &#x6CA1;&#x6709;&#x5B8C;&#x6574;&#x904D;&#x5386;&#x7684;&#x60C5;&#x51B5;.
+&#x6240;&#x4EE5;, &#x9700;&#x8981;&#x5148;&#x5C06;&#x8981;&#x5220;&#x9664;&#x7684;&#x653E;&#x5165;&#x4E34;&#x65F6;list, &#x5F85;&#x904D;&#x5386;&#x5B8C;&#x6210;&#x540E;, &#x5728;&#x7EDF;&#x4E00;&#x5220;&#x9664;list&#x4E0A;&#x7684;&#x8282;&#x70B9;.&lt;/p&gt;
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/lang/stl_trap" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
   &lt;h3 class="title"&gt;&lt;a href="/posts/database/leveldb_05_perf_latency"&gt;LevelDB 05: &#x6027;&#x80FD;&lt;/a&gt; &lt;span class="date"&gt;2019-09-13&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
@@ -369,71 +429,6 @@
     &lt;a href="/posts/database/leveldb_03_data_format" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/database/leveldb_02_snapshot"&gt;LevelDB 02: snapshot&lt;/a&gt; &lt;span class="date"&gt;2019-09-10&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x76EE;&#x5F55;:
-&lt;/p&gt;
-&lt;li&gt; &lt;a href="#toc_0"&gt; 1. LogAndApply, &#x4EE5;DBImpl::CompactMemTable()&#x4E3A;&#x4F8B;&#x8FDB;&#x884C;&#x8BF4;&#x660E;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_1"&gt; 1.1 &#x5199; MANIFEST&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_2"&gt; 1.2 Builder&#x4E00;&#x4E2A;&#x7528;&#x9014;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_3"&gt; 2. Get&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_4"&gt; 2.1 &#x5E8F;&#x5217;&#x53F7;&#x5728; SkipList &#x67E5;&#x627E;&#x4E2D;&#x7684;&#x4F5C;&#x7528;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_5"&gt; 2.2 leveldb&#x8BFB;&#x5199;&#x53EF;&#x4EE5;&#x540C;&#x65F6;&#x8FDB;&#x884C;&#x5417;&#xFF1F;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_6"&gt; 2.3 &#x5BF9;&#x4E8E;skiplist, &#x5728;&#x54EA;&#x4E9B;&#x5730;&#x65B9;&#x52A0;&#x9501;&#x4E86;?&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_7"&gt; 2.3 &#x6CA1;&#x6709;&#x5904;&#x7406; &#x5E8F;&#x5217;&#x53F7; &#x6EA2;&#x51FA;/&#x56DE;&#x7ED5;&#x95EE;&#x9898;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_8"&gt; 3. manifest&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_9"&gt; 3.1 &#x4E3A;&#x4F55;&#x6709;&#x591A;&#x4E2A; manifest &#x6587;&#x4EF6;?&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_10"&gt; 3.2 manifest &#x5B58;&#x50A8;&#x7684;&#x5185;&#x5BB9;&#x662F;&#x5565;:&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_11"&gt; 4. VersionEdit (&#x672A;&#x5B8C;&#x6210;)&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_12"&gt; 4.1 ctor&lt;/a&gt;  &lt;/li&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_0"&gt;1. LogAndApply, &#x4EE5;DBImpl::CompactMemTable()&#x4E3A;&#x4F8B;&#x8FDB;&#x884C;&#x8BF4;&#x660E;&lt;/h2&gt;
-
-&lt;p&gt;&#x4F7F;&#x7528;&#x573A;&#x666F;:&lt;/p&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/database/leveldb_02_snapshot" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/database/leveldb_01_data_safe"&gt;LevelDB 01: &#x6570;&#x636E;&#x5B89;&#x5168;&lt;/a&gt; &lt;span class="date"&gt;2019-09-09&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x76EE;&#x5F55;:
-&lt;/p&gt;
-&lt;li&gt; &lt;a href="#toc_0"&gt; 1. &#x539F;&#x5B50;&#x6027; Atomicity&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_1"&gt; 2. Consistency&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_2"&gt; 2.1 &#x6709;&#x6CA1;&#x6709;&#x4E8B;&#x52A1;, log&#x6CA1;&#x6709;&#x4FDD;&#x5B58;&#x65E7;&#x503C;, &#x5982;&#x4F55;&#x64A4;&#x9500;?&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_3"&gt; 2.2 (TODO)&#x57FA;&#x4E8E;leveldb, filestore &#x662F;&#x5426;&#x5B9E;&#x73B0;&#x4E86; &#x4E8B;&#x52A1;/commit&#x7B49;?&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_5"&gt; 3. log&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_6"&gt; 3.1 &#x5199;log&#x5728;&#x54EA;&#x91CC;&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_7"&gt; 4. RecoverLogFile&lt;/a&gt;  &lt;/li&gt;
-&lt;li&gt; &lt;a href="#toc_8"&gt; 5. VersionSet::Recover&lt;/a&gt;  &lt;/li&gt;
-
-&lt;hr&gt;
-
-&lt;h2 id="toc_0"&gt;1. &#x539F;&#x5B50;&#x6027; Atomicity&lt;/h2&gt;
-
-&lt;p&gt;ReadPhysicalRecord():&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;header  eof, &#x4F46;&#x8BFB;&#x5230;&#x7684;&amp;lt;kHeaderSize, &#x5219;&#x77E5;&#x9053;header&#x4E0D;&#x5B8C;&#x6574;.&lt;/li&gt;
-&lt;li&gt;header&#x5B8C;&#x6574;, &#x4F46;&#x5BF9;&#x5E94;&#x7684;payload&#x6570;&#x636E;&#x4E0D;&#x591F;.&lt;/li&gt;
-&lt;li&gt;&#x68C0;&#x67E5; checksum&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/database/leveldb_01_data_safe" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
 
 &lt;div class="pagination"&gt;
   &lt;ul&gt;
@@ -522,6 +517,12 @@
     &lt;a href="/tags#softlockup-ref"&gt;softlockup &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#storage-ref"&gt;storage &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#longhorn-ref"&gt;longhorn &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#raft-ref"&gt;raft &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
@@ -556,6 +557,9 @@
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#writeback-ref"&gt;writeback &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#C++-ref"&gt;C++ &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#COW-ref"&gt;COW &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -650,6 +654,10 @@
     &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="softlockup-ref"&gt;softlockup&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="storage-ref"&gt;storage&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="longhorn-ref"&gt;longhorn&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="raft-ref"&gt;raft&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ext2-ref"&gt;ext2&lt;/h3&gt;
@@ -676,6 +684,8 @@
   &lt;h3 id="writeback-ref"&gt;writeback&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/io/tag_towrie_livelock"&gt;tag TOWRITE to avoid livelocking?&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/io/writeback_routine"&gt;&#x56DE;&#x5199;&#x8DEF;&#x5F84;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="C++-ref"&gt;C++&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/lang/stl_trap"&gt;C++ STL &#x7684;&#x4E00;&#x4E9B;trap(&#x5F85;&#x66F4;&#x65B0;)&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="COW-ref"&gt;COW&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/mm/do_fork_cow"&gt;do_fork&#x548C;COW&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="flush_dcache_page-ref"&gt;flush_dcache_page&lt;/h3&gt;

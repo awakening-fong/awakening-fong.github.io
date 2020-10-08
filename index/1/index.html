@@ -89,6 +89,19 @@
         <h3 class="title"><a href="/archive">Archive</a> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
+  <h2>2020</h2>
+    <h3>October</h3>
+    <ul>
+      <li>
+<span>2020-10-06</span> » <a href="/posts/distributed_system/longhorn_snapshot_qa">关于 longhorn 快照的自问自答</a>
+</li>
+    </ul>
+    <h3>July</h3>
+    <ul>
+      <li>
+<span>2020-07-12</span> » <a href="/posts/lang/stl_trap">C++ STL 的一些trap(待更新)</a>
+</li>
+    </ul>
   <h2>2019</h2>
     <h3>September</h3>
     <ul>
@@ -109,25 +122,7 @@
 </li>
     </ul>
   <h2>2018</h2>
-    <h3>November</h3>
-    <ul>
-      <li>
-<span>2018-11-27</span> » <a href="/posts/tools/why_clion">推荐C++编辑器 Clion</a>
-</li>
-    </ul>
-    <h3>October</h3>
-    <ul>
-      <li>
-<span>2018-10-25</span> » <a href="/posts/fs/jbd">JBD初步</a>
-</li>
-      <li>
-<span>2018-10-24</span> » <a href="/posts/database/db_recovery_concept">数据库recovery的一些基本概念</a>
-</li>
-      <li>
-<span>2018-10-16</span> » <a href="/posts/distributed_system/raft_mit_6-824">使用lab来理解raft</a>
-</li>
-    </ul>
-</div>
+    </div>
 
         <div class="more">
           <a href="/archive" class="btn btn-small">read more..</a>
@@ -148,7 +143,7 @@
     <a href="/categories#debug-ref">debug <span>5</span></a>
   </li>
   <li>
-    <a href="/categories#distributed%20system-ref">distributed system <span>1</span></a>
+    <a href="/categories#distributed%20system-ref">distributed system <span>2</span></a>
   </li>
   <li>
     <a href="/categories#file%20system-ref">file system <span>2</span></a>
@@ -158,6 +153,9 @@
   </li>
   <li>
     <a href="/categories#I/O-ref">I/O <span>9</span></a>
+  </li>
+  <li>
+    <a href="/categories#lang-ref">lang <span>1</span></a>
   </li>
   <li>
     <a href="/categories#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-ref">内存管理 <span>4</span></a>
@@ -188,32 +186,27 @@
         <h3 class="title"><a href="/">Home</a> <span class="date"></span></h3>
 
         <div class="summary ellipsis">
-<p>目录:
-</p>
-<li> <a href="#toc_0"> 1. 避免突发大量压缩, 导致延迟过大</a>  </li>
-<li> <a href="#toc_1"> 2. seek 和 compaction</a>  </li>
-<li> <a href="#toc_2"> 2.1 量化</a>  </li>
-<li> <a href="#toc_3"> 3. BloomFilter</a>  </li>
+<p>以下内容未经过源码查验. 如有错误, 欢迎指出.</p>
 
-<hr>
+<p>一块1G的磁盘, 要先划定用来存储 快照的区域, 这样, 实际最大寻址的 就不是1G, 比如说, 只有800MB, 是这样吗?<br>
+答: 不是这样的, 而是就没有直接寻址的. 读取都需要查询映射表. 换句话说, 整块磁盘都用来存放快照.</p>
 
-<h2 id="toc_0">1. 避免突发大量压缩, 导致延迟过大</h2>
+<p>快照是存放在文件系统上, 还是 没有块设备上, 划一块区域 存快照?<br>
+答: 不是存放在文件系统上.</p>
 
-<pre><code>DBImpl::MakeRoomForWrite
-{
+<p>live data是写到 实际磁盘位置上(不需要映射), 对吗?<br>
+答: 好像不是.</p>
 
-  if (allow_delay &amp;&amp;
-    versions_-&gt;NumLevelFiles(0) &gt;= config::kL0_SlowdownWritesTrigger) {
-  // We are getting close to hitting a hard limit on the number of
-  // L0 files.  Rather than delaying a single write by several
-  // seconds when we hit the hard limit, start delaying each
-  // individual write by 1ms to reduce latency variance. 与其在达到hard limit后, 延后好几秒, 我们选择在达到soft limit后, 对每个独立的写延后1ms. Also,
-  // this delay hands over some CPU to the compaction thread in
-  // case it is sharing the same core as the writer. 这样, 也将一些cpu让给压缩线程.
-  env_-&gt;SleepForMicroseconds(1000);
+<p>backup 还是 跟 快照存放在同一块磁盘上吗?<br>
+答: 不是的.
+快照向上层 展示了 线性的磁盘, 而其实现是 映射表.
+backup是对 快照的整合, 若放在同一个磁盘上, 则会干扰 映射关系.</p>
 
-}
-</code></pre>
+<p>快照自身是需要存储 地址的, 否则无法通过 快照来构建 backup.
+backup展示的是 线性的空间, 还是需要映射? 或者说, backup是否需要存储 块的地址(起始地址)?<br>
+答:  文档提到 backup每块是2M, 由此可猜想, 
+backup的组织形式 地址是递增的, 但地址可以不连贯, 也就是允许 2M的块 之间有 断开. 所以, 需要存储块的起始地址.
+disaster recovery (DR) volume 才是不需要起始地址的, 因为是volume.</p>
 </div>
 
         <div class="more">

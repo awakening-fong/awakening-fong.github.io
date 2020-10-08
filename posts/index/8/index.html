@@ -95,38 +95,48 @@ static struct map_desc versatile_io_desc[] __initdata = {
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 
-http://blog.163.com/awaken_ing/blog/static/12061319720157611510386
-</p> 
+<p>
+来自本人的旧博客
+http://blog.163.com/awaken_ing/blog/static/120613197201571932454226
+</p>
 
-<h1 id="toc_0"><h4>1. 方法</h4></h1>
+<p>create<em>mapping会调用到alloc</em>init<em>pte(), 进而调用set</em>pte_ext()</p>
 
-<p>qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux -S -s</p>
+<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+</code></pre>
 
-<p>需要留意, 这里-kernel的参数不是/opt/qemu_arm/linux-2.6.35.7/vmlinux</p>
+<p>这里qemu模拟的versatilepb ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ</p>
 
-<pre><code>arm-none-linux-gnueabi-gdb -tui -q /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux
-Reading symbols from /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux...done.
-(gdb) target extended-remote localhost:1234
-Remote debugging using localhost:1234
-warning: Source file is more recent than executable.
-start () at arch/arm/boot/compressed/head.S:115
-(gdb) b __setup_mmu
-Breakpoint 1 at 0x200: file arch/arm/boot/compressed/head.S, line 409.
-(gdb) c
-Continuing.
-Breakpoint 1, __setup_mmu () at arch/arm/boot/compressed/head.S:409
-(gdb) i r r3 r4
-r3 0x4000 16384
-r4 0x8000 32768
+<p>所以set<em>pte</em>ext(pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
+
+<p>就是</p>
+
+<p>cpu<em>arm926</em>set<em>pte</em>ext (pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
+
+<pre><code>/*
+ * cpu_arm926_set_pte_ext(ptep, pte, ext)
+ *
+ * Set a PTE and flush it out
+ */
+    .align  5
+ENTRY(cpu_arm926_set_pte_ext)
+#ifdef CONFIG_MMU
+    armv3_set_pte_ext
+    mov r0, r0
+#ifndef CONFIG_CPU_DCACHE_WRITETHROUGH
+    mcr p15, 0, r0, c7, c10, 1      @ clean D entry
+#endif
+    mcr p15, 0, r0, c7, c10, 4      @ drain WB
+#endif
+    mov pc, lr
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_qemu_01" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -274,42 +284,53 @@ t7   |                           |t7    |bne    1b
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/interrupt_softirq_in_arm">中断, softirq, tasklet的区别</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_int_pt_regs">arm linux中断处理过程中寄存器的保存</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 中断流程</h4></h1>
+<p>
+来自本人的旧博客
+http://blog.163.com/awaken_ing/blog/static/1206131972015839465987
+</p>
 
-<p>假定 CONFIG<em>MULTI</em>IRQ<em>HANDLER=y, handle</em>arch<em>irq 为 gic</em>handle_irq.<br>
-linux-3.10.86/arch/arm/kernel/setup.c</p>
+<pre><code>模式   usr            exception                                   svc                             
+-----|----|--------------------------------|---------------------------------------------------                                                                                               
+函数                 vector_\name:                             usr_entry:                         
 
-<pre><code>__irq_svc @entry-armv.S
-|   |--svc_entry    保存spsr_&lt;exception&gt; 到r5
-|   |--irq_handler
-|   |   |--handle_arch_irq =&gt; gic_handle_irq
-|   |   |   |--irq_find_mapping  完成 an hw irq number到a linux irq的转换
-|   |   |   |--handle_IRQ(irqnr, regs) if not IPI 
-|   |   |   |       |--generic_handle_irq  -&gt; generic_handle_irq_desc -&gt; handle_fasteoi_irq
-|   |   |   |       |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--handle_irq_event
-|   |   |   |       |   |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |   |   |--handle_irq_event_percpu -&gt; action-&gt;handler
-|   |   |   |       |   |   |--raw_spin_lock(&amp;desc-&gt;lock);
-|   |   |   |       |   |--chip-&gt;irq_eoi
-|   |   |   |       |   |--raw_spin_unlock(&amp;desc-&gt;lock);
-|   |   |   |       |--irq_exit();  这里中断还是禁用的吗? 答:是的, ifndef __ARCH_IRQ_EXIT_IRQS_DISABLED
-|   |   |   |       |   |--WARN_ON_ONCE(!irqs_disabled());
-|   |   |   |       |   |--if( ... ) invoke_softirq() 
-|   |   |   |       |   |    |--do_softirq -&gt; __do_softirq
-|   |   |   |       |   |    |    |--local_irq_enable   //修改CPSR I bit, 打开中断
-|   |   |   |       |   |    |    |--h-&gt;action(h)
-|   |   |   |       |   |    |    |--local_irq_disable  //这里为何又禁止中断???
-|   |   |   |       |--set_irq_regs(old_regs)  这里开启中断? 答:不是.
-|   |--svc_exit r5, irq = 1  @entry-header.S
+
+                                                                            对应的汇编语句:                    
+                  +----------------+        0  +------------------+   ------------------------    
+           高地址 |spsr_&lt;exception&gt;|           |      r0          |      str     r1, [sp]         
+                  |                |        4  +------------------+    ----------------------     
+             ^    +----------------+           |      r1          |                               
+             |    |                |           |                  |                               
+             |    |lr_&lt;exception&gt;  |           |      .           |                               
+             |    |                |           |      .           |      stmib   sp, {r1 - r12}   
+             |    +----------------+           |      .           |                               
+                  |                |           |                  |                               
+           低地址 |      r0        |           |     r12          |                               
+                  |                |           |                  |                               
+                  +----------------+       52  +------------------+     ----------------------    
+                    struct stack               |      sp_usr      |                               
+                                               |                  |                               
+                                           56  +------------------+     stmdb   r0, {sp, lr}^     
+                                               |     lr_usr       |                               
+                                               |                  |                               
+                                           60  +------------------+      ---------------------    
+                                               |  lr_&lt;exception&gt;  |                               
+                                               |                  |                               
+                                           64  +------------------+                                
+                                               | spsr_&lt;exception&gt; |      stmia   r0, {r2 - r4}    
+                                               |                  |                               
+                                           68  +------------------+                               
+                                               |      -1          |                               
+                                               |                  |                               
+                                           72  +------------------+     -----------------------   
+                                                struct  pt_regs
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/interrupt_softirq_in_arm" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_int_pt_regs" class="btn btn-small">read more..</a>
         </div>
       </div>
     

@@ -114,6 +114,30 @@ strct page中有:</p>
 };
 </code></pre>
 
+<h1 id="toc_6"><h4>3. poll 改成 回调</h4></h1>
+
+<p>poll的写法:</p>
+
+<pre><code>check_and_run()
+{
+for each item //不管是否ready
+   if (item.check_ready())
+     do something for item
+}
+</code></pre>
+
+<p>如果 要检查的item非常多, 可能出现很多都不是ready状态, 这样, 会浪费不少时间在检查上.</p>
+
+<p>改成回调的形式:</p>
+
+<pre><code>某个时机, 添加item到ready队列中.
+run_ready_item()
+{
+for each one in ready queue
+   do something for item
+}
+</code></pre>
+
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/other/optimize>https://awakening-fong.github.io/posts/other/optimize</a>
 	  </p>
@@ -137,11 +161,11 @@ strct page中有:</p>
     <hr>
     <div class="pagination">
       <ul>
-          <li class="prev"><a href="/posts/hw/iic" title="IIC相关内容的记忆">&larr; Previous</a></li>
+          <li class="prev"><a href="/posts/arm/thread_start_sp" title="关于THREAD_START_SP">&larr; Previous</a></li>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/other/pt_regs_for_debug" title="内核中 通过 struct pt_regs 来获取  用户传递的参数">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/mm/mmap_fault" title="mmap和fault handler">Next &rarr;</a></li>
       </ul>
     </div>
 	<p>

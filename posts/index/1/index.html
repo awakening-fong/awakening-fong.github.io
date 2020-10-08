@@ -54,6 +54,51 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/distributed_system/longhorn_snapshot_qa">关于 longhorn 快照的自问自答</a> <span class="date">2020-10-06</span></h3>
+
+        <div class="summary ellipsis">
+<p>以下内容未经过源码查验. 如有错误, 欢迎指出.</p>
+
+<p>一块1G的磁盘, 要先划定用来存储 快照的区域, 这样, 实际最大寻址的 就不是1G, 比如说, 只有800MB, 是这样吗?<br>
+答: 不是这样的, 而是就没有直接寻址的. 读取都需要查询映射表. 换句话说, 整块磁盘都用来存放快照.</p>
+
+<p>快照是存放在文件系统上, 还是 没有块设备上, 划一块区域 存快照?<br>
+答: 不是存放在文件系统上.</p>
+
+<p>live data是写到 实际磁盘位置上(不需要映射), 对吗?<br>
+答: 好像不是.</p>
+
+<p>backup 还是 跟 快照存放在同一块磁盘上吗?<br>
+答: 不是的.
+快照向上层 展示了 线性的磁盘, 而其实现是 映射表.
+backup是对 快照的整合, 若放在同一个磁盘上, 则会干扰 映射关系.</p>
+
+<p>快照自身是需要存储 地址的, 否则无法通过 快照来构建 backup.
+backup展示的是 线性的空间, 还是需要映射? 或者说, backup是否需要存储 块的地址(起始地址)?<br>
+答:  文档提到 backup每块是2M, 由此可猜想, 
+backup的组织形式 地址是递增的, 但地址可以不连贯, 也就是允许 2M的块 之间有 断开. 所以, 需要存储块的起始地址.
+disaster recovery (DR) volume 才是不需要起始地址的, 因为是volume.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/distributed_system/longhorn_snapshot_qa" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/lang/stl_trap">C++ STL 的一些trap(待更新)</a> <span class="date">2020-07-12</span></h3>
+
+        <div class="summary">
+<h2 id="toc_0">遍历过程中删除节点, it=your_stl.erase(it) 就可以吗?</h2>
+
+<p>答: 考虑map的情景, 由于删除后, 会做平衡动作, 导致继续往下遍历, 存在 没有完整遍历的情况.
+所以, 需要先将要删除的放入临时list, 待遍历完成后, 在统一删除list上的节点.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/lang/stl_trap" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/database/leveldb_05_perf_latency">LevelDB 05: 性能</a> <span class="date">2019-09-13</span></h3>
 
         <div class="summary ellipsis">
@@ -151,71 +196,6 @@
 
         <div class="more">
           <a href="/posts/database/leveldb_03_data_format" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/database/leveldb_02_snapshot">LevelDB 02: snapshot</a> <span class="date">2019-09-10</span></h3>
-
-        <div class="summary ellipsis">
-<p>目录:
-</p>
-<li> <a href="#toc_0"> 1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</a>  </li>
-<li> <a href="#toc_1"> 1.1 写 MANIFEST</a>  </li>
-<li> <a href="#toc_2"> 1.2 Builder一个用途</a>  </li>
-<li> <a href="#toc_3"> 2. Get</a>  </li>
-<li> <a href="#toc_4"> 2.1 序列号在 SkipList 查找中的作用</a>  </li>
-<li> <a href="#toc_5"> 2.2 leveldb读写可以同时进行吗？</a>  </li>
-<li> <a href="#toc_6"> 2.3 对于skiplist, 在哪些地方加锁了?</a>  </li>
-<li> <a href="#toc_7"> 2.3 没有处理 序列号 溢出/回绕问题</a>  </li>
-<li> <a href="#toc_8"> 3. manifest</a>  </li>
-<li> <a href="#toc_9"> 3.1 为何有多个 manifest 文件?</a>  </li>
-<li> <a href="#toc_10"> 3.2 manifest 存储的内容是啥:</a>  </li>
-<li> <a href="#toc_11"> 4. VersionEdit (未完成)</a>  </li>
-<li> <a href="#toc_12"> 4.1 ctor</a>  </li>
-
-<hr>
-
-<h2 id="toc_0">1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</h2>
-
-<p>使用场景:</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/database/leveldb_02_snapshot" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/database/leveldb_01_data_safe">LevelDB 01: 数据安全</a> <span class="date">2019-09-09</span></h3>
-
-        <div class="summary ellipsis">
-<p>目录:
-</p>
-<li> <a href="#toc_0"> 1. 原子性 Atomicity</a>  </li>
-<li> <a href="#toc_1"> 2. Consistency</a>  </li>
-<li> <a href="#toc_2"> 2.1 有没有事务, log没有保存旧值, 如何撤销?</a>  </li>
-<li> <a href="#toc_3"> 2.2 (TODO)基于leveldb, filestore 是否实现了 事务/commit等?</a>  </li>
-<li> <a href="#toc_5"> 3. log</a>  </li>
-<li> <a href="#toc_6"> 3.1 写log在哪里</a>  </li>
-<li> <a href="#toc_7"> 4. RecoverLogFile</a>  </li>
-<li> <a href="#toc_8"> 5. VersionSet::Recover</a>  </li>
-
-<hr>
-
-<h2 id="toc_0">1. 原子性 Atomicity</h2>
-
-<p>ReadPhysicalRecord():</p>
-
-<ol>
-<li>header  eof, 但读到的&lt;kHeaderSize, 则知道header不完整.</li>
-<li>header完整, 但对应的payload数据不够.</li>
-<li>检查 checksum</li>
-</ol>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/database/leveldb_01_data_safe" class="btn btn-small">read more..</a>
         </div>
       </div>
     

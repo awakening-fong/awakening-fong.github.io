@@ -54,6 +54,72 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/distributed_system/raft_mit_6-824">使用lab来理解raft</a> <span class="date">2018-10-16</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景</h4></h1>
+
+<p>为理解raft, 参照2018年的 <a href="https://pdos.csail.mit.edu/6.824/labs/lab-raft.html">https://pdos.csail.mit.edu/6.824/labs/lab-raft.html</a> 
+进行其中的lab 2A 和 2B.</p>
+
+<h1 id="toc_1"><h4>2. 代码实现/协议细节</h4></h1>
+
+<h2 id="toc_2"><h4>2.1 文章摘录</h4></h2>
+
+<p><a href="https://thesquareplanet.com/blog/students-guide-to-raft/">https://thesquareplanet.com/blog/students-guide-to-raft/</a></p>
+
+<ul>
+<li>
+<p>you might reasonably reset a peer’s election timer whenever you receive an AppendEntries or RequestVote RPC, as both indicate that some other peer either thinks it’s the leader, or is trying to become the leader. Intuitively, this means that we shouldn’t be interfering. However, if you read Figure 2 carefully, it says:</p>
+
+<p>If election timeout elapses without receiving AppendEntries RPC <strong><em>from current leader</em></strong> or granting vote to candidate: convert to candidate. 
+​</p>
+</li>
+<li><p>many would simply reset their election timer when they received a heartbeat, and then return success, without performing any of the checks specified in Figure 2. This is extremely dangerous. By accepting the RPC, the follower is implicitly telling the leader that their log matches the leader’s log up to and including the prevLogIndex included in the AppendEntries arguments. Upon receiving the reply, the leader might then decide (incorrectly) that some entry has been replicated to a majority of servers, and start committing it.
+接收到心跳, 不能简单地返回成功, 而应该 对比leader发过来的prevLogIndex 和 自己(follower)已有的log.
+这样, 可以应对如下情况: 当某个节点网络断开, 重新加入集群时, 就能够及时地更新自身数据到最新状态.</p></li>
+</ul>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/distributed_system/raft_mit_6-824" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/rcu">RCU常见问题</a> <span class="date">2018-03-22</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 没有锁保护</h4></h1>
+
+<p>有如下结构体:</p>
+
+<pre><code>struct your_obj {
+    struct hlist_node obj_node_hlist;
+    struct rcu_head rcu_head;   
+    atomic_t refcnt;
+    int id;
+};
+</code></pre>
+
+<p>错误写法:</p>
+
+<pre><code>hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);  
+</code></pre>
+
+<p>正确写法:</p>
+
+<pre><code>spin_lock(&amp;obj_hash_lock[hash]);
+hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);
+spin_unlock(&amp;obj_hash_lock[hash]);
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/rcu" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/io/bi_end_io_occur_but_irqs_disabled">什么情况下bio-&gt;bi_end_io发生时中断是禁止的?</a> <span class="date">2018-03-11</span></h3>
 
         <div class="summary">
@@ -191,71 +257,6 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
 
         <div class="more">
           <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
-
-        <div class="summary ellipsis">
-<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
-
-<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
-
-<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
-name: block_rq_complete
-ID: 828
-format:
-    field:unsigned short common_type;   offset:0;   size:2; signed:0;
-    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
-    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
-    field:int common_pid;   offset:4;   size:4; signed:1;
-
-    field:dev_t dev;    offset:8;   size:4; signed:0;
-    field:sector_t sector;  offset:16;  size:8; signed:0;
-    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
-    field:int errors;   offset:28;  size:4; signed:1;
-    field:char rwbs[8]; offset:32;  size:8; signed:1;
-    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
-
-print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
-
-<p>drbd-8.4中有如下代码</p>
-
-<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
-{
-具体实现略
-}
-</code></pre>
-
-<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
-
-<h1 id="toc_1"><h4>2. 处理</h4></h1>
-
-<p>source insight版本4.0<br>
-option- file type option -<br>
-左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
-弹出的对话框中,<br>
-左侧选 c/c++ language, 右侧点击 properties...  </p>
-
-<p>弹出的对话框中, 
-标签页 custom parsing<br>
-打钩 Enable expressions below for parsing  </p>
-</div>
-
-        <div class="more">
-          <a href="/posts/tools/source_insight_custom_parsing" class="btn btn-small">read more..</a>
         </div>
       </div>
     

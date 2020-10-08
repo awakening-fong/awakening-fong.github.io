@@ -54,6 +54,71 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
+
+        <div class="summary ellipsis">
+<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
+
+<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
+
+<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
+name: block_rq_complete
+ID: 828
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
+
+    field:dev_t dev;    offset:8;   size:4; signed:0;
+    field:sector_t sector;  offset:16;  size:8; signed:0;
+    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
+    field:int errors;   offset:28;  size:4; signed:1;
+    field:char rwbs[8]; offset:32;  size:8; signed:1;
+    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
+
+print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
+
+<p>drbd-8.4中有如下代码</p>
+
+<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
+{
+具体实现略
+}
+</code></pre>
+
+<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
+
+<h1 id="toc_1"><h4>2. 处理</h4></h1>
+
+<p>source insight版本4.0<br>
+option- file type option -<br>
+左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
+弹出的对话框中,<br>
+左侧选 c/c++ language, 右侧点击 properties...  </p>
+
+<p>弹出的对话框中, 
+标签页 custom parsing<br>
+打钩 Enable expressions below for parsing  </p>
+</div>
+
+        <div class="more">
+          <a href="/posts/tools/source_insight_custom_parsing" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/debug/softlockup">探测softlockup的原理</a> <span class="date">2017-06-10</span></h3>
 
         <div class="summary ellipsis">
@@ -146,68 +211,6 @@ __send_signal
 
         <div class="more">
           <a href="/posts/other/signal" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
-
-<p>linux-3.10.86/arch/arm/mm/fault.c</p>
-
-<pre><code>static int __kprobes
-do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
-{
-
-    if (!user_mode(regs))
-        goto no_context;
-
-
-no_context:
-    __do_kernel_fault(mm, addr, fsr, regs);
-    return 0;
-}
-</code></pre>
-
-<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
-copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
-(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>摘自APUE:</p>
-
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
-
-<p>问题:哪里设置只读, 如何知道只读?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
         </div>
       </div>
     
