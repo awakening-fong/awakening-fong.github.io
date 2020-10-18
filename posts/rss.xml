@@ -4,17 +4,18 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2020-10-18</pubDate>
+    <pubDate>2020-10-19</pubDate>
     <item>
-      <title>&#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
+      <title>&#x6A21;&#x5F0F; 03: &#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
       <link>https://awakening-fong.github.io/posts/other/optimize_user_space</link>
       <pubDate>2020-10-17</pubDate>
       <description>&lt;h3 id="toc_0"&gt;&#x51CF;&#x5C11;&#x7CFB;&#x7EDF;&#x8C03;&#x7528;&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;buffer&lt;/li&gt;
-&lt;li&gt;&#x5408;&#x5E76;&lt;/li&gt;
-&lt;li&gt;&#x5C3D;&#x91CF;&#x4E0D;&#x8981;&#x83B7;&#x53D6;&#x65F6;&#x95F4;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&#x5408;&#x5E76;&lt;/p&gt;
+
+&lt;!-- * &#x5C3D;&#x91CF;&#x4E0D;&#x8981;&#x83B7;&#x53D6;&#x65F6;&#x95F4; --&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id="toc_1"&gt;&#x51CF;&#x5C11;&#x4E0D;&#x5FC5;&#x8981;&#x7684;&#x8FDB;&#x7A0B;&#x5524;&#x9192;/&#x5207;&#x6362;&lt;/h3&gt;
@@ -46,10 +47,10 @@
 </description>
     </item>
     <item>
-      <title>IO&#x6027;&#x80FD;&#x4F18;&#x5316;&#x7684;&#x4E00;&#x4E9B;&#x65B9;&#x6CD5;</title>
+      <title>&#x6A21;&#x5F0F; 02: IO&#x6027;&#x80FD;&#x4F18;&#x5316;&#x7684;&#x4E00;&#x4E9B;&#x65B9;&#x6CD5;</title>
       <link>https://awakening-fong.github.io/posts/other/io_perf</link>
       <pubDate>2020-10-17</pubDate>
-      <description>&lt;h2 id="toc_0"&gt;1 &#x907F;&#x514D; &#x7ED9;&#x5185;&#x5B58;&#x7BA1;&#x7406;&#x538B;&#x529B;&lt;/h2&gt;
+      <description>&lt;h2 id="toc_0"&gt;1 &#x907F;&#x514D; &#x7ED9;&#x5185;&#x5B58;&#x7BA1;&#x7406;&#x6DFB;&#x5835;&lt;/h2&gt;
 
 &lt;h3 id="toc_1"&gt;1.1 mmap&lt;/h3&gt;
 
@@ -101,7 +102,7 @@ POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
 </description>
     </item>
     <item>
-      <title>&#x7B80;&#x5316;&#x4EE3;&#x7801;&#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
+      <title>&#x6A21;&#x5F0F; 04: &#x7B80;&#x5316;&#x4EE3;&#x7801;&#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
       <link>https://awakening-fong.github.io/posts/other/trouble_less_pattern</link>
       <pubDate>2020-10-17</pubDate>
       <description>&lt;h3 id="toc_0"&gt;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
