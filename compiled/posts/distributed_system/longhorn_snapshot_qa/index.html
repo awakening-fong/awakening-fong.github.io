@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>关于 longhorn 快照的自问自答</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>关于 longhorn 快照的自问自答 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2020-10-06</strong>
+    </div>
+    <div class="content">
+      <p>以下内容未经过源码查验. 如有错误, 欢迎指出.</p>
+
+<p>一块1G的磁盘, 要先划定用来存储 快照的区域, 这样, 实际最大寻址的 就不是1G, 比如说, 只有800MB, 是这样吗?<br>
+答: 不是这样的, 而是就没有直接寻址的. 读取都需要查询映射表. 换句话说, 整块磁盘都用来存放快照.</p>
+
+<p>快照是存放在文件系统上, 还是 没有块设备上, 划一块区域 存快照?<br>
+答: 不是存放在文件系统上.</p>
+
+<p>live data是写到 实际磁盘位置上(不需要映射), 对吗?<br>
+答: 好像不是.</p>
+
+<p>backup 还是 跟 快照存放在同一块磁盘上吗?<br>
+答: 不是的.
+快照向上层 展示了 线性的磁盘, 而其实现是 映射表.
+backup是对 快照的整合, 若放在同一个磁盘上, 则会干扰 映射关系.</p>
+
+<p>快照自身是需要存储 地址的, 否则无法通过 快照来构建 backup.
+backup展示的是 线性的空间, 还是需要映射? 或者说, backup是否需要存储 块的地址(起始地址)?<br>
+答:  文档提到 backup每块是2M, 由此可猜想, 
+backup的组织形式 地址是递增的, 但地址可以不连贯, 也就是允许 2M的块 之间有 断开. 所以, 需要存储块的起始地址.
+disaster recovery (DR) volume 才是不需要起始地址的, 因为是volume.</p>
+
+<p>disaster recovery (DR) volume 不需要起始地址?<br>
+答: 如果是这样的话, 主备两端的逻辑 岂不是不能复用了?
+可以复用. 初始映射表, 都映射到 DR卷上, 后续写再修改映射表.
+也就是 映射表 的目的地  可以是 两个不同的卷.</p>
+
+<p>建立一个backup后, 第2个backup是否需要包含第1个backup?<br>
+答: 要的. 不过由于 backup是由obj组成的, 每块2MB, 所以, 可以存在共用的obj.</p>
+
+<p>各个backup 之间 是否存在 交叉/重叠的 磁盘地址区间/范围?<br>
+答: 参考上一个问题.</p>
+
+<p>问题: live 数据 和 快照的不同?<br>
+答: live 是可读写，快照是只读</p>
+
+<p>写时拷贝 (Copy-On-Write)，COW<br>
+写时重定向 (Redirect-On-Write)，ROW<br>
+问题: longhorn属于哪个?<br>
+答: longhorn是ROW的.<br>
+COW的快照卷存放的是原始数据，
+而 ROW的快照卷存放的是新数据.<br>
+ROW的写性能基本没有损耗, 但是其数据会变得非常离散, 所以其连续读写性能不如COW.<br>
+在分布式场景下，读取通常不是性能瓶颈, 数据越分散, 性能越高, ROW 的一个场景是用在分布式中.</p>
+
+<p>关于cow方式的快照<br>
+答: 更改数据时，会拷贝旧数据到快照卷，源数据会被覆盖, ，快照指针表的地址会更新, 后续的写映射到 数据卷. 快照卷是只读的.<br>
+优点：原始卷物理块连续.<br>
+缺点：降低源数据卷的写性能  </p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/distributed_system/longhorn_snapshot_qa>https://awakening-fong.github.io/posts/distributed_system/longhorn_snapshot_qa</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#distributed system-ref">distributed system <span>2</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#storage-ref">storage <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#longhorn-ref">longhorn <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/lang/stl_trap" title="C++ STL 的一些trap(待更新)">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/other/trouble_less_pattern" title="模式 04: 简化代码的一些模式(待更新)">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>
