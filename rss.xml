@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2020-10-19</pubDate>
+    <pubDate>2020-10-20</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -338,19 +338,46 @@
 &#x800C;&#x662F; &#x8981;&#x91CD;&#x590D;&#x4F7F;&#x7528;&#x4E00;&#x5757;&#x533A;&#x57DF;. 
 &#x907F;&#x514D;&#x7ED9;linxu &#x5185;&#x5B58;&#x7BA1;&#x7406;&#x9020;&#x6210;&#x538B;&#x529B;,   &#x5982;&#x679C;&#x540E;&#x7EED;&#x5927;&#x6982;&#x7387;&#x4E0D;&#x4F1A;&#x4F7F;&#x7528;&#x8FD9;&#x4E9B;&#x6587;&#x4EF6;&#x7684;&#x8BDD;, &#x6BD4;&#x5982;&#x65E5;&#x5FD7;&#x6587;&#x4EF6;.&lt;/p&gt;
 
-&lt;p&gt;&#x95EE;&#x9898;: &#x5BF9;&#x6587;&#x4EF6;mmap , munmap&#x540E;, &#x662F;&#x5426;&#x4FDD;&#x7559;page cache?&lt;br&gt;
-&#x7B54;: &lt;/p&gt;
+&lt;p&gt;&#x95EE;&#x9898;: &#x8FD9;&#x6837;&#x662F;&#x5426;&#x80FD;&#x7ED9;&#x5185;&#x6838;&#x51CF;&#x8D1F;? &#x51CF;&#x7684;&#x662F;&#x54EA;&#x65B9;&#x9762;&#x7684;&#x8D1F;&#x62C5;?&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;SYSCALL_DEFINE2(munmap...) -&amp;gt; vm_munmap -&amp;gt; do_munmap
+&lt;!--
+&#x95EE;&#x9898;: &#x5BF9;&#x6587;&#x4EF6;mmap , munmap&#x540E;, &#x662F;&#x5426;&#x4FDD;&#x7559;page cache?  
+&#x7B54;: 
+
+```
+SYSCALL_DEFINE2(munmap...) -&gt; vm_munmap -&gt; do_munmap
 |--detach_vmas_to_be_unmapped // &#x5C06;&#x865A;&#x62DF;&#x5730;&#x5740;&#x7A7A;&#x95F4;&#x91CA;&#x653E;
 |--unmap_region // &#x64CD;&#x4F5C;&#x9875;&#x8868;
 |--remove_vma_list  
-&lt;/code&gt;&lt;/pre&gt;
+```
 
-&lt;p&gt;page &#x548C; &#x6587;&#x4EF6;&#x7684;&#x6620;&#x5C04;&#x5173;&#x7CFB; &#x5728;&#x54EA;&#x91CC;?
-radix tree.&lt;/p&gt;
+page &#x548C; &#x6587;&#x4EF6;&#x7684;&#x6620;&#x5C04;&#x5173;&#x7CFB; &#x5728;&#x54EA;&#x91CC;?
+radix tree.
 
-&lt;p&gt;&lt;code&gt;add_to_page_cache_locked(, struct address_space *mapping, )&lt;/code&gt;&lt;/p&gt;
+`add_to_page_cache_locked(, struct address_space *mapping, )`
+
+
+&#x641C;&#x7D22; `delete_from_page_cache` &#x548C;  `__delete_from_page_cache`
+
+```
+__remove_mapping -&gt; __delete_from_page_cache
+
+remove_mapping -&gt; __remove_mapping
+shrink_page_list -&gt; __remove_mapping &#x5185;&#x5B58;&#x56DE;&#x6536;
+```
+
+&#x770B;&#x4E0B;&#x6765;, &#x6CA1;&#x6709;&#x7406;&#x7531; munmap &#x4F1A;&#x6539;&#x52A8; page cache.
+--&gt;
+
+&lt;h3 id="toc_2"&gt;1.2 other&lt;/h3&gt;
+
+&lt;p&gt;&#x5982;&#x679C; &#x6570;&#x636E; &#x4EC5;&#x4F7F;&#x7528;&#x4E00;&#x6B21;&#x7684;&#x8BDD;.
+POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;2 &#x5199; &#x5206;&#x79BB;&lt;/h2&gt;
+
+&lt;p&gt;*&#x65E5;&#x5FD7;&#x76D8; &#x548C; &#x6570;&#x636E;&#x76D8; &#x5206;&#x79BB;
+ *&#x987A;&#x5E8F;&#x5199; &#x548C; &#x968F;&#x673A;&#x8BFB;&#x5199; &#x5206;&#x79BB;&lt;/p&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;

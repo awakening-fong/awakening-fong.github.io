@@ -70,29 +70,36 @@
 而是 要重复使用一块区域. 
 避免给linxu 内存管理造成压力,   如果后续大概率不会使用这些文件的话, 比如日志文件.</p>
 
-<p>问题: 对文件mmap , munmap后, 是否保留page cache?<br>
-答: </p>
+<p>问题: 这样是否能给内核减负? 减的是哪方面的负担?</p>
 
-<pre><code>SYSCALL_DEFINE2(munmap...) -&gt; vm_munmap -&gt; do_munmap
+<!--
+问题: 对文件mmap , munmap后, 是否保留page cache?  
+答: 
+
+```
+SYSCALL_DEFINE2(munmap...) -> vm_munmap -> do_munmap
 |--detach_vmas_to_be_unmapped // 将虚拟地址空间释放
 |--unmap_region // 操作页表
 |--remove_vma_list  
-</code></pre>
+```
 
-<p>page 和 文件的映射关系 在哪里?
-radix tree.</p>
+page 和 文件的映射关系 在哪里?
+radix tree.
 
-<p><code>add_to_page_cache_locked(, struct address_space *mapping, )</code></p>
+`add_to_page_cache_locked(, struct address_space *mapping, )`
 
-<p>搜索 <code>delete_from_page_cache</code> 和  <code>__delete_from_page_cache</code></p>
 
-<pre><code>__remove_mapping -&gt; __delete_from_page_cache
+搜索 `delete_from_page_cache` 和  `__delete_from_page_cache`
 
-remove_mapping -&gt; __remove_mapping
-shrink_page_list -&gt; __remove_mapping 内存回收
-</code></pre>
+```
+__remove_mapping -> __delete_from_page_cache
 
-<p>看下来, 没有理由 munmap 会改动 page cache.</p>
+remove_mapping -> __remove_mapping
+shrink_page_list -> __remove_mapping 内存回收
+```
+
+看下来, 没有理由 munmap 会改动 page cache.
+-->
 
 <h3 id="toc_2">1.2 other</h3>
 

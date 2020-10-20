@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>qemu观察arm linux启动过程02</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>qemu观察arm linux启动过程02 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-01-18</strong>
+    </div>
+    <div class="content">
+      <p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157119242210
+</p>
+
+<h1 id="toc_0"><h4>1. _<em>create</em>page_tables</h4></h1>
+
+<pre><code>pgtbl r4 @ page table address
+</code></pre>
+
+<p>其中pgtbl为宏</p>
+
+<pre><code>.macro pgtbl, rd
+ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
+.endm
+</code></pre>
+
+<p>这里KERNEL<em>RAM</em>PADDR和zreladdr的值相等.</p>
+
+<h1 id="toc_1"><h4>1.1 identity mapping</h4></h1>
+
+<pre><code>/*
+* Create identity mapping for first MB of kernel to
+* cater for the MMU enable. This identity mapping
+* will be removed by paging_init(). We use our current program
+* counter to determine corresponding section base address.
+*/
+mov r6, pc
+mov r6, r6, lsr #20 @ start of kernel section
+orr r3, r7, r6, lsl #20 @ flags + kernel base
+str r3, [r4, r6, lsl #2] @ identity mapping
+@ 和arch\arm\boot\compressed\head.S类似
+@ r3内容:
+@ 31       20       19                 0  
+@  PC高12bit       __cpu_mm_mmu_flags
+@存放的地址:
+@   31          14           13            2                1 0  
+@  页表基址(0x4000)         页表index(pc高12bit)              00  
+</code></pre>
+
+<p>这里建立的和This identity mapping 和arch/arm/boot/compressed/head.S类似.</p>
+
+<p>因为.init段大小小于1M，所以只创建一个section entry, 就可以容纳下.</p>
+
+<p>问题:为何这里要创建一个页表?</p>
+
+<p>答:因为后面要开mmu, 这些没有被映射过的应该就没法访问. 让我们试下不建立这个页表的效果:</p>
+
+<pre><code>[root@localhost qemu_arm]#  arm-none-linux-gnueabi-gdb -q 
+(gdb) b *0x8000
+Breakpoint 1 at 0x8000
+(gdb) target extended-remote localhost:1234
+Remote debugging using localhost:1234
+0x00000000 in ?? ()
+
+(gdb) add-symbol-file linux-2.6.35.7/vmlinux 0xc0027000  -s .init 0x8000
+add symbol table from file &quot;linux-2.6.35.7/vmlinux&quot; at
+    .text_addr = 0xc0027000
+    .init_addr = 0x8000
+(y or n) y
+Reading symbols from /opt/qemu_arm/linux-2.6.35.7/vmlinux...done.
+(gdb) b __create_page_tables
+Breakpoint 2 at 0x8078
+
+(gdb) c
+Continuing.
+
+Breakpoint 1, 0x00008000 in stext ()
+(gdb) c
+Continuing.
+
+Breakpoint 2, 0x00008078 in __create_page_tables ()
+(gdb) disass  $pc
+Dump of assembler code for function __create_page_tables:
+=&gt; 0x00008078 &lt;+0&gt;: mov r4, #16384  ; 0x4000
+   0x0000807c &lt;+4&gt;: mov r0, r4
+   0x00008080 &lt;+8&gt;: mov r3, #0
+   0x00008084 &lt;+12&gt;:    add r6, r0, #16384  ; 0x4000
+   0x00008088 &lt;+16&gt;:    str r3, [r0], #4
+   0x0000808c &lt;+20&gt;:    str r3, [r0], #4
+   0x00008090 &lt;+24&gt;:    str r3, [r0], #4
+   0x00008094 &lt;+28&gt;:    str r3, [r0], #4
+   0x00008098 &lt;+32&gt;:    teq r0, r6
+   0x0000809c &lt;+36&gt;:    bne 0x8088 &lt;__create_page_tables+16&gt;
+   0x000080a0 &lt;+40&gt;:    ldr r7, [r10, #8]
+   0x000080a4 &lt;+44&gt;:    mov r6, pc
+   0x000080a8 &lt;+48&gt;:    lsr r6, r6, #20
+   0x000080ac &lt;+52&gt;:    orr r3, r7, r6, lsl #20
+   0x000080b0 &lt;+56&gt;:    str r3, [r4, r6, lsl #2]
+   0x000080b4 &lt;+60&gt;:    add r0, r4, #12288  ; 0x3000
+   0x000080b8 &lt;+64&gt;:    str r3, [r0]!
+   0x000080bc &lt;+68&gt;:    ldr r6, [pc, #88]   ; 0x811c
+   0x000080c0 &lt;+72&gt;:    add r0, r0, #4
+   0x000080c4 &lt;+76&gt;:    add r6, r4, r6, lsr #18
+---Type  to continue, or q  to quit---q
+Quit
+
+(gdb) c
+Continuing.
+
+Breakpoint 3, 0x000080b0 in __create_page_tables ()
+(gdb) i r r3 r4 r6 pc
+r3             0xc1e    3102
+r4             0x4000   16384
+r6             0x0  0
+pc             0x80b0   0x80b0 &lt;__create_page_tables+56&gt;
+</code></pre>
+
+<p>所以, 等效于set *0x4000=0xc1e</p>
+
+<pre><code>(gdb) b __turn_mmu_on
+Breakpoint 4 at 0x8060
+(gdb) c
+Continuing.
+
+Breakpoint 4, 0x00008060 in __turn_mmu_on ()
+(gdb) p /x *0x4000   前面建立的页表项
+$2 = 0xc1e
+(gdb) set *0x4000=0x0    这里修改页表项
+(gdb) p /x *0x4000   确认修改
+$3 = 0x0
+(gdb) b __mmap_switched
+Breakpoint 5 at 0x8148
+(gdb) c
+Continuing.
+Remote connection closed
+(gdb)
+
+
+
+[root@localhost qemu_arm]# sh debug_boot.sh 
+Uncompressing Linux... done, booting the kernel.
+qemu: fatal: Trying to execute code outside RAM or ROM at 0xffff000c
+
+R00=00093177 R01=00000183 R02=00000100 R03=1f0f1c12
+R04=00004000 R05=0000001f R06=00003135 R07=00000c12
+R08=00021bec R09=41069265 R10=00021bb8 R11=00000000
+R12=005c6b7c R13=00000000 R14=0000806c R15=ffff000c
+PSR=400001d7 -Z-- A abt32
+s00=00000000 s01=00000000 d00=0000000000000000
+s02=00000000 s03=00000000 d01=0000000000000000
+s04=00000000 s05=00000000 d02=0000000000000000
+s06=00000000 s07=00000000 d03=0000000000000000
+s08=00000000 s09=00000000 d04=0000000000000000
+s10=00000000 s11=00000000 d05=0000000000000000
+s12=00000000 s13=00000000 d06=0000000000000000
+s14=00000000 s15=00000000 d07=0000000000000000
+s16=00000000 s17=00000000 d08=0000000000000000
+s18=00000000 s19=00000000 d09=0000000000000000
+s20=00000000 s21=00000000 d10=0000000000000000
+s22=00000000 s23=00000000 d11=0000000000000000
+s24=00000000 s25=00000000 d12=0000000000000000
+s26=00000000 s27=00000000 d13=0000000000000000
+s28=00000000 s29=00000000 d14=0000000000000000
+s30=00000000 s31=00000000 d15=0000000000000000
+FPSCR: 00000000
+debug_boot.sh: line 6: 27036 Aborted                 qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/zImage -nographic -S -s
+</code></pre>
+
+<h1 id="toc_2"><h4>1.2 将内核映射到以0xC0008000为起始地址的虚拟地址</h4></h1>
+
+<pre><code>/*
+* Now setup the pagetables for our kernel direct
+* mapped region.
+*/
+add r0, r4, #(KERNEL_START &amp; 0xff000000) &gt;&gt; 18
+str r3, [r0, #(KERNEL_START &amp; 0x00f00000) &gt;&gt; 18]!
+ldr r6, =(KERNEL_END - 1)
+add r0, r0, #4
+add r6, r4, r6, lsr #18
+1: cmp r0, r6
+add r3, r3, #1 &lt;&lt; 20
+strls r3, [r0], #4
+bls 1b
+@KERNEL_START为0xc000 8000
+@ #(KERNEL_START &amp; 0xff000000) &gt;&gt; 18 为0x3000
+@#(KERNEL_START &amp; 0x00f00000) &gt;&gt; 18 为 0
+@ 项存放到哪个物理地址去呢:
+@   31..14                 13..2                1 0  
+@  页表基址(0x4000)       页表index(pc高12bit)    00
+</code></pre>
+
+<p>问题:这里创建的不是identity mappings, 如何看出来?</p>
+
+<p>答:因为#(KERNEL_START &amp; 0xff000000)是虚拟地址, 超过了物理内存</p>
+
+<p>问题:为何 #(KERNEL_START &amp; 0x00f00000) &gt;&gt; 18 ?</p>
+
+<p>答:是因为add和str指令的机器码的格式, 能够表示的立即数范围受限.<br>
+add的 格式: </p>
+
+<pre><code>ADD &lt;suffix&gt; &lt;dest&gt;, &lt;op 1&gt;, &lt;op 2&gt; 
+</code></pre>
+
+<!---
+31 - 28   | 27 | 26 | 25 | 24 - 21 | 20 | 19 - 16 | 15 - 12 | 11 - 0
+----------|----|----|----|---------|----|---------|---------|----------
+condition | 0  | 0  | I  | 0 1 0 0 | S  |   op_1  | dest    | op_2/shift
+--->
+
+<table class="table table-bordered table-striped table-condensed"><thead>
+<tr>
+<th>31 - 28</th>
+<th>27</th>
+<th>26</th>
+<th>25</th>
+<th>24 - 21</th>
+<th>20</th>
+<th>19 - 16</th>
+<th>15 - 12</th>
+<th>11 - 0</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>condition</td>
+<td>0</td>
+<td>0</td>
+<td>I</td>
+<td>0 1 0 0</td>
+<td>S</td>
+<td>op_1</td>
+<td>dest</td>
+<td>op_2/shift</td>
+</tr>
+</tbody></table>
+
+<h1 id="toc_3"><h4>2. 看下sp</h4></h1>
+
+<p>start<em>kernel前设置sp为init</em>thread<em>union + THREAD</em>START_SP</p>
+
+<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
+</code></pre>
+
+<p>linux-2.6.35.7\arch\arm\kernel\init_task.c</p>
+
+<pre><code>union thread_union init_thread_union __init_task_data =
+{ INIT_THREAD_INFO(init_task) };
+
+/* Attach to the init_task data structure for proper alignment */
+#define __init_task_data __attribute__((__section__(&quot;.data..init_task&quot;)))
+</code></pre>
+
+<p>arch/arm/kernel/vmlinux.lds.S中</p>
+
+<pre><code>. = ALIGN(THREAD_SIZE);
+__data_loc = .;
+
+.data : AT(__data_loc) {
+    _data = .;      /* address in memory */
+    _sdata = .;
+
+    /*
+     * first, the init task union, aligned
+     * to an 8192 byte boundary.
+     */
+    INIT_TASK_DATA(THREAD_SIZE)
+</code></pre>
+
+<p>其中</p>
+
+<pre><code>#define INIT_TASK_DATA(align)                       \
+    . = ALIGN(align);                       \
+    *(.data..init_task)
+</code></pre>
+
+<p>问题:为何要用联合体union thread<em>union ?
+答:由于栈是向低地址生长, thread</em>info是向高地址生长, 这样就相当于共用HREAD_SIZE-8.</p>
+
+<p>再看看为何-8<br>
+减去某个数, 是因为 这样就可以使用</p>
+
+<pre><code>static inline struct thread_info *current_thread_info(void)
+{
+register unsigned long sp asm (&quot;sp&quot;);
+return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
+}
+</code></pre>
+
+<p>得到thread_info的起始地址, 所以, 要减去某个正数.
+减去8, 而不是别的, 是因为sp要8对齐, 且尽量不浪费空间. 参见[2]</p>
+
+<h1 id="toc_4"><h4>3. 相关资料</h4></h1>
+
+<p>[1] http://lli_njupt.0fees.net/ar01s08.html</p>
+
+<p>[2] <a href="http://stackoverflow.com/questions/25237607/in-arm-linux-what-is-the-purpose-of-the-few-bytes-reserved-at-the-bottom-of-k/25244273#2524427">http://stackoverflow.com/questions/25237607/in-arm-linux-what-is-the-purpose-of-the-few-bytes-reserved-at-the-bottom-of-k/25244273#2524427</a></p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/arm/arm_qemu_02>https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#ARM-ref">ARM <span>12</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#ARM-ref">ARM <span>12</span></a>
+      </li>
+      <li>
+        <a href="/tags#qemu-ref">qemu <span>2</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/mm/slub_partial" title="SLUB 03:partial和cpu partial">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/arm/arm_iounmap_master_table" title="arm linux的iounmap()如何处理主页表(master page table)的同步">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>

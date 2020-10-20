@@ -101,19 +101,46 @@
 而是 要重复使用一块区域. 
 避免给linxu 内存管理造成压力,   如果后续大概率不会使用这些文件的话, 比如日志文件.</p>
 
-<p>问题: 对文件mmap , munmap后, 是否保留page cache?<br>
-答: </p>
+<p>问题: 这样是否能给内核减负? 减的是哪方面的负担?</p>
 
-<pre><code>SYSCALL_DEFINE2(munmap...) -&gt; vm_munmap -&gt; do_munmap
+<!--
+问题: 对文件mmap , munmap后, 是否保留page cache?  
+答: 
+
+```
+SYSCALL_DEFINE2(munmap...) -> vm_munmap -> do_munmap
 |--detach_vmas_to_be_unmapped // 将虚拟地址空间释放
 |--unmap_region // 操作页表
 |--remove_vma_list  
-</code></pre>
+```
 
-<p>page 和 文件的映射关系 在哪里?
-radix tree.</p>
+page 和 文件的映射关系 在哪里?
+radix tree.
 
-<p><code>add_to_page_cache_locked(, struct address_space *mapping, )</code></p>
+`add_to_page_cache_locked(, struct address_space *mapping, )`
+
+
+搜索 `delete_from_page_cache` 和  `__delete_from_page_cache`
+
+```
+__remove_mapping -> __delete_from_page_cache
+
+remove_mapping -> __remove_mapping
+shrink_page_list -> __remove_mapping 内存回收
+```
+
+看下来, 没有理由 munmap 会改动 page cache.
+-->
+
+<h3 id="toc_2">1.2 other</h3>
+
+<p>如果 数据 仅使用一次的话.
+POSIX<em>FADV</em>DONTNEED and O_DIRECT</p>
+
+<h2 id="toc_3">2 写 分离</h2>
+
+<p>*日志盘 和 数据盘 分离
+ *顺序写 和 随机读写 分离</p>
 </div>
 
         <div class="more">
