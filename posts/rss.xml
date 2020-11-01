@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2020-10-24</pubDate>
+    <pubDate>2020-11-01</pubDate>
     <item>
       <title>&#x6A21;&#x5F0F; 03: &#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;</title>
       <link>https://awakening-fong.github.io/posts/other/optimize_user_space</link>
@@ -59,8 +59,10 @@ POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
 
 &lt;h2 id="toc_2"&gt;2 &#x5199; &#x5206;&#x79BB;&lt;/h2&gt;
 
-&lt;p&gt;*&#x65E5;&#x5FD7;&#x76D8; &#x548C; &#x6570;&#x636E;&#x76D8; &#x5206;&#x79BB;
- *&#x987A;&#x5E8F;&#x5199; &#x548C; &#x968F;&#x673A;&#x8BFB;&#x5199; &#x5206;&#x79BB;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&#x65E5;&#x5FD7;&#x76D8; &#x548C; &#x6570;&#x636E;&#x76D8; &#x5206;&#x79BB;&lt;/li&gt;
+&lt;li&gt;&#x987A;&#x5E8F;&#x5199; &#x548C; &#x968F;&#x673A;&#x8BFB;&#x5199; &#x5206;&#x79BB;&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;h2 id="toc_3"&gt;3 &#x5185;&#x6838;&#x53C2;&#x6570;&lt;/h2&gt;
 
@@ -72,7 +74,7 @@ POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
 </description>
     </item>
     <item>
-      <title>&#x6A21;&#x5F0F; 04: &#x7B80;&#x5316;&#x4EE3;&#x7801;&#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
+      <title>&#x6A21;&#x5F0F; 04: trouble less &#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
       <link>https://awakening-fong.github.io/posts/other/trouble_less_pattern</link>
       <pubDate>2020-10-17</pubDate>
       <description>&lt;h3 id="toc_0"&gt;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
@@ -86,6 +88,8 @@ POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&#x65B9;&#x5F0F;1: &#x5C4F;&#x853D;&#x4E00;&#x4E9B;&#x4FE1;&#x53F7;, &#x7136;&#x540E;&#x4F7F;&#x7528; signalfd &#x6216; sigwaitinfo.&lt;/li&gt;
 &lt;li&gt;&#x65B9;&#x5F0F;2: &#x4FE1;&#x53F7;&#x5904;&#x7406;&#x51FD;&#x6570;&#x4E2D;&#x4EC5;&#x4EC5; &#x8BBE;&#x7F6E;&#x4FE1;&#x53F7;&#x5230;&#x6765;&#x7684;&#x6807;&#x5FD7;, &#x5176;&#x4ED6;&#x5730;&#x65B9;&#x68C0;&#x6D4B;&#x8BE5;&#x6807;&#x5FD7;.&lt;/li&gt;
+&lt;li&gt;&#x65B9;&#x5F0F;3: &#x4FE1;&#x53F7; handler &#x4E2D;, &#x5F80; pipe &#x5199;&#x5165;&#x5185;&#x5BB9;,
+&#x4E3B;&#x7A0B;&#x5E8F;&#x901A;&#x8FC7; poll/epoll &#x6765;&#x5224;&#x65AD;&#x6709;&#x4E8B;&#x4EF6;&#x5230;&#x6765;.&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

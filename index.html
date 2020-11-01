@@ -106,8 +106,10 @@ POSIX<em>FADV</em>DONTNEED and O_DIRECT</p>
 
 <h2 id="toc_2">2 写 分离</h2>
 
-<p>*日志盘 和 数据盘 分离
- *顺序写 和 随机读写 分离</p>
+<ul>
+<li>日志盘 和 数据盘 分离</li>
+<li>顺序写 和 随机读写 分离</li>
+</ul>
 
 <h2 id="toc_3">3 内核参数</h2>
 
@@ -123,7 +125,7 @@ POSIX<em>FADV</em>DONTNEED and O_DIRECT</p>
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/other/trouble_less_pattern">模式 04: 简化代码的一些模式(待更新)</a> <span class="date">2020-10-17</span></h3>
+  <h3 class="title"><a href="/posts/other/trouble_less_pattern">模式 04: trouble less 的一些模式(待更新)</a> <span class="date">2020-10-17</span></h3>
 
   <div class="summary">
 <h3 id="toc_0">多线程</h3>
@@ -137,6 +139,8 @@ POSIX<em>FADV</em>DONTNEED and O_DIRECT</p>
 <ul>
 <li>方式1: 屏蔽一些信号, 然后使用 signalfd 或 sigwaitinfo.</li>
 <li>方式2: 信号处理函数中仅仅 设置信号到来的标志, 其他地方检测该标志.</li>
+<li>方式3: 信号 handler 中, 往 pipe 写入内容,
+主程序通过 poll/epoll 来判断有事件到来.</li>
 </ul>
 </div>
 
