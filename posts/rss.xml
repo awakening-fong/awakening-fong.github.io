@@ -32,7 +32,14 @@
 &lt;li&gt;&lt;p&gt;golang &#x534F;&#x7A0B; (&#x5F53;&#x524D;&#x7B14;&#x8005;&#x4E0D;&#x719F;&#x6089;golang)&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id="toc_2"&gt;&#x6D41;&#x6C34;&#x7EBF;&lt;/h3&gt;
+&lt;h3 id="toc_2"&gt;&#x6570;&#x636E;&#x5206;&#x7247;&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;map reduce&lt;/li&gt;
+&lt;li&gt;RAID0&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="toc_3"&gt;&#x6D41;&#x6C34;&#x7EBF;&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&#x591A;&#x7EA7;&#x6D41;&#x6C34;&#x7EBF;, &#x62C9;&#x52A8;&#x5F0F;&#x751F;&#x4EA7;&lt;/li&gt;
@@ -47,14 +54,14 @@
 &lt;li&gt;&#x6D41;&#x91CF;&#x63A7;&#x5236;, congestion control&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id="toc_3"&gt;&#x51CF;&#x5C11;&#x6570;&#x636E;&#x62F7;&#x8D1D;&lt;/h3&gt;
+&lt;h3 id="toc_4"&gt;&#x51CF;&#x5C11;&#x6570;&#x636E;&#x62F7;&#x8D1D;&lt;/h3&gt;
 
-&lt;h3 id="toc_4"&gt;&#x8C03;&#x7814;&#x65B0;&#x7684;&#x7CFB;&#x7EDF;&#x8C03;&#x7528;/&#x65B0;&#x7684;&#x65B9;&#x6CD5;&lt;/h3&gt;
+&lt;h3 id="toc_5"&gt;&#x8C03;&#x7814;&#x65B0;&#x7684;&#x7CFB;&#x7EDF;&#x8C03;&#x7528;/&#x65B0;&#x7684;&#x65B9;&#x6CD5;&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;io_uring &lt;/li&gt;
 &lt;li&gt;eBPF&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
+&lt;li&gt;&#x200B;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
