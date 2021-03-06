@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>调度器, 从lost wake-up problem说起</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>调度器, 从lost wake-up problem说起 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-01-11</strong>
+    </div>
+    <div class="content">
+      <p>文来自本人的旧博客 blog.163.com/awaken_ing/blog/static/1206131972016124113539444/</p>
+
+<h1 id="toc_0"><h4>0. 引言</h4></h1>
+
+<p>The lost wake-up problem 请参考 <a href="http://www.linuxjournal.com/article/8144">http://www.linuxjournal.com/article/8144</a><br>
+本篇主要解释为何修改后的代码没有问题.
+修改后的代码为:</p>
+
+<pre><code>1  set_current_state(TASK_INTERRUPTIBLE);
+2  spin_lock(&amp;list_lock);
+3  if(list_empty(&amp;list_head)) {
+4         spin_unlock(&amp;list_lock); //如果这里面让出cpu?
+//如果在这个点被生产者唤醒会如何?
+5         schedule();
+6         spin_lock(&amp;list_lock);
+7  }
+8  set_current_state(TASK_RUNNING);
+9
+10 /* Rest of the code ... */
+11 spin_unlock(&amp;list_lock);
+</code></pre>
+
+<h1 id="toc_1"><h4>1. 先解释linux journal上的内容</h4></h1>
+
+<blockquote>
+<p>The change is that whenever a wake<em>up</em>process is called for a process whose state is TASK<em>INTERRUPTIBLE or TASK</em>UNINTERRUPTIBLE, and the process has not yet called schedule(), the state of the process is changed back to TASK_RUNNING.</p>
+</blockquote>
+
+<p>本文假定调度器使用的是CFS. 假定在第4行和第5行之间 进程B调用 wake<em>up</em>process().<br>
+linux-3.10.86/kernel/sched/core.c</p>
+
+<pre><code>wake_up_process
+{
+return try_to_wake_up(p, TASK_NORMAL,0);
+}
+
+#define TASK_NORMAL        (TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
+
+try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+{
+    int success = 0;
+    if (! (p-&gt;state &amp; state) )
+        goto out; //not our case
+    ...
+
+    if (p-&gt;on_rq &amp;&amp; ttwu_remote(p, wake_flags)) //our case
+        goto stat;
+    ...
+out:
+...
+    return success;
+}
+</code></pre>
+
+<p>ttwu<em>remote -&gt; ttwu</em>do<em>wakeup -&gt; p-&gt;state = TASK</em>RUNNING;<br>
+进程TASK_RUNNING下调用schedule() :</p>
+
+<pre><code>__schedule
+{
+if(prev-&gt;state &amp;&amp;...)
+    deactivate_task   //not our case
+}
+</code></pre>
+
+<p>0==TASK<em>RUNNING, 所以,<br>
+这个if (prev-&gt;state)等效于if ( prev-&gt;state != TASK</em>RUNNING )<br>
+所以, TASK<em>RUNNING调用schedule()不会调用到deactivate</em>task().</p>
+
+<p>deactivate_task 都完成啥动作???</p>
+
+<h1 id="toc_2"><h4>2. 再看看另外一种情况</h4></h1>
+
+<p>在第4行spin<em>unlock()中, 如果是个抢占的时机, 那么不是直接调用schedule(), 而是调用 preempt</em>schedule()</p>
+
+<pre><code>preempt_schedule
+{
+...
+    add_preempt_count_notrace(PREEMPT_ACTIVE);
+    __schedule();
+    sub_preempt_count_notrace(PREEMPT_ACTIVE);
+...
+}
+
+__schedule
+{
+    if (prev-&gt;state &amp;&amp; !( preempt_count() &amp; PREEMPT_ACTIVE )) {
+        if(...)
+        {
+            deactivate_task
+            prev-&gt;on_rq = 0;
+        }
+
+    }
+    put_prev_task(rq, prev);    
+    next = pick_next_task(rq);
+}
+</code></pre>
+
+<p>这里的!( preempt<em>count() &amp; PREEMPT</em>ACTIVE )就不会满足, 就不会执行deactivate_task().</p>
+
+<h1 id="toc_3"><h4>3. 重新挂到红黑树上</h4></h1>
+
+<p>由于当前运行的进程在被选中运行时, 就被移出红黑树了. 上面两种情况中, se节点又是如何重新放到rbtree上的呢? 看put<em>prev</em>entity() :</p>
+
+<pre><code>put_prev_entity(...)
+{
+    if(prev-&gt;on_rq){
+        __enqueue_entity(cfs_rq, prev);
+    }
+}
+</code></pre>
+
+<p>所以, 是这里的 put<em>prev</em>entity()将节点重新放到rbtree上.</p>
+
+<h1 id="toc_4"><h4>4. 防范</h4></h1>
+
+<p>既然容易出现上面的问题, 那么, 内核是如何处理这个问题的呢? 答案是内核提供了宏_<em>wait</em>event, 可参考其写法:</p>
+
+<pre><code>#define __wait_event(wq, condition)                     \
+do{                                    \
+    DEFINE_WAIT(__wait);                        \
+                                    \
+    for(;;){                            \
+        prepare_to_wait(&amp;wq,&amp;__wait, TASK_UNINTERRUPTIBLE);    \
+        if(condition)                        \
+            break;                        \
+        schedule();                        \
+    }                                \
+    finish_wait(&amp;wq,&amp;__wait);                    \
+}while(0)
+</code></pre>
+
+<p>prepare<em>to</em>wait(... , TASK<em>UNINTERRUPTIBLE) 会设置进程的状态为TASK</em>UNINTERRUPTIBLE,<br>
+finish<em>wait()设置状态为TASK</em>RUNNING. </p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/scheduler/scheduler_01_lost_wake-up>https://awakening-fong.github.io/posts/scheduler/scheduler_01_lost_wake-up</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#进程调度-ref">进程调度 <span>4</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#scheduler-ref">scheduler <span>4</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/scheduler/scheduler_03_switch_to" title="arm linux的switch_to">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/scheduler/scheduler_02_preempt" title="仅检查TIF_NEED_RESCHED,不检查preempt_count?">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>
