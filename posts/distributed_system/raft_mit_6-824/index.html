@@ -92,6 +92,8 @@
 先commit, 后apply.</p></li>
 </ul>
 
+<p>当 Leader 发现 entry 已经被大多数节点 Append到日志，就认为这个 entry 已经是 Committed 的了, 之后就是操作状态机了.</p>
+
 <h2 id="toc_3"><h4>2.2 apply的实现</h4></h2>
 
 <p>因为follower要能够从参数中看出leader的apply变动, 故<br>
@@ -116,18 +118,8 @@ AppendEntriesArgs 中添加新的字段 LeaderLastApply 来实现</p>
 
 <h2 id="toc_6"><h4>3.1 会发生split vote吗?</h4></h2>
 
-<p>因为 论文中的 Figure 2<br>
-对RequestVote RPC, Receiver implementation:<br>
-If votedFor is null or candidateId, and ....<br>
-所以, 对同一个term, 一个follower不会投给2个不同的候选人.</p>
-
-<p>所以, 发生split vote的一个场景是,<br>
-votedFor 未写入完成, 回复候选人. follower crash并重启, 再投给另一个候选人.<br>
-那么, 如果是  votedFor 写入完成后, 在回复候选人, 就不会发生split vote.</p>
-
-<p>2021-01-10 update:
-上面的理解不太对. 应该如下:
-以5个节点的情况为例,</p>
+<p>发生split vote的一个场景是
+以5个节点(A~E)的情况为例,</p>
 
 <pre><code>   A       B
 
@@ -139,7 +131,7 @@ votedFor 未写入完成, 回复候选人. follower crash并重启, 再投给另
  C     D   E
 </code></pre>
 
-<p>A获得了2票, B得到了1票, 都没超过半数(3票), A和B都无法当选.</p>
+<p>A获得了2票(来自C和D), B得到了1票(来自E), 都没超过半数(3票), A和B都无法当选.</p>
 
 <h1 id="toc_7"><h4>4. 参考资料</h4></h1>
 
@@ -158,7 +150,7 @@ votedFor 未写入完成, 回复候选人. follower crash并重启, 再投给另
     <ul class="tag_box inline">
       <li><i class="icon-folder-open"></i></li>
       <li>
-        <a href="/categories#distributed system-ref">distributed system <span>2</span></a>
+        <a href="/categories#distributed system-ref">distributed system <span>3</span></a>
       </li>
     </ul>
     <ul class="tag_box inline">

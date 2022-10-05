@@ -54,214 +54,185 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_04_parameter">page reclaim 04:参数</a> <span class="date">2017-02-07</span></h3>
+        <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
+
+        <div class="summary">
+<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
+
+<pre><code>#include &lt;asm/ptrace.h&gt;
+#include &lt;asm/uaccess.h&gt;
+
+static ssize_t kmsg_write(struct file *file, const char __user *buf,
+              size_t count, loff_t *ppos)
+{
+    char *tmp;
+    ssize_t ret;
+
+    tmp = kmalloc(count + 1, GFP_KERNEL);
+    if (tmp == NULL)
+        return -ENOMEM;
+    ret = -EFAULT;
+    if (!copy_from_user(tmp, buf, count)) {
+        tmp[count] = 0;
+        //add
+        #define STR_FOUND "sth_will_show_in_dmesg"
+        if(NULL!=strstr(tmp,STR_FOUND))
+        {
+            struct pt_regs *usr_regs; 
+            usr_regs=task_pt_regs(current); 
+            if(valid_user_regs(usr_regs))
+            {
+                int fd=usr_regs-&gt;ARM_r0;
+                char *write_buf=usr_regs-&gt;ARM_r1;
+                int len=usr_regs-&gt;ARM_r2;
+                /*用户态程序:
+                #define STR_TMP "sth_will_show_in_dmesg"
+                int fd=open("/dev/kmsg", O_WRONLY);
+                write(fd,STR_TMP,strlen(STR_TMP));
+                */
+
+                /*
+                内核打印:
+                kmsg_write(),969:3 0x6fee0 22
+                kmsg_write(),971:buf:sth_will_show_in_dmesg
+                也就是打印出了 用户态传递的参数
+                */
+                tmp_print("%d 0x%x %d",fd,write_buf,len);
+                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
+                    tmp_print("buf:%s\n",write_buf);
+            }
+            else
+            {
+                tmp_print("not valid_user_regs\n");
+            }
+
+
+        }
+        //end add
+        ret = printk("%s", tmp);
+        if (ret &gt; count)
+            /* printk can add a prefix */
+            ret = count;
+    }
+    kfree(tmp);
+    return ret;
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/hw/iic">IIC相关内容的记忆</a> <span class="date">2017-02-15</span></h3>
 
         <div class="summary ellipsis">
-<p>未开启CONFIG<em>MEMCG, CONFIG</em>SWAP.</p>
+<p>本文的内容 仅仅是为了能够回想起IIC相关内容, 并不求严谨和准确.</p>
 
-<h1 id="toc_0"><h4>1. scan_control</h4></h1>
+<h1 id="toc_0"><h4>1. 起始和停止信号</h4></h1>
 
-<p>linux-3.10.86/mm/vmscan.c</p>
+<p>因为上拉省电, 所以, 空闲时, SDA是上拉的.
+在时钟为高时, SDA若表示数据, 需维持稳定, 否则, 其表示起始或停止.</p>
 
-<pre><code>struct scan_control {
+<p><img src="/assets/media/IIC_start_stop.jpg"></p>
 
-    /* Incremented by the number of inactive pages that were scanned */
-    unsigned long nr_scanned;
+<h1 id="toc_1"><h4>2. 数据的组织 和 表示</h4></h1>
 
-    /* How many pages shrink_list() should reclaim 
-    问题:nr_to_reclaim和nr_scanned的关系?
-    答:nr_to_reclaim是个setting data, nr_reclaimed是runtime date.
-    通常是先给struct scan_control sc设置好这个目标, 
-    然后启动回收. 
-    在 sum of shrink_list() &gt; nr_to_reclaim后中断回收, see shrink_lruvec() or do_try_to_free_pages().
-    */
-    unsigned long nr_to_reclaim;
+<p>假定是7bit地址的情况.
+先发送高位还是低位?<br>
+可以考虑/回忆下 7bit地址+1bit读写 时的情况, 我们是先发送地址的, 所以, 是先发送高位, 后发送低位的.</p>
 
-    /*
-    这里的may类似may I ..., may的意思是 是否可以, 是否允许
-    */
-    int may_writepage;
+<p>最常见的是r/w# 所以,读为1, 写为0.  </p>
 
-    /*
-    [Understanding the Linux Kernel, 3rd Edition]p695
-    Lower priority implies scanning more pages.
-    */
-    int priority;
+<p>时钟有, 代表心脏还在跳, 器件还在工作, 所以, 在SCL高电平时对SDA采样作为数据.</p>
 
+<p><img src="/assets/media/IIC_SCL_high_SDA_valid.jpg"></p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/hw/iic" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_00_references">page reclaim 00:相关资料</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary">
+<ol>
+<li><p>[Professional Linux Kernel Architecture]</p></li>
+<li><p>Reducing Memory Access Latency by Satoru Moriya
+<a href="http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf">http://events.linuxfoundation.org/sites/events/files/lcjp13_moriya.pdf</a></p></li>
+<li><p><a href="https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/">https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/</a></p></li>
+<li><p>[Understanding the Linux Kernel, 3rd Edition]</p></li>
+</ol>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_00_references" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_01_overview">page reclaim 01:概述</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 背景/问题引入</h4></h1>
+
+<p>本文不讨论 swapping (swap out to disk).  </p>
+
+<p>If a seldom-used page is backed by a block device (e.g., memory mappings
+of files) then the modified pages need not be swapped out, but can be directly synchronized with the block device. The page frame can be reused, and if the data are required again, it can be reconstructed from the source. If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required.
+通过Writing back cached data即可将这些page释放.</p>
+
+<p>If a page is backed by a file but cannot be modified in memory (e.g., binary executable data), then it can be discarded if it is currently not required. </p>
+
+<p>将 暂时不用的 或 很少使用的  内存回笼/回收, 给后续其他人使用. 那么, 如何界定 暂时不用 或 很少使用 呢? 这些已分配出去的内存都散落在哪里?</p>
+
+<h1 id="toc_1"><h4>2. 散落在哪</h4></h1>
+
+<p>如何找到这些内存呢? 啥链表吗?<br>
+答:see add<em>to</em>page<em>cache</em>lru(), page<em>add</em>new<em>anon</em>rmap()</p>
+
+<p>方式1:
+add<em>to</em>page<em>cache</em>lru 把page添加到 both the page cache and the LRU cache. 
+Most importantly, it is used by mpage<em>readpages and do</em>generic<em>mapping</em>read, the standard functions in which the block layer ends up when reading data from a file or mapping.
+当然, 实际是先添加到per cpu的struct pagevec中, 等满了再转移到global的lru中.</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/reclaim_01_overview" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/reclaim_02_implement">page reclaim 02:实现</a> <span class="date">2017-02-07</span></h3>
+
+        <div class="summary ellipsis">
+<p>本文简化描述, 忽略compound page, 忽略HUGEPAGE, 未开启CONFIG<em>MEMCG, 未开启CONFIG</em>SWAP.
+若无特别说明, 本文仅讨论ARM体系的情况.</p>
+
+<h1 id="toc_0"><h4>1. 数据结构</h4></h1>
+
+<p>per zone : active list, inactive list</p>
+
+<pre><code>struct zone {
+    struct lruvec       lruvec;
 };
 
-get_scan_count
-{
-        size = get_lru_size(lruvec, lru);
-        scan = size &gt;&gt; sc-&gt;priority;
-        //扫描的量 与 list的大小 成比例
-}
+struct lruvec {
+    struct list_head lists[NR_LRU_LISTS];
+    ...
+};
+</code></pre>
 
-shrink_lruvec
-|--//1. 根据优先级等 给数组nr[]赋值
-|--get_scan_count(lruvec, sc, nr); 
+<p>per node :kswapd  </p>
+
+<pre><code>kswapd_init -&gt; for_each_node_state(nid, N_MEMORY) kswapd_run(nid)
+kswapd_run -&gt; pgdat-&gt;kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/reclaim_04_parameter" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_05_page_count">page reclaim 05:page count</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
-
-<p>linux-3.10.86/mm/vmscan.c</p>
-
-<pre><code>static inline int is_page_cache_freeable(struct page *page)
-{
-
-    /*
-     * A freeable page cache page is referenced only by the caller
-     * that isolated the page, the page cache radix tree and
-     * optional buffer heads at page-&gt;private.
-     */
-    return page_count(page) - page_has_private(page) == 2;
-
-}
-</code></pre>
-
-<p>为何是== 2?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_05_page_count" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/mm/reclaim_06_arm_l_pte_young">page reclaim 06:ARM和L_PTE_YOUNG</a> <span class="date">2017-02-07</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. page<em>referenced</em>one对硬件页表的影响</h4></h1>
-
-<p>linux-3.10.86/include/asm-generic/pgtable.h</p>
-
-<pre><code>page_referenced_one -&gt; ptep_clear_flush_young_notify -&gt; ptep_clear_flush_young -&gt; ptep_test_and_clear_young
-{
-//pte_mkold 实现上是:PTE_BIT_FUNC(mkold,     &amp;= ~L_PTE_YOUNG);
-set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
-}
-</code></pre>
-
-<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
-
-<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
-                  pte_t *ptep, pte_t pteval)
-{
-    unsigned long ext = 0;
-
-    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) {
-        __sync_icache_dcache(pteval);
-        ext |= PTE_EXT_NG;
-    }
-    /*
-    @pteval 是linux版的pte
-    硬件版的会根据ext来生成
-    */
-    set_pte_ext(ptep, pteval, ext);
-}
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/reclaim_06_arm_l_pte_young" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
-</p>
-
-<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
- # CONFIG<em>ARM</em>LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
-
-<pre><code>31                         7          0
-+-------------------------+-----------+
-|      PROCID             |   ASID    |
-+-------------------------+-----------+
-</code></pre>
-
-<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
-
-<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
-linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
-
-<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
-                  pte_t *ptep, pte_t pteval) 
-{ 
-...
-    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
-... 
-        ext |= PTE_EXT_NG; 
-    } 
-... 
-    set_pte_ext(ptep, pteval, ext); 
-}
-
-set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>
-来自本人的旧博客
-http://blog.163.com/awaken_ing/blog/static/120613197201571932454226
-</p>
-
-<p>create<em>mapping会调用到alloc</em>init<em>pte(), 进而调用set</em>pte_ext()</p>
-
-<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
-</code></pre>
-
-<p>这里qemu模拟的versatilepb ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ</p>
-
-<p>所以set<em>pte</em>ext(pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
-
-<p>就是</p>
-
-<p>cpu<em>arm926</em>set<em>pte</em>ext (pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
-
-<pre><code>/*
- * cpu_arm926_set_pte_ext(ptep, pte, ext)
- *
- * Set a PTE and flush it out
- */
-    .align  5
-ENTRY(cpu_arm926_set_pte_ext)
-#ifdef CONFIG_MMU
-    armv3_set_pte_ext
-    mov r0, r0
-#ifndef CONFIG_CPU_DCACHE_WRITETHROUGH
-    mcr p15, 0, r0, c7, c10, 1      @ clean D entry
-#endif
-    mcr p15, 0, r0, c7, c10, 4      @ drain WB
-#endif
-    mov pc, lr
-</code></pre>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/reclaim_02_implement" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -281,6 +252,7 @@ ENTRY(cpu_arm926_set_pte_ext)
           <li><a href="/posts/index/12">12</a></li>
           <li><a href="/posts/index/13">13</a></li>
           <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
       </ul>
     </div>
   </div>

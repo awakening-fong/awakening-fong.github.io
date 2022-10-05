@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2021-03-20</pubDate>
+    <pubDate>2022-10-05</pubDate>
     <item>
       <title>About Me</title>
       <link>https://awakening-fong.github.io/about-me</link>
@@ -42,7 +42,29 @@
       <title>Archive</title>
       <link>https://awakening-fong.github.io/archive</link>
       <description>
+  &lt;h2&gt;2022&lt;/h2&gt;
+    &lt;h3&gt;October&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2022-10-03&lt;/span&gt; &amp;raquo; &lt;a href="/posts/perf/perfbook-03"&gt;(TODO &#x8349;&#x7A3F;)perfbook 03 barrier&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;h3&gt;September&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2022-09-17&lt;/span&gt; &amp;raquo; &lt;a href="/posts/perf/perfbook-01"&gt;perfbook 01 &#x6458;&#x5F55;&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;span&gt;2022-09-17&lt;/span&gt; &amp;raquo; &lt;a href="/posts/perf/perfbook-02"&gt;(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;h3&gt;July&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2022-07-30&lt;/span&gt; &amp;raquo; &lt;a href="/posts/fs/bit_rot"&gt;bit rot&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;h3&gt;May&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2022-05-01&lt;/span&gt; &amp;raquo; &lt;a href="/posts/distributed_system/paxos"&gt;&#x4ECE;&#x6545;&#x969C;&#x573A;&#x666F;&#x770B;paxos&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
   &lt;h2&gt;2021&lt;/h2&gt;
+    &lt;h3&gt;May&lt;/h3&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;span&gt;2021-05-15&lt;/span&gt; &amp;raquo; &lt;a href="/posts/debug/inversion_of_cause_and_effect"&gt;&#x56E0;&#x679C;&#x5012;&#x7F6E;&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
     &lt;h3&gt;March&lt;/h3&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;span&gt;2021-03-14&lt;/span&gt; &amp;raquo; &lt;a href="/posts/other/scale_system_pattern"&gt;&#x6A21;&#x5F0F; 05: &#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;&#x7684;&#x4E00;&#x4E9B;&#x5904;&#x7406;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
@@ -172,13 +194,13 @@
     &lt;a href="/categories#database-ref"&gt;database &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#debug-ref"&gt;debug &lt;span&gt;6&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#distributed system-ref"&gt;distributed system &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#distributed system-ref"&gt;distributed system &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;2&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#file system-ref"&gt;file system &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#hardware-ref"&gt;hardware &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -196,7 +218,7 @@
     &lt;a href="/categories#&#x5185;&#x5B58;&#x7BA1;&#x7406;/features-ref"&gt;&#x5185;&#x5B58;&#x7BA1;&#x7406;/features &lt;span&gt;11&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/categories#other-ref"&gt;other &lt;span&gt;4&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/categories#other-ref"&gt;other &lt;span&gt;7&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/categories#&#x6A21;&#x5F0F;-ref"&gt;&#x6A21;&#x5F0F; &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
@@ -233,12 +255,15 @@
     &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/ftrace_data_analysis_interval"&gt;&#x4F7F;&#x7528;ftrace&#x5206;&#x6790;&#x4E24;&#x65F6;&#x95F4;&#x70B9;&#x95F4;&#x9694;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/debug/inversion_of_cause_and_effect"&gt;&#x56E0;&#x679C;&#x5012;&#x7F6E;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/pt_regs_for_debug"&gt;&#x5185;&#x6838;&#x4E2D; &#x901A;&#x8FC7; struct pt_regs &#x6765;&#x83B7;&#x53D6;  &#x7528;&#x6237;&#x4F20;&#x9012;&#x7684;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="distributed system-ref"&gt;distributed system&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/distributed_system/paxos"&gt;&#x4ECE;&#x6545;&#x969C;&#x573A;&#x666F;&#x770B;paxos&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="file system-ref"&gt;file system&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/fs/bit_rot"&gt;bit rot&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/fs/jbd"&gt;JBD&#x521D;&#x6B65;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="hardware-ref"&gt;hardware&lt;/h3&gt;
@@ -277,6 +302,9 @@
     &lt;li&gt;&lt;a href="/posts/other/kthread_park_unpark"&gt;&#x5185;&#x6838;&#x7EBF;&#x7A0B;&#x7684;park&#x548C;unpark&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/rcu"&gt;RCU&#x5E38;&#x89C1;&#x95EE;&#x9898;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/signal"&gt;&#x4FE1;&#x53F7;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-01"&gt;perfbook 01 &#x6458;&#x5F55;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-02"&gt;(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-03"&gt;(TODO &#x8349;&#x7A3F;)perfbook 03 barrier&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="&#x6A21;&#x5F0F;-ref"&gt;&#x6A21;&#x5F0F;&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/other/io_perf"&gt;&#x6A21;&#x5F0F; 02: IO&#x6027;&#x80FD;&#x4F18;&#x5316;&#x7684;&#x4E00;&#x4E9B;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/optimize"&gt;&#x6A21;&#x5F0F; 01: &#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
@@ -297,157 +325,156 @@
       <title>Home</title>
       <link>https://awakening-fong.github.io/</link>
       <description>&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/other/scale_system_pattern"&gt;&#x6A21;&#x5F0F; 05: &#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;&#x7684;&#x4E00;&#x4E9B;&#x5904;&#x7406;&#x65B9;&#x6CD5;&lt;/a&gt; &lt;span class="date"&gt;2021-03-14&lt;/span&gt;&lt;/h3&gt;
-
-  &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x672C;&#x7BC7;&#x5185;&#x5BB9; &#x548C;  &lt;a href="https://awakening-fong.github.io/posts/other/optimize_user_space"&gt;&#x6A21;&#x5F0F; 03: &#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt; &#x7684;&#x5185;&#x5BB9;&#x7C7B;&#x4F3C;. &lt;/p&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x9488;&#x5BF9;&#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;, &#x4ECE;&#x66F4;&#x5B8F;&#x89C2;&#x7684;&#x89D2;&#x5EA6;&#x8FDB;&#x884C;&#x63CF;&#x8FF0;. 
-(&#x672C;&#x4EBA;&#x76EE;&#x524D;(2021&#x5E74;3&#x6708;)&#x672A;&#x5B9E;&#x8DF5;&#x8FC7;&#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;, &#x8FD9;&#x91CC;&#x4EC5;&#x662F;&#x7EB8;&#x4E0A;&#x7684;&#x8BB0;&#x5F55;)&lt;/p&gt;
-
-&lt;h3 id="toc_0"&gt;&#x5206;&#x800C;&#x6CBB;&#x4E4B;&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&#x8D1F;&#x8F7D;&#x5747;&#x8861;: 
-&#x670D;&#x52A1;&#x7AEF;&#x8D1F;&#x8F7D;&#x5747;&#x8861;: LVS, DNS;
-&#x5BA2;&#x6237;&#x7AEF;&#x8D1F;&#x8F7D;&#x5747;&#x8861;&lt;/li&gt;
-&lt;li&gt;&#x8BFB;&#x5199;&#x5206;&#x79BB;, &#x591A;&#x4ECE; &#x8D1F;&#x8D23;&#x8BFB;&lt;/li&gt;
-&lt;li&gt;&#x5206;&#x5E93;&#x5206;&#x8868;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id="toc_1"&gt;&#x4F4E;&#x6210;&#x672C;&#x5904;&#x7406;&lt;/h3&gt;
-
-&lt;p&gt;==== &#x7F13;&#x5B58;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;redis&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-
-  &lt;div class="more"&gt;
-    &lt;a href="/posts/other/scale_system_pattern" class="btn btn-small"&gt;read more..&lt;/a&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/other/io_perf"&gt;&#x6A21;&#x5F0F; 02: IO&#x6027;&#x80FD;&#x4F18;&#x5316;&#x7684;&#x4E00;&#x4E9B;&#x65B9;&#x6CD5;&lt;/a&gt; &lt;span class="date"&gt;2020-10-17&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/perf/perfbook-03"&gt;(TODO &#x8349;&#x7A3F;)perfbook 03 barrier&lt;/a&gt; &lt;span class="date"&gt;2022-10-03&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary"&gt;
-&lt;h2 id="toc_0"&gt;1 &#x907F;&#x514D; &#x7ED9;&#x5185;&#x5B58;&#x7BA1;&#x7406;&#x6DFB;&#x5835;&lt;/h2&gt;
+&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
 
-&lt;h3 id="toc_1"&gt;1.1 other&lt;/h3&gt;
+&lt;h3 id="toc_0"&gt;5.4.4&lt;/h3&gt;
 
-&lt;p&gt;&#x5982;&#x679C; &#x6570;&#x636E; &#x4EC5;&#x4F7F;&#x7528;&#x4E00;&#x6B21;&#x7684;&#x8BDD;.
-POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&#x7B2C;16&#x884C;&#x6267;&#x884C;&#x4E00;&#x6761;&#x5185;&#x5B58;&#x5C4F;&#x969C;&#xFF0C;&#x786E;&#x4FDD;&#x4EFB;&#x4F55;&#x770B;&#x89C1;&#x7B2C;17&#x884C;&#x8BBE;&#x7F6E;READY&#x72B6;&#x6001;&#x7684;CPU&#xFF0C;&#x4E5F;&#x80FD;&#x770B;&#x89C1;&#x7B2C;9&#x884C;&#x7684;&#x6548;&#x679C;&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;h2 id="toc_2"&gt;2 &#x5199; &#x5206;&#x79BB;&lt;/h2&gt;
+&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;:&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;&#x65E5;&#x5FD7;&#x76D8; &#x548C; &#x6570;&#x636E;&#x76D8; &#x5206;&#x79BB;&lt;/li&gt;
-&lt;li&gt;&#x987A;&#x5E8F;&#x5199; &#x548C; &#x968F;&#x673A;&#x8BFB;&#x5199; &#x5206;&#x79BB;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;16  smp_mb();
+17 WRITE_ONCE(theft, THEFT_READY);
+&lt;/code&gt;&lt;/pre&gt;
 
-&lt;h2 id="toc_3"&gt;3 &#x5185;&#x6838;&#x53C2;&#x6570;&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;/sys/block/sdx/queue/ &lt;/li&gt;
-&lt;li&gt;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x53C2;&#x6570;&lt;/li&gt;
-&lt;li&gt;/proc/sys/vm/&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;&#x8DE8;&#x8FC7;&#x4E86;16&#x884C;&#xFF0C;&#x5C31;&#x662F;&#x5DF2;&#x7ECF;&#x6267;&#x884C;&#x8FC7;&#x7B2C;9&#x884C;&#x7684;&#x8BC1;&#x636E;&#xFF0C;&#x6240;&#x4EE5;&#xFF0C;&#x7B2C;17&#x884C;&#x7ED9;&#x51FA;&#x4E86;&#x4E00;&#x4E2A;&#x7ED3;&#x8BBA;&#x3002;
+16&#x884C;&#x7684;&#x52A8;&#x4F5C;&#x5DF2;&#x6267;&#x884C;&#x5B8C;&#xFF0C;&#x6E05;&#x5355;&#x6B65;&#x9AA4;&#x5DF2;&#x67E5;&#x9A8C;&#xFF0C;17&#x884C;&#x7ED9;&#x4E2A;&#x76D6;&#x7AE0;&#x3002;&lt;/p&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/other/io_perf" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/perf/perfbook-03" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/other/optimize_user_space"&gt;&#x6A21;&#x5F0F; 03: &#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt; &lt;span class="date"&gt;2020-10-17&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/perf/perfbook-01"&gt;perfbook 01 &#x6458;&#x5F55;&lt;/a&gt; &lt;span class="date"&gt;2022-09-17&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
-&lt;h3 id="toc_0"&gt;&#x51CF;&#x5C11;&#x7CFB;&#x7EDF;&#x8C03;&#x7528;&lt;/h3&gt;
+&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;buffer&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&#x5408;&#x5E76;&lt;/p&gt;
+&lt;h3 id="toc_0"&gt;5.4.6 Applying Exact Limit Counters&lt;/h3&gt;
 
-&lt;!-- * &#x5C3D;&#x91CF;&#x4E0D;&#x8981;&#x83B7;&#x53D6;&#x65F6;&#x95F4; --&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;Quick Quiz 5.58: This is ridiculous! We are read-acquiring a reader-writer lock to update the counter? What are you playing at?&lt;/p&gt;
 
-&lt;h3 id="toc_1"&gt;&#x51CF;&#x5C11;&#x4E0D;&#x5FC5;&#x8981;&#x7684;&#x8FDB;&#x7A0B;&#x5524;&#x9192;/&#x5207;&#x6362;&lt;/h3&gt;
+&lt;p&gt;&#x7B54;: 
+&#x8FD9;&#x91CC;&#x8981;&#x5F3A;&#x8C03;&#x7684;&#x662F;  &#x8BFB;&#x9501;  &#x5141;&#x8BB8; &#x591A;&#x4EBA;&#x540C;&#x65F6;&#x6301;&#x6709;&#xFF0C;&#x5199;&#x9501;&#x53EA;&#x5141;&#x8BB8;&#x5355;&#x4EBA;&#x6301;&#x6709;&#x3002; &#x8DDF; &#x662F;&#x5426;&#x8FDB;&#x884C; &#x8BFB;&#x5199;&#x64CD;&#x4F5C;&#x6CA1;&#x6709;&#x5FC5;&#x7136;&#x5173;&#x7CFB;&#x3002;&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;&#x907F;&#x514D;&#x60CA;&#x7FA4;&#x6216;&#x65E0;&#x6548;&#x5524;&#x9192;:&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;ul&gt;
-&lt;li&gt;
-&lt;code&gt;pthread_cond_signal&lt;/code&gt; &#x7684;&#x95EE;&#x9898;, &#x4EE5;&#x53CA;&#x66FF;&#x4EE3;&#x65B9;&#x6CD5;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;ul&gt;
-&lt;li&gt;
-&lt;code&gt;epoll_wait&lt;/code&gt; &#x8FB9;&#x6CBF;&#x89E6;&#x53D1;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;worker&#x6570;&#x91CF;, &#x901A;&#x5E38;&#x662F;&#x6307;&#x8FDB;&#x7A0B;&#x6570;, &#x9700;&#x8981; &amp;lt;= vCPU&#x6570;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;golang &#x534F;&#x7A0B; (&#x5F53;&#x524D;&#x7B14;&#x8005;&#x4E0D;&#x719F;&#x6089;golang)&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;h3 id="toc_1"&gt;Chapter 6 Partitioning and Synchronization Design&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x4E00;&#x79CD;&#x5F3A;&#x5236;&#x9501;&#x8303;&#x56F4;&#x4E0D;&#x91CD;&#x53E0;&#x7684;&#x529E;&#x6CD5;&#x3002;&#x4E24;&#x4E2A;&#x5355;&#x72EC;&#x7684;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x4E32;&#x8054;&#x5728;&#x4E00;&#x8D77;&#xFF0C;&#x6BCF;&#x4E2A;&#x961F;&#x5217;&#x7528;&#x81EA;&#x5DF1;&#x7684;&#x9501;&#x4FDD;&#x62A4;&#x3002;&#x8FD9;&#x610F;&#x5473;&#x7740;&#x6570;&#x636E;&#x5076;&#x5C14;&#x4F1A;&#x4ECE;&#x4E00;&#x4E2A;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x8DD1;&#x5230;&#x53E6;&#x4E00;&#x4E2A;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x3002;&#x6B64;&#x65F6;&#x5FC5;&#x987B;&#x540C;&#x65F6;&#x6301;&#x6709;&#x4E24;&#x628A;&#x9501;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong: &#x5999;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/other/optimize_user_space" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/perf/perfbook-01" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/other/trouble_less_pattern"&gt;&#x6A21;&#x5F0F; 04: trouble less &#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)&lt;/a&gt; &lt;span class="date"&gt;2020-10-17&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/perf/perfbook-02"&gt;(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt; &lt;span class="date"&gt;2022-09-17&lt;/span&gt;&lt;/h3&gt;
+
+  &lt;div class="summary ellipsis"&gt;
+&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;5.3.3 &#x7684;&#x5185;&#x5BB9;&#x5982;&#x4F55;&#x7406;&#x89E3;&lt;/h3&gt;
+
+&lt;p&gt;&#x53EF;&#x4EE5;&#x7ED3;&#x5408;&#x5982;&#x4E0B;&#x95EE;&#x9898;&#x6765;&#x7406;&#x89E3;
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in &lt;code&gt;add_count()&lt;/code&gt;, why doesn&#x2019;t it count for us in &lt;code&gt;sub_count()&lt;/code&gt; in Listing 5.7?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: awakening-fong: add_count()&#x8FD4;&#x56DE;0&#x662F;&#x5931;&#x8D25;, &#x8BA4;&#x4E3A;&#x662F; against. &#x800C;&#x4E0D;&#x662F;&#x8BF4; &#x8BBF;&#x95EE;&#x9501;&#x662F; against.&lt;/p&gt;
+
+&lt;p&gt;add_count &#x7684;&#x5C40;&#x90E8;&#x4EE3;&#x7801;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;9  if (globalcountmax -
+10      globalcount - globalreserve &amp;lt; delta) {
+11      spin_unlock(&amp;amp;gblcnt_mutex);
+12      return 0;
+13 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;/div&gt;
+
+  &lt;div class="more"&gt;
+    &lt;a href="/posts/perf/perfbook-02" class="btn btn-small"&gt;read more..&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="post"&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/fs/bit_rot"&gt;bit rot&lt;/a&gt; &lt;span class="date"&gt;2022-07-30&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary"&gt;
-&lt;h3 id="toc_0"&gt;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;
+&#x6839;&#x636E; &lt;a href="https://www.redhat.com/en/blog/what-bit-rot-and-how-can-i-detect-it-rhel"&gt;https://www.redhat.com/en/blog/what-bit-rot-and-how-can-i-detect-it-rhel&lt;/a&gt; btrfs &#x548C; zfs &#x652F;&#x6301; &#x63A2;&#x6D4B;bit rot.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&#x5757;&#x5C42;
+&#x90A3;, &#x5728;&#x5757;&#x5C42;, RAID1&#x662F;&#x5426;&#x80FD;&#x591F;&#x63A2;&#x6D4B;&#x5462;?
+&#x7B54;: &lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;&#x8FDB;&#x7A0B;&#x95F4;&#x4EA4;&#x4E92;&#x901A;&#x8FC7;&#x4F20;&#x9012;&#x6D88;&#x606F;, &#x800C;&#x4E0D;&#x8981;&#x5171;&#x4EAB;&#x72B6;&#x6001;.&lt;/p&gt;
+&lt;p&gt;dm-integrity  &#x53EF;&#x4EE5;&#x7528;&#x6765;&#x9632;&#x6B62;  &#x9759;&#x9ED8;&#x6570;&#x636E;&#x635F;&#x574F;, &#x8BFB;&#x53D6;&#x544A;&#x77E5; io &#x9519;&#x8BEF;.   &lt;/p&gt;
 
-&lt;h3 id="toc_1"&gt;&#x5C11;&#x7528;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
+&lt;p&gt;lvm&#x547D;&#x4EE4;&#x53EF;&#x4EE5;&#x96C6;&#x6210; DM integrity.  &lt;code&gt;lvcreate --raidintegrity&lt;/code&gt;&lt;/p&gt;
 
-&lt;h3 id="toc_2"&gt;&#x4FE1;&#x53F7;&lt;/h3&gt;
+&lt;p&gt;dm-integrity &#x4E5F;&#x53EF;&#x4EE5;&#x7528;&#x5728; Linux Software RAID &#x7684; RAID1.&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;1: &#x5C4F;&#x853D;&#x4E00;&#x4E9B;&#x4FE1;&#x53F7;, &#x7136;&#x540E;&#x4F7F;&#x7528; signalfd &#x6216; sigwaitinfo.&lt;/li&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;2: &#x4FE1;&#x53F7;&#x5904;&#x7406;&#x51FD;&#x6570;&#x4E2D;&#x4EC5;&#x4EC5; &#x8BBE;&#x7F6E;&#x4FE1;&#x53F7;&#x5230;&#x6765;&#x7684;&#x6807;&#x5FD7;, &#x5176;&#x4ED6;&#x5730;&#x65B9;&#x68C0;&#x6D4B;&#x8BE5;&#x6807;&#x5FD7;.&lt;/li&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;3: &#x4FE1;&#x53F7; handler &#x4E2D;, &#x5F80; pipe/eventfd &#x5199;&#x5165;&#x5185;&#x5BB9;,
-&#x4E3B;&#x7A0B;&#x5E8F;&#x901A;&#x8FC7; poll/epoll &#x6765;&#x5224;&#x65AD;&#x6709;&#x4E8B;&#x4EF6;&#x5230;&#x6765;.&lt;/li&gt;
+&lt;li&gt;&#x5176;&#x4ED6;
+Minio &#x548C; Ceph &#x652F;&#x6301; erasure code, &#x6240;&#x4EE5;, &#x53EF;&#x4EE5;&#x5904;&#x7406; bit rot.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/other/trouble_less_pattern" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/fs/bit_rot" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class="post"&gt;
-  &lt;h3 class="title"&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt; &lt;span class="date"&gt;2020-10-06&lt;/span&gt;&lt;/h3&gt;
+  &lt;h3 class="title"&gt;&lt;a href="/posts/distributed_system/paxos"&gt;&#x4ECE;&#x6545;&#x969C;&#x573A;&#x666F;&#x770B;paxos&lt;/a&gt; &lt;span class="date"&gt;2022-05-01&lt;/span&gt;&lt;/h3&gt;
 
   &lt;div class="summary ellipsis"&gt;
-&lt;p&gt;&#x4EE5;&#x4E0B;&#x5185;&#x5BB9;&#x672A;&#x7ECF;&#x8FC7;&#x6E90;&#x7801;&#x67E5;&#x9A8C;. &#x5982;&#x6709;&#x9519;&#x8BEF;, &#x6B22;&#x8FCE;&#x6307;&#x51FA;.&lt;/p&gt;
+&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6B63;&#x5E38;&#x573A;&#x666F; &lt;/h4&gt;&lt;/h1&gt;
 
-&lt;p&gt;&#x4E00;&#x5757;1G&#x7684;&#x78C1;&#x76D8;, &#x8981;&#x5148;&#x5212;&#x5B9A;&#x7528;&#x6765;&#x5B58;&#x50A8; &#x5FEB;&#x7167;&#x7684;&#x533A;&#x57DF;, &#x8FD9;&#x6837;, &#x5B9E;&#x9645;&#x6700;&#x5927;&#x5BFB;&#x5740;&#x7684; &#x5C31;&#x4E0D;&#x662F;1G, &#x6BD4;&#x5982;&#x8BF4;, &#x53EA;&#x6709;800MB, &#x662F;&#x8FD9;&#x6837;&#x5417;?&lt;br&gt;
-&#x7B54;: &#x4E0D;&#x662F;&#x8FD9;&#x6837;&#x7684;, &#x800C;&#x662F;&#x5C31;&#x6CA1;&#x6709;&#x76F4;&#x63A5;&#x5BFB;&#x5740;&#x7684;. &#x8BFB;&#x53D6;&#x90FD;&#x9700;&#x8981;&#x67E5;&#x8BE2;&#x6620;&#x5C04;&#x8868;. &#x6362;&#x53E5;&#x8BDD;&#x8BF4;, &#x6574;&#x5757;&#x78C1;&#x76D8;&#x90FD;&#x7528;&#x6765;&#x5B58;&#x653E;&#x5FEB;&#x7167;.&lt;/p&gt;
+&lt;p&gt;&lt;img src="/assets/media/paxos_normal.jpg"&gt;&lt;/p&gt;
 
-&lt;p&gt;&#x5FEB;&#x7167;&#x662F;&#x5B58;&#x653E;&#x5728;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x4E0A;, &#x8FD8;&#x662F; &#x6CA1;&#x6709;&#x5757;&#x8BBE;&#x5907;&#x4E0A;, &#x5212;&#x4E00;&#x5757;&#x533A;&#x57DF; &#x5B58;&#x5FEB;&#x7167;?&lt;br&gt;
-&#x7B54;: &#x4E0D;&#x662F;&#x5B58;&#x653E;&#x5728;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x4E0A;.&lt;/p&gt;
+&lt;p&gt;&#x56FE;14-3&#xFF1A;Paxos&#x7B97;&#x6CD5;&#xFF1A;&#x6B63;&#x5E38;&#x6267;&#x884C;&lt;/p&gt;
 
-&lt;p&gt;live data&#x662F;&#x5199;&#x5230; &#x5B9E;&#x9645;&#x78C1;&#x76D8;&#x4F4D;&#x7F6E;&#x4E0A;(&#x4E0D;&#x9700;&#x8981;&#x6620;&#x5C04;), &#x5BF9;&#x5417;?&lt;br&gt;
-&#x7B54;: &#x597D;&#x50CF;&#x4E0D;&#x662F;.&lt;/p&gt;
+&lt;p&gt;&#x5728;&#x63D0;&#x8BAE;&#x9636;&#x6BB5;&#x4E2D;&#xFF0C;&#x63D0;&#x8BAE;&#x8005;&#x53D1;&#x9001;&#x4E00;&#x6761;Prepare(n)&#x6D88;&#x606F;&#xFF08;&#x5176;&#x4E2D;n&#x662F;&#x63D0;&#x8BAE;&#x7F16;&#x53F7;&#xFF09;.&lt;/p&gt;
 
-&lt;p&gt;backup &#x8FD8;&#x662F; &#x8DDF; &#x5FEB;&#x7167;&#x5B58;&#x653E;&#x5728;&#x540C;&#x4E00;&#x5757;&#x78C1;&#x76D8;&#x4E0A;&#x5417;?&lt;br&gt;
-&#x7B54;: &#x4E0D;&#x662F;&#x7684;.
-&#x5FEB;&#x7167;&#x5411;&#x4E0A;&#x5C42; &#x5C55;&#x793A;&#x4E86; &#x7EBF;&#x6027;&#x7684;&#x78C1;&#x76D8;, &#x800C;&#x5176;&#x5B9E;&#x73B0;&#x662F; &#x6620;&#x5C04;&#x8868;.
-backup&#x662F;&#x5BF9; &#x5FEB;&#x7167;&#x7684;&#x6574;&#x5408;, &#x82E5;&#x653E;&#x5728;&#x540C;&#x4E00;&#x4E2A;&#x78C1;&#x76D8;&#x4E0A;, &#x5219;&#x4F1A;&#x5E72;&#x6270; &#x6620;&#x5C04;&#x5173;&#x7CFB;.&lt;/p&gt;
+&lt;p&gt;&#x5982;&#x679C;&#x63A5;&#x53D7;&#x8005;&#x4E4B;&#x524D;&#x5DF2;&#x7ECF;&#x63A5;&#x53D7;&#x4E86;&#xFF08;&#x6536;&#x5230;&#x8FC7;Accept!(m,vaccepted)&#x6D88;&#x606F;&#xFF09;&#x4EFB;&#x4F55;&#x5176;&#x4ED6;&#x63D0;&#x6848;&#xFF0C;&#x5B83;&#x5C06;&#x56DE;&#x590D;&#x4E00;&#x6761;Promise(m,vaccepted)&#x6D88;&#x606F;&#xFF0C;&#x901A;&#x77E5;&#x63D0;&#x8BAE;&#x8005;&#x5B83;&#x5148;&#x524D;&#x5DF2;&#x7ECF;&#x63A5;&#x53D7;&#x4E86;&#x7F16;&#x53F7;&#x4E3A;m&#x7684;&#x63D0;&#x6848;&#x3002;(m&#x4E0D;&#x7B49;&#x4E8E;n)
+awakening-fong: &#x7528;&#x6765;&#x5904;&#x7406; &#x6709;&#x4EBA;&#x5F53;&#x9009;&#x4E86;&#xFF0C;&#x7136;&#x540E;&#xFF0C;&#x53D1;&#x51FA;&#x590D;&#x5236;&#x7684;&#x6307;&#x4EE4;&#x540E;&#xFF0C;&#x9886;&#x5BFC;&#x8005;&#x6302;&#x6389;&#x4E86;&#x3002;
+&#x8FD9;&#x91CC;&#xFF0C;&#x501F;&#x8FD9;&#x4E2A;&#x673A;&#x4F1A;&#x901A;&#x77E5;&#x65B0;&#x7684;&#x53EF;&#x80FD;&#x7684;&#x9886;&#x5BFC;&#x8005;&#xFF0C;&#x8FC7;&#x53BB;&#x672C;&#x8BE5;&#x5199;&#x5165;&#x7684;&#x503C;&#x3002;&lt;/p&gt;
 
-&lt;p&gt;&#x5FEB;&#x7167;&#x81EA;&#x8EAB;&#x662F;&#x9700;&#x8981;&#x5B58;&#x50A8; &#x5730;&#x5740;&#x7684;, &#x5426;&#x5219;&#x65E0;&#x6CD5;&#x901A;&#x8FC7; &#x5FEB;&#x7167;&#x6765;&#x6784;&#x5EFA; backup.
-backup&#x5C55;&#x793A;&#x7684;&#x662F; &#x7EBF;&#x6027;&#x7684;&#x7A7A;&#x95F4;, &#x8FD8;&#x662F;&#x9700;&#x8981;&#x6620;&#x5C04;? &#x6216;&#x8005;&#x8BF4;, backup&#x662F;&#x5426;&#x9700;&#x8981;&#x5B58;&#x50A8; &#x5757;&#x7684;&#x5730;&#x5740;(&#x8D77;&#x59CB;&#x5730;&#x5740;)?&lt;br&gt;
-&#x7B54;:  &#x6587;&#x6863;&#x63D0;&#x5230; backup&#x6BCF;&#x5757;&#x662F;2M, &#x7531;&#x6B64;&#x53EF;&#x731C;&#x60F3;, 
-backup&#x7684;&#x7EC4;&#x7EC7;&#x5F62;&#x5F0F; &#x5730;&#x5740;&#x662F;&#x9012;&#x589E;&#x7684;, &#x4F46;&#x5730;&#x5740;&#x53EF;&#x4EE5;&#x4E0D;&#x8FDE;&#x8D2F;, &#x4E5F;&#x5C31;&#x662F;&#x5141;&#x8BB8; 2M&#x7684;&#x5757; &#x4E4B;&#x95F4;&#x6709; &#x65AD;&#x5F00;. &#x6240;&#x4EE5;, &#x9700;&#x8981;&#x5B58;&#x50A8;&#x5757;&#x7684;&#x8D77;&#x59CB;&#x5730;&#x5740;.
-disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#x59CB;&#x5730;&#x5740;&#x7684;, &#x56E0;&#x4E3A;&#x662F;volume.&lt;/p&gt;
+&lt;p&gt;&#x5173;&#x4E8E;Accept!(n,v) &#x5176;&#x4E2D;&#x7684;v&#xFF0C;
+1. &#x6709;&#x63A5;&#x53D7;&#x65B9;&#x56DE;&#x590D;Promise(m,vaccepted), &#x5219;&#xFF0C;v&#x662F;&#x6536;&#x5230;&#x7684;&#x56DE;&#x590D;&#x4E2D;&#xFF0C; &#x7F16;&#x53F7;&#x6700;&#x9AD8;&#x7684;&#x63D0;&#x6848;&#x5BF9;&#x5E94;&#x7684;&#x503C;&#x3002;
+2. &#x5982;&#x679C;&#x6240;&#x6709;&#x56DE;&#x590D;&#x5747;&#x4E0D;&#x5305;&#x542B;&#x65E7;&#x7684;&#x3001;&#x5DF2;&#x63A5;&#x53D7;&#x7684;&#x63D0;&#x6848;&#xFF0C;&#x90A3;&#x4E48;v&#x53EF;&#x4EE5;&#x662F;&#x63D0;&#x8BAE;&#x8005;&#x81EA;&#x5DF1;&#x63D0;&#x51FA;&#x7684;&#x4EFB;&#x4F55;&#x503C;&#x3002;&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6545;&#x969C; &lt;/h4&gt;&lt;/h1&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;2.1  &#x63D0;&#x8BAE;&#x8005;&#x6545;&#x969C;&#xFF0C;&#x51B3;&#x5B9A;&#x65E7;&#x503C;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/paxos_except_after_be_leader_send_val_crash_01.jpg"&gt;&lt;/p&gt;
+
 &lt;/div&gt;
 
   &lt;div class="more"&gt;
-    &lt;a href="/posts/distributed_system/longhorn_snapshot_qa" class="btn btn-small"&gt;read more..&lt;/a&gt;
+    &lt;a href="/posts/distributed_system/paxos" class="btn btn-small"&gt;read more..&lt;/a&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -467,6 +494,7 @@ disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#
       &lt;li&gt;&lt;a href="/posts/index/12"&gt;12&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/13"&gt;13&lt;/a&gt;&lt;/li&gt;
       &lt;li&gt;&lt;a href="/posts/index/14"&gt;14&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="/posts/index/15"&gt;15&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/div&gt;
 </description>
@@ -530,13 +558,16 @@ disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#
     &lt;a href="/tags#leveldb-ref"&gt;leveldb &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;a href="/tags#&#x6027;&#x80FD;-ref"&gt;&#x6027;&#x80FD; &lt;span&gt;5&lt;/span&gt;&lt;/a&gt;
+    &lt;a href="/tags#&#x6027;&#x80FD;-ref"&gt;&#x6027;&#x80FD; &lt;span&gt;8&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#ftrace-ref"&gt;ftrace &lt;span&gt;3&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#crash-ref"&gt;crash &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#null_yet-ref"&gt;null_yet &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#softlockup-ref"&gt;softlockup &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -548,7 +579,13 @@ disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#
     &lt;a href="/tags#longhorn-ref"&gt;longhorn &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
+    &lt;a href="/tags#paxos-ref"&gt;paxos &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
     &lt;a href="/tags#raft-ref"&gt;raft &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;a href="/tags#robust-ref"&gt;robust &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;a href="/tags#ext2-ref"&gt;ext2 &lt;span&gt;1&lt;/span&gt;&lt;/a&gt;
@@ -677,20 +714,29 @@ disaster recovery (DR) volume &#x624D;&#x662F;&#x4E0D;&#x9700;&#x8981;&#x8D77;&#
     &lt;li&gt;&lt;a href="/posts/other/optimize"&gt;&#x6A21;&#x5F0F; 01: &#x5185;&#x6838;&#x4E2D;&#x5E38;&#x89C1;&#x7684;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/optimize_user_space"&gt;&#x6A21;&#x5F0F; 03: &#x7528;&#x6237;&#x6001;&#x7684;&#x4E00;&#x4E9B;&#x6027;&#x80FD;&#x4F18;&#x5316;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/other/scale_system_pattern"&gt;&#x6A21;&#x5F0F; 05: &#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;&#x7684;&#x4E00;&#x4E9B;&#x5904;&#x7406;&#x65B9;&#x6CD5;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-01"&gt;perfbook 01 &#x6458;&#x5F55;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-02"&gt;(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/posts/perf/perfbook-03"&gt;(TODO &#x8349;&#x7A3F;)perfbook 03 barrier&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ftrace-ref"&gt;ftrace&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/blktrace_insert_print"&gt;&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/debug/ftrace_data_analysis_interval"&gt;&#x4F7F;&#x7528;ftrace&#x5206;&#x6790;&#x4E24;&#x65F6;&#x95F4;&#x70B9;&#x95F4;&#x9694;&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="/posts/mm/mmap_fault"&gt;mmap&#x548C;fault handler&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="crash-ref"&gt;crash&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/crash_func_args_x86_64"&gt;x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="null_yet-ref"&gt;null_yet&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/debug/inversion_of_cause_and_effect"&gt;&#x56E0;&#x679C;&#x5012;&#x7F6E;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="softlockup-ref"&gt;softlockup&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/debug/softlockup"&gt;&#x63A2;&#x6D4B;softlockup&#x7684;&#x539F;&#x7406;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="storage-ref"&gt;storage&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="longhorn-ref"&gt;longhorn&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/longhorn_snapshot_qa"&gt;&#x5173;&#x4E8E; longhorn &#x5FEB;&#x7167;&#x7684;&#x81EA;&#x95EE;&#x81EA;&#x7B54;&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="paxos-ref"&gt;paxos&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/distributed_system/paxos"&gt;&#x4ECE;&#x6545;&#x969C;&#x573A;&#x666F;&#x770B;paxos&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="raft-ref"&gt;raft&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/distributed_system/raft_mit_6-824"&gt;&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft&lt;/a&gt;&lt;/li&gt;
+  &lt;h3 id="robust-ref"&gt;robust&lt;/h3&gt;
+    &lt;li&gt;&lt;a href="/posts/fs/bit_rot"&gt;bit rot&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="ext2-ref"&gt;ext2&lt;/h3&gt;
     &lt;li&gt;&lt;a href="/posts/fs/ext2_layout"&gt;ext2 disk layout&lt;/a&gt;&lt;/li&gt;
   &lt;h3 id="JBD-ref"&gt;JBD&lt;/h3&gt;

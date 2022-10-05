@@ -54,208 +54,172 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/rcu">RCU常见问题</a> <span class="date">2018-03-22</span></h3>
+        <h3 class="title"><a href="/posts/database/leveldb_02_snapshot">LevelDB 02: snapshot</a> <span class="date">2019-09-10</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 没有锁保护</h4></h1>
+<p>目录:
+</p>
+<li> <a href="#toc_0"> 1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</a>  </li>
+<li> <a href="#toc_1"> 1.1 写 MANIFEST</a>  </li>
+<li> <a href="#toc_2"> 1.2 Builder一个用途</a>  </li>
+<li> <a href="#toc_3"> 2. Get</a>  </li>
+<li> <a href="#toc_4"> 2.1 序列号在 SkipList 查找中的作用</a>  </li>
+<li> <a href="#toc_5"> 2.2 leveldb读写可以同时进行吗？</a>  </li>
+<li> <a href="#toc_6"> 2.3 对于skiplist, 在哪些地方加锁了?</a>  </li>
+<li> <a href="#toc_7"> 2.3 没有处理 序列号 溢出/回绕问题</a>  </li>
+<li> <a href="#toc_8"> 3. manifest</a>  </li>
+<li> <a href="#toc_9"> 3.1 为何有多个 manifest 文件?</a>  </li>
+<li> <a href="#toc_10"> 3.2 manifest 存储的内容是啥:</a>  </li>
+<li> <a href="#toc_11"> 4. VersionEdit (未完成)</a>  </li>
+<li> <a href="#toc_12"> 4.1 ctor</a>  </li>
 
-<p>有如下结构体:</p>
+<hr>
 
-<pre><code>struct your_obj {
-    struct hlist_node obj_node_hlist;
-    struct rcu_head rcu_head;   
-    atomic_t refcnt;
-    int id;
-};
-</code></pre>
+<h2 id="toc_0">1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</h2>
 
-<p>错误写法:</p>
+<p>使用场景:</p>
 
-<pre><code>hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);  
-</code></pre>
-
-<p>正确写法:</p>
-
-<pre><code>spin_lock(&amp;obj_hash_lock[hash]);
-hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);
-spin_unlock(&amp;obj_hash_lock[hash]);
-</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/other/rcu" class="btn btn-small">read more..</a>
+          <a href="/posts/database/leveldb_02_snapshot" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/bi_end_io_occur_but_irqs_disabled">什么情况下bio-&gt;bi_end_io发生时中断是禁止的?</a> <span class="date">2018-03-11</span></h3>
+        <h3 class="title"><a href="/posts/database/leveldb_01_data_safe">LevelDB 01: 数据安全</a> <span class="date">2019-09-09</span></h3>
 
-        <div class="summary">
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
+        <div class="summary ellipsis">
+<p>目录:
+</p>
+<li> <a href="#toc_0"> 1. 原子性 Atomicity</a>  </li>
+<li> <a href="#toc_1"> 2. Consistency</a>  </li>
+<li> <a href="#toc_2"> 2.1 有没有事务, log没有保存旧值, 如何撤销?</a>  </li>
+<li> <a href="#toc_3"> 2.2 (TODO)基于leveldb, filestore 是否实现了 事务/commit等?</a>  </li>
+<li> <a href="#toc_5"> 3. log</a>  </li>
+<li> <a href="#toc_6"> 3.1 写log在哪里</a>  </li>
+<li> <a href="#toc_7"> 4. RecoverLogFile</a>  </li>
+<li> <a href="#toc_8"> 5. VersionSet::Recover</a>  </li>
 
-<p>通常来说, <code>bio-&gt;bi_end_io</code>是软中断上下文中运行的, 
-在<code>bio-&gt;bi_end_io</code>中对<code>in_irq()</code>, <code>in_softirq()</code>, <code>in_serving_softirq()</code>,<code>irqs_disabled()</code>进行判断的话,
-仅有<code>in_softirq()</code>, <code>in_serving_softirq()</code>会成立.</p>
+<hr>
 
-<p>现有如下问题, <code>spin_lock_bh()</code>无法禁止软中断运行, why?</p>
+<h2 id="toc_0">1. 原子性 Atomicity</h2>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+<p>ReadPhysicalRecord():</p>
 
-<p>测试发现, 
-<code>bio-&gt;bi_end_io()</code>中有时<code>in_irq()</code>, <code>in_softirq()</code>, <code>in_serving_softirq()</code>,<code>irqs_disabled()</code>都成立, 
-有时 仅<code>in_irq()</code>, <code>irqs_disabled()</code>成立.</p>
+<ol>
+<li>header  eof, 但读到的&lt;kHeaderSize, 则知道header不完整.</li>
+<li>header完整, 但对应的payload数据不够.</li>
+<li>检查 checksum</li>
+</ol>
 
-<p>查看调用栈, 发现有<code>virtio_blk</code>模块, 也就是运行在虚拟机环境中.
-仅<code>in_irq()</code>, <code>irqs_disabled()</code>成立时的调用栈:</p>
-
-<pre><code>Pid: 3660, comm: mount Not tainted 2.6.32-debug #2
-Call Trace:
- &lt;IRQ&gt;  [&lt;ffffffffa03e18f5&gt;] ? your_bio_end_io+0x2b5/0x310 [your_kmod]
- [&lt;ffffffff811e3a5d&gt;] ? bio_endio+0x1d/0x40
- [&lt;ffffffffa0003efc&gt;] ? dec_pending+0x1cc/0x320 [dm_mod]
- [&lt;ffffffffa0003d7d&gt;] ? dec_pending+0x4d/0x320 [dm_mod]
- [&lt;ffffffffa00040ef&gt;] ? clone_endio+0x9f/0xd0 [dm_mod]
- [&lt;ffffffff811e3a5d&gt;] ? bio_endio+0x1d/0x40
- [&lt;ffffffff8128ef7b&gt;] ? req_bio_endio+0x9b/0xe0
- [&lt;ffffffff812906dc&gt;] ? blk_update_request+0x11c/0x520
- [&lt;ffffffff81290999&gt;] ? blk_update_request+0x3d9/0x520
- [&lt;ffffffff81290b07&gt;] ? blk_update_bidi_request+0x27/0xa0
- [&lt;ffffffff81291aae&gt;] ? __blk_end_request_all+0x2e/0x60
- [&lt;ffffffffa006321a&gt;] ? blk_done+0x4a/0x110 [virtio_blk]
- [&lt;ffffffffa005638c&gt;] ? vring_interrupt+0x3c/0xe0 [virtio_ring]
- [&lt;ffffffff810fc970&gt;] ? handle_IRQ_event+0x50/0x160
- [&lt;ffffffff810ff2f0&gt;] ? handle_edge_irq+0xe0/0x170
- [&lt;ffffffff8100fdc9&gt;] ? handle_irq+0x49/0xa0
- [&lt;ffffffff81570e7c&gt;] ? do_IRQ+0x6c/0xf0
- [&lt;ffffffff8100ba93&gt;] ? ret_from_intr+0x0/0x11
- &lt;EOI&gt;  [&lt;ffffffff8118dd73&gt;] ? __kmalloc+0x143/0x2c0
- [&lt;ffffffffa00c4e87&gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
- [&lt;ffffffffa00c4e87&gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
- [&lt;ffffffffa00c5152&gt;] ? ext4_mb_init+0x1c2/0x450 [ext4]
- [&lt;ffffffffa00b7128&gt;] ? ext4_fill_super+0x2358/0x2950 [ext4]
- [&lt;ffffffff812b8684&gt;] ? snprintf+0x34/0x40
- [&lt;ffffffff811ac141&gt;] ? get_sb_bdev+0x191/0x1d0
- [&lt;ffffffffa00b4dd0&gt;] ? ext4_fill_super+0x0/0x2950 [ext4]
- [&lt;ffffffffa00b04f8&gt;] ? ext4_get_sb+0x18/0x20 [ext4]
- [&lt;ffffffff811ab51b&gt;] ? vfs_kern_mount+0x7b/0x1b0
- [&lt;ffffffff811ab6c2&gt;] ? do_kern_mount+0x52/0x130
- [&lt;ffffffff811cdc5b&gt;] ? do_mount+0x2fb/0x920
- [&lt;ffffffff8115a6d4&gt;] ? strndup_user+0x64/0xc0
- [&lt;ffffffff811ce310&gt;] ? sys_mount+0x90/0xe0
- [&lt;ffffffff8100b0d2&gt;] ? system_call_fastpath+0x16/0x1b
-</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/io/bi_end_io_occur_but_irqs_disabled" class="btn btn-small">read more..</a>
+          <a href="/posts/database/leveldb_01_data_safe" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/debug/ftrace_data_analysis_interval">使用ftrace分析两时间点间隔</a> <span class="date">2018-02-03</span></h3>
+        <h3 class="title"><a href="/posts/tools/why_clion">推荐C++编辑器 Clion</a> <span class="date">2018-11-27</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 使用 python 提取出 interval</h4></h1>
+<p>备注: 然而, 2019年, 本人还是使用通过slickedit阅读代码, 主要是看中其快捷键自定义功能.
+2021年: 现在使用 vscode+ccls</p>
 
-<pre><code># -*- coding: utf-8 -*
+<h2 id="toc_0"><h4>1. 优点</h4></h2>
 
-#添加相应trace_printk, ftrace输出类似:
-#           &lt;...&gt;-3084  [000] 352166.459260: your_func_01: your_point_01
-#           &lt;...&gt;-2892  [000] 352166.459529: your_func_02: your_point_02
+<ul>
+<li>c++中支持以 namespace::method  的方式来搜索symbol.
+(vscode中仅在当前文件时, 才可alt+n  navigate)
+(slickedit通过context tagging可以搜索到)</li>
+<li>支持重构, 比如重命名之类的, 不必到处替换.</li>
+<li>支持 your_filename.c:846:14 直接跳转到指定的行和列.
+在编译出错后, 复制出错信息, 然后 ctrl+shift+n, 然后粘贴类似 your_path/your_filename.c:846:14 来打开文件.
+(vscode中是 ctrl+p  goto to file)</li>
+<li>好用的 "Find Usages", 就是查看谁使用了这个函数, 并不是基于字符串搜索.
+比如, 对leveldb/db/version_set.cc的Version::Get使用Find Usages, 会跳转到
+Status DBImpl::Get()中的
+s = current-&gt;Get(options, lkey, value, &amp;stats);</li>
+<li>杂项:<br>
 
-read_point_start = 1
-f_in=open('interval.ftrace', 'r')
-f_out = open("interval.dat", "wb")
-line_no = 1
-
-while 1:
-    line = f_in.readline()
-    if not line:
-        break
-    #print line
-
-    if read_point_start == 1:
-        if "your_func_01" in line:
-            val_point_start=line.split(":")[0].split(" ")[-1]
-            read_point_start = 0
-            print val_point_start,
-    elif "your_func_02" in line:
-            val_point_end=line.split(":")[0].split(" ")[-1]
-            print val_point_end,
-            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
-            print interval
-            f_out.write(str(line_no) + " " + str(interval)+'\n')    
-            line_no+=1
-            read_point_start = 1
-
-f_out.close()
-</code></pre>
+<ul>
+<li>shift 两次 (search everything), 搜索 wrap, 移动到第1项是  use soft wrap, 回车, 即可应用该选项.</li>
+</ul>
+</li>
+</ul>
 </div>
 
         <div class="more">
-          <a href="/posts/debug/ftrace_data_analysis_interval" class="btn btn-small">read more..</a>
+          <a href="/posts/tools/why_clion" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
+        <h3 class="title"><a href="/posts/fs/jbd">JBD初步</a> <span class="date">2018-10-25</span></h3>
 
         <div class="summary ellipsis">
-<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
+<h1 id="toc_0"><h4>1. 概念</h4></h1>
 
-<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
+<p>单个handle是原子操作. 
+多个handle打包为一个transaction.</p>
 
-<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
-name: block_rq_complete
-ID: 828
-format:
-    field:unsigned short common_type;   offset:0;   size:2; signed:0;
-    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
-    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
-    field:int common_pid;   offset:4;   size:4; signed:1;
+<p>disk is used to indicate the actual block device,
+whereas the term journal is used for the log area.</p>
 
-    field:dev_t dev;    offset:8;   size:4; signed:0;
-    field:sector_t sector;  offset:16;  size:8; signed:0;
-    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
-    field:int errors;   offset:28;  size:4; signed:1;
-    field:char rwbs[8]; offset:32;  size:8; signed:1;
-    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
+<p>Log record: Describes a single update of a disk block of the journaling filesystem.(来自[Understanding the Linux Kernel, 3rd Edition]) </p>
 
-print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
-</code></pre>
+<p>commit record:
+a special block, called the commit record, is written to the journal. The commit record is used to indicate that all the blocks belonging to a single atomic operation are written to the journal.
+fong:这样, 如果crash, 就可以知道那些log是完成的.
+The commit record indicates that this is a completed operation and could be written to the disk. </p>
+
+<p>checkpointing: 将 finished transactions 写入磁盘(非log区域), 用于回收相应log空间的过程.</p>
+
+<h1 id="toc_1"><h4>2. 状态</h4></h1>
+
+<p><code>T_RUNNING</code><br>
+the transaction can accept new handles. </p>
 </div>
 
         <div class="more">
-          <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
+          <a href="/posts/fs/jbd" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
+        <h3 class="title"><a href="/posts/database/db_recovery_concept">数据库recovery的一些基本概念</a> <span class="date">2018-10-24</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
+<h2 id="toc_0"><h5>1. REDO, UNDO, checkpoint</h5></h2>
 
-<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
-本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
+<p>Write Ahead Logging (WAL) is a standard approach to transaction logging.  Briefly, WAL's central concept is that changes to data files (where tables and indexes reside) must be written only after those changes have been logged - that is, when log records have been flushed to permanent storage. When we follow this procedure, we do not need to flush data pages to disk on every transaction commit, because we know that in the event of a crash we will be able to recover the database using the log: any changes that have not been applied to the data pages will first be redone from the log records (this is roll-forward recovery, also known as REDO) and then changes made by uncommitted transactions will be removed from the data pages (roll-backward recovery - UNDO).  [1]<br>
+已commit但未apply的, 执行REDO, 而由 未commit的事务 的修改 需要执行UNDO.   </p>
 
-<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
+<p>------------------ </p>
 
-<h1 id="toc_1"><h4>2. 例子</h4></h1>
+<p>Its transaction recovery log contains log records of the following form:<br>
+<code>
+&lt;txnId, objectId, beforeValue, afterValue&gt;
+</code></p>
 
-<pre><code>crash&gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...略...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+<p>有如下log:</p>
+
+<pre><code>1 &lt;T1 BEGIN&gt;
+2 &lt;T1, X, 1, 2&gt;
+3 &lt;T2 BEGIN&gt;
+4 &lt;T3 BEGIN&gt;
+5 &lt;T2, Y, 1, 2&gt;
+6 &lt;T2 COMMIT&gt;
+7 &lt;T1, Y, 2, 3&gt;
+8 &lt;T3, Z, 1, 2&gt;
+9 &lt;CHECKPOINT&gt;
+10 &lt;T1, X, 2, 3&gt;
+11 &lt;T1, Y, 3, 4&gt;
+12 &lt;T3, Z, 2, 3&gt;
+13 &lt;T3 COMMIT&gt;
+14 &lt;T1, Z, 3, 4&gt;
 </code></pre>
-
-<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
-其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
 </div>
 
         <div class="more">
-          <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
+          <a href="/posts/database/db_recovery_concept" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -275,6 +239,7 @@ PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
           <li><a href="/posts/index/12">12</a></li>
           <li><a href="/posts/index/13">13</a></li>
           <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
       </ul>
     </div>
   </div>

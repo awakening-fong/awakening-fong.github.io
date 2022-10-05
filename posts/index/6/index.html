@@ -54,349 +54,163 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/do_fork_cow">do_fork和COW</a> <span class="date">2017-02-24</span></h3>
+        <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
 
-<p>摘自APUE:</p>
+<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
+本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
 
-<blockquote>
-<p>由于在fork之后进程跟随着exec, 所以现在的很多实现并不执行一个父进程数据段, 栈和堆的完全复制. 作为替代, 使用了COW技术. 这些区域由父子进程共享, 而且内核将它们的访问权限改变为只读的. 如果父子进程中的任一个试图修改这些区域, 则内核只为修改区域的那块内存制作一个副本, 通常是虚拟存储系统中的一"页".  </p>
-</blockquote>
+<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
 
-<p>问题:哪里设置只读, 如何知道只读?</p>
+<h1 id="toc_1"><h4>2. 例子</h4></h1>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+<pre><code>crash&gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...略...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+</code></pre>
 
-<p>快速tips:<br>
-PTE entry is marked as un-writeable.<br>
-But VMA is marked as writeable.  </p>
-
-<p>copy<em>one</em>pte()会调用 ptep<em>set</em>wrprotect()</p>
-
-<p>还是先从dup_mm()开始看吧.<br>
-linux-3.10.86/kernel/fork.c</p>
-
+<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
+其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/do_fork_cow" class="btn btn-small">read more..</a>
+          <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/mmap_fault">mmap和fault handler</a> <span class="date">2017-02-24</span></h3>
+        <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
 
-<p>我们想知道, 通过mmap映射文件, 然后读取, 是如何读取到文件的, 其中的fault handler相关的内容.</p>
+<p>drbd-8.4中有如下代码</p>
 
-<h1 id="toc_1"><h4>2. ftrace</h4></h1>
-
-<pre><code class="c">#include &lt;stdlib.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;strings.h&gt;
-#include &lt;string.h&gt;
-#include &lt;sys/mman.h&gt;
-#include &lt;sys/stat.h&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;errno.h&gt;
-
-#define MEMSIZE 1024*4
-#define MPFILE "./.ash_history"
-
-//#define ON_OFF //tracing_on
-
-void write_ftrace(char *path, char *val)
+<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
 {
-    char ftrace_d[50]="/sys/kernel/debug/tracing/";
-    int len_d=strlen(ftrace_d);
-
-
-    int fd_trace=open(strcat(ftrace_d,path), O_RDWR|O_TRUNC);
-    if (fd_trace &lt; 0) {
-        printf("open %s:%s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    printf("to write:%s %s\n",path,val);
-
-    int ret=write(fd_trace, val, strlen(val));
-    if(ret&lt;0)
-    {
-        printf("write %s %s\n",path,strerror(errno));
-        exit(1);
-    }
-
-
-    if (0==strncmp("trace",path, sizeof("trace")))
-    {
-        close(fd_trace);
-        return;
-    }
-
-    char val_read[20];
-    memset(val_read,0,sizeof(val_read));
-    pread(fd_trace, val_read, sizeof(val_read),0);
-    printf("read val:%s\n",val_read);
-    close(fd_trace);
-
+具体实现略
 }
-
-void write_val(char *path, char *val)
-{
-    int fd=open(path, O_RDWR);
-    if (fd &lt; 0) {
-        printf("open %s:%s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    printf("to write:%s %s\n",path, val);
-    int ret=write(fd, val, strlen(val));
-    if(ret&lt;0)
-    {
-        printf("write %s %s\n",path,strerror(errno));
-        exit(1);
-    }
-
-    char val_read[20];
-    memset(val_read,0,sizeof(val_read));
-    pread(fd, val_read, sizeof(val_read),0);
-    printf("read val:%s\n",val_read);
-    close(fd);
-}
-
-
-int main()
-{
-    char *ptr;
-    int fd;
-    int ret=-1;
-    int i=-1;
-
-    fd = open(MPFILE, O_RDWR);
-    if (fd &lt; 0) {
-        perror("open()");
-        exit(1);
-    }
-
-    ptr = mmap(NULL, MEMSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if (ptr == NULL) {
-        perror("malloc()");
-        exit(1);
-    }
-
-    /*避免page cache干扰*/
-    if( posix_fadvise(fd,0,4096,POSIX_FADV_DONTNEED) != 0) {  
-        printf("Cache FADV_DONTNEED failed, %s\n",strerror(errno));  
-    }  
-    else {  
-        printf("Cache FADV_DONTNEED done\n");  
-    }  
-
-    //mount -t debugfs nodev /sys/kernel/debug/
-    system("mount -t debugfs nodev /sys/kernel/debug/");
-
-
-
-    /*
-    ~ # echo 1 &gt; /proc/sys/kernel/ftrace_enabled
-    */
-
-    write_val("/proc/sys/kernel/ftrace_enabled", "1");
-
-    int pid_cur=getpid();
-    printf("pid:%d\n",pid_cur);
-    char str_pid[25];
-    memset(str_pid,0, sizeof(str_pid));
-    snprintf(str_pid, sizeof(str_pid),"%d", pid_cur);
-    //  /sys/kernel/debug/tracing/set_ftrace_pid
-    write_ftrace("set_ftrace_pid", str_pid);
-
-
-    write_ftrace("tracing_on", "1");
-
-
-    /*# can set other filtering here
-    echo function &gt; ${ROOT_FTRACE}/current_tracer
-    */
-    write_ftrace("current_tracer", "function");
-
-    write_ftrace("trace", "0");
-
-    /*
-    #echo 0 &gt; ${ROOT_FTRACE}/trace
-    echo start_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
-    exec $* 
-    */
-
-    //write_ftrace("trace_marker", "start_trace_marker");
-
-   i=*ptr;  //这个就是我们要跟踪的
-
-
-    /*
-    echo end_trace_marker &gt; ${ROOT_FTRACE}/trace_marker
-    echo 0  &gt; ${ROOT_FTRACE}/tracing_on  #stop record to buffer
-    */
-
-    //write_ftrace("trace_marker", "end_trace_marker");
-
-    write_ftrace("tracing_on", "0");
-    system("cat /sys/kernel/debug/tracing/trace &gt; mmap.ftrace");
-
-    printf("%x\n", i);
-
-
-    munmap(ptr, MEMSIZE);
-    close(fd);
-
-    exit(1);
-}
-
 </code></pre>
+
+<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
+
+<h1 id="toc_1"><h4>2. 处理</h4></h1>
+
+<p>source insight版本4.0<br>
+option- file type option -<br>
+左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
+弹出的对话框中,<br>
+左侧选 c/c++ language, 右侧点击 properties...  </p>
+
+<p>弹出的对话框中, 
+标签页 custom parsing<br>
+打钩 Enable expressions below for parsing  </p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/mmap_fault" class="btn btn-small">read more..</a>
+          <a href="/posts/tools/source_insight_custom_parsing" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/thread_start_sp">关于THREAD_START_SP</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/debug/softlockup">探测softlockup的原理</a> <span class="date">2017-06-10</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题引入</h4></h1>
+<p>本文以2.6.18内核来说明.</p>
 
-<p><a href="https://awakening-fong.github.io/posts/arm/arm_qemu_02">https://awakening-fong.github.io/posts/arm/arm_qemu_02</a>
-中说到 start<em>kernel前设置sp为 init</em>thread<em>union + THREAD</em>START_SP</p>
+<h1 id="toc_0"><h4>1. 检测</h4></h1>
 
-<pre><code>#define THREAD_START_SP (THREAD_SIZE - 8)
+<p>每间隔HZ, 会喂watchdog.</p>
+
+<pre><code>tick                         watchdog
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &gt;     |
+|check                         | touch
+|                              |
+|                              |
+|           wakup              |
+|- - - - -  - - -  - - - &gt;     |
+|check                         | touch
+|                              |
+|                              |
 </code></pre>
 
-<p>为何要-8?  </p>
+<p>若watchdog线程迟迟没有被调度到, 则导致watchdog没有touch, 这样, tick 时钟会检查到该问题, 报 soft lockup .</p>
+</div>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+        <div class="more">
+          <a href="/posts/debug/softlockup" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
 
-<pre><code>static inline struct thread_info *current_thread_info(void)
+        <div class="summary">
+<p>本博文仅提出问题, 不给出答案. 祝玩得开心.   </p>
+
+<p>问题: 我们知道 当前task可以通过current来获得. ARM上, 其实现如下:</p>
+
+<pre><code>#define current (get_current()) 
+#define get_current() (current_thread_info()-&gt;task)
+static inline struct thread_info *current_thread_info(void)
 {
     register unsigned long sp asm ("sp");
     return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
 }
 </code></pre>
 
-<p>(图示中A点到B点  大小是8字节)<br>
-如果sp是SP0, 那么,(sp &amp; ~(THREAD<em>SIZE - 1)) 后还是指向SP0 (A点);<br>
-如果sp是SP1, 那么, (sp &amp; ~(THREAD</em>SIZE - 1)) 后指向的是thread_info (C点).<br>
-所以, 需要-8.</p>
+<p>对于ARM, 其sp是banked的, irq模式和SVC模式的sp不是同一个. 这样, 中断handler还能通过sp来获得当前task吗?</p>
+
+<p>以下内容是本问题的提示.<br>
+为了避免干扰各位思考, 已设置背景色为黑色, 若要查看文字, 可通过按ctrl+a等方法查看.  </p>
+
+<p style="background-color: rgb(0, 0, 0);">中断handler在SVC模式下执行的.
+</p>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/thread_start_sp" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/optimize">模式 01: 内核中常见的性能优化方法</a> <span class="date">2017-02-23</span></h3>
+        <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+<h1 id="toc_0"><h4>1. 发送</h4></h1>
 
-<p><code>add_to_page_cache_lru</code>,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+<p>以tkill为例来说明.
+linux-3.10.86/kernel/signal.c
+假定不是发送给组的, 即<code>__send_signal()</code>的@group为0</p>
 
-<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
-
-<p>2.1   HZ 设置为 250, 1000等.</p>
-
-<p>2.2 
-中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
-
-<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
-
-<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
-
-<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
-
-<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
-
-<p>hash应该也算这个类别.</p>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/other/optimize" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/pt_regs_for_debug">内核中 通过 struct pt_regs 来获取  用户传递的参数</a> <span class="date">2017-02-23</span></h3>
-
-        <div class="summary">
-<p>基于 linux-2.6.35.7/drivers/char/mem.c</p>
-
-<pre><code>#include &lt;asm/ptrace.h&gt;
-#include &lt;asm/uaccess.h&gt;
-
-static ssize_t kmsg_write(struct file *file, const char __user *buf,
-              size_t count, loff_t *ppos)
-{
-    char *tmp;
-    ssize_t ret;
-
-    tmp = kmalloc(count + 1, GFP_KERNEL);
-    if (tmp == NULL)
-        return -ENOMEM;
-    ret = -EFAULT;
-    if (!copy_from_user(tmp, buf, count)) {
-        tmp[count] = 0;
-        //add
-        #define STR_FOUND "sth_will_show_in_dmesg"
-        if(NULL!=strstr(tmp,STR_FOUND))
-        {
-            struct pt_regs *usr_regs; 
-            usr_regs=task_pt_regs(current); 
-            if(valid_user_regs(usr_regs))
-            {
-                int fd=usr_regs-&gt;ARM_r0;
-                char *write_buf=usr_regs-&gt;ARM_r1;
-                int len=usr_regs-&gt;ARM_r2;
-                /*用户态程序:
-                #define STR_TMP "sth_will_show_in_dmesg"
-                int fd=open("/dev/kmsg", O_WRONLY);
-                write(fd,STR_TMP,strlen(STR_TMP));
-                */
-
-                /*
-                内核打印:
-                kmsg_write(),969:3 0x6fee0 22
-                kmsg_write(),971:buf:sth_will_show_in_dmesg
-                也就是打印出了 用户态传递的参数
-                */
-                tmp_print("%d 0x%x %d",fd,write_buf,len);
-                if(access_ok(VERIFY_READ, (void *) write_buf,strlen(write_buf)))
-                    tmp_print("buf:%s\n",write_buf);
-            }
-            else
-            {
-                tmp_print("not valid_user_regs\n");
-            }
+<pre><code>do_tkill -&gt; do_send_specific
+|--find_task_by_vpid
+|--check_kill_permission
+|--do_send_sig_info -&gt; send_signal
+|   |--__send_signal
 
 
-        }
-        //end add
-        ret = printk("%s", tmp);
-        if (ret &gt; count)
-            /* printk can add a prefix */
-            ret = count;
-    }
-    kfree(tmp);
-    return ret;
-}
+__send_signal
+|--q=__sigqueue_alloc //new sigqueue instance
+|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
+|--设置q-&gt;info的各域
+|   |--q-&gt;info.si_signo =
+|   |--q-&gt;info.si_pid =
+|--complete_signal
+|   |--signal_wake_up -&gt; signal_wake_up_state
+|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
+|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/other/pt_regs_for_debug" class="btn btn-small">read more..</a>
+          <a href="/posts/other/signal" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -416,6 +230,7 @@ static ssize_t kmsg_write(struct file *file, const char __user *buf,
           <li><a href="/posts/index/12">12</a></li>
           <li><a href="/posts/index/13">13</a></li>
           <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
       </ul>
     </div>
   </div>

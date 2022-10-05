@@ -54,162 +54,209 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
+        <h3 class="title"><a href="/posts/distributed_system/raft_mit_6-824">使用lab来理解raft</a> <span class="date">2018-10-16</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
+<h1 id="toc_0"><h4>1. 背景</h4></h1>
 
-<p>drbd-8.4中有如下代码</p>
+<p>为理解raft, 参照2018年的 <a href="https://pdos.csail.mit.edu/6.824/labs/lab-raft.html">https://pdos.csail.mit.edu/6.824/labs/lab-raft.html</a> 
+进行其中的lab 2A 和 2B.</p>
 
-<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
-{
-具体实现略
-}
-</code></pre>
+<h1 id="toc_1"><h4>2. 代码实现/协议细节</h4></h1>
 
-<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
+<h2 id="toc_2"><h4>2.1 文章摘录</h4></h2>
 
-<h1 id="toc_1"><h4>2. 处理</h4></h1>
+<p><a href="https://thesquareplanet.com/blog/students-guide-to-raft/">https://thesquareplanet.com/blog/students-guide-to-raft/</a></p>
 
-<p>source insight版本4.0<br>
-option- file type option -<br>
-左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
-弹出的对话框中,<br>
-左侧选 c/c++ language, 右侧点击 properties...  </p>
+<ul>
+<li>
+<p>you might reasonably reset a peer’s election timer whenever you receive an AppendEntries or RequestVote RPC, as both indicate that some other peer either thinks it’s the leader, or is trying to become the leader. Intuitively, this means that we shouldn’t be interfering. However, if you read Figure 2 carefully, it says:</p>
 
-<p>弹出的对话框中, 
-标签页 custom parsing<br>
-打钩 Enable expressions below for parsing  </p>
+<p>If election timeout elapses without receiving AppendEntries RPC <strong><em>from current leader</em></strong> or granting vote to candidate: convert to candidate. 
+​</p>
+</li>
+<li><p>many would simply reset their election timer when they received a heartbeat, and then return success, without performing any of the checks specified in Figure 2. This is extremely dangerous. By accepting the RPC, the follower is implicitly telling the leader that their log matches the leader’s log up to and including the prevLogIndex included in the AppendEntries arguments. Upon receiving the reply, the leader might then decide (incorrectly) that some entry has been replicated to a majority of servers, and start committing it.
+接收到心跳, 不能简单地返回成功, 而应该 对比leader发过来的prevLogIndex 和 自己(follower)已有的log.
+这样, 可以应对如下情况: 当某个节点网络断开, 重新加入集群时, 就能够及时地更新自身数据到最新状态.</p></li>
+</ul>
+
 </div>
 
         <div class="more">
-          <a href="/posts/tools/source_insight_custom_parsing" class="btn btn-small">read more..</a>
+          <a href="/posts/distributed_system/raft_mit_6-824" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/debug/softlockup">探测softlockup的原理</a> <span class="date">2017-06-10</span></h3>
+        <h3 class="title"><a href="/posts/other/rcu">RCU常见问题</a> <span class="date">2018-03-22</span></h3>
 
         <div class="summary ellipsis">
-<p>本文以2.6.18内核来说明.</p>
+<h1 id="toc_0"><h4>1. 没有锁保护</h4></h1>
 
-<h1 id="toc_0"><h4>1. 检测</h4></h1>
+<p>有如下结构体:</p>
 
-<p>每间隔HZ, 会喂watchdog.</p>
-
-<pre><code>tick                         watchdog
-|                              |
-|           wakup              |
-|- - - - -  - - -  - - - &gt;     |
-|check                         | touch
-|                              |
-|                              |
-|           wakup              |
-|- - - - -  - - -  - - - &gt;     |
-|check                         | touch
-|                              |
-|                              |
+<pre><code>struct your_obj {
+    struct hlist_node obj_node_hlist;
+    struct rcu_head rcu_head;   
+    atomic_t refcnt;
+    int id;
+};
 </code></pre>
 
-<p>若watchdog线程迟迟没有被调度到, 则导致watchdog没有touch, 这样, tick 时钟会检查到该问题, 报 soft lockup .</p>
+<p>错误写法:</p>
+
+<pre><code>hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);  
+</code></pre>
+
+<p>正确写法:</p>
+
+<pre><code>spin_lock(&amp;obj_hash_lock[hash]);
+hlist_del_init_rcu(&amp;your_obj-&gt;obj_node_hlist);
+spin_unlock(&amp;obj_hash_lock[hash]);
+</code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/debug/softlockup" class="btn btn-small">read more..</a>
+          <a href="/posts/other/rcu" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/current_in_interrupt_handler">为何中断handler中可以使用current</a> <span class="date">2017-05-13</span></h3>
+        <h3 class="title"><a href="/posts/io/bi_end_io_occur_but_irqs_disabled">什么情况下bio-&gt;bi_end_io发生时中断是禁止的?</a> <span class="date">2018-03-11</span></h3>
 
         <div class="summary">
-<p>本博文仅提出问题, 不给出答案. 祝玩得开心.   </p>
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
 
-<p>问题: 我们知道 当前task可以通过current来获得. ARM上, 其实现如下:</p>
+<p>通常来说, <code>bio-&gt;bi_end_io</code>是软中断上下文中运行的, 
+在<code>bio-&gt;bi_end_io</code>中对<code>in_irq()</code>, <code>in_softirq()</code>, <code>in_serving_softirq()</code>,<code>irqs_disabled()</code>进行判断的话,
+仅有<code>in_softirq()</code>, <code>in_serving_softirq()</code>会成立.</p>
 
-<pre><code>#define current (get_current()) 
-#define get_current() (current_thread_info()-&gt;task)
-static inline struct thread_info *current_thread_info(void)
-{
-    register unsigned long sp asm ("sp");
-    return (struct thread_info *)(sp &amp; ~(THREAD_SIZE - 1));
-}
+<p>现有如下问题, <code>spin_lock_bh()</code>无法禁止软中断运行, why?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<p>测试发现, 
+<code>bio-&gt;bi_end_io()</code>中有时<code>in_irq()</code>, <code>in_softirq()</code>, <code>in_serving_softirq()</code>,<code>irqs_disabled()</code>都成立, 
+有时 仅<code>in_irq()</code>, <code>irqs_disabled()</code>成立.</p>
+
+<p>查看调用栈, 发现有<code>virtio_blk</code>模块, 也就是运行在虚拟机环境中.
+仅<code>in_irq()</code>, <code>irqs_disabled()</code>成立时的调用栈:</p>
+
+<pre><code>Pid: 3660, comm: mount Not tainted 2.6.32-debug #2
+Call Trace:
+ &lt;IRQ&gt;  [&lt;ffffffffa03e18f5&gt;] ? your_bio_end_io+0x2b5/0x310 [your_kmod]
+ [&lt;ffffffff811e3a5d&gt;] ? bio_endio+0x1d/0x40
+ [&lt;ffffffffa0003efc&gt;] ? dec_pending+0x1cc/0x320 [dm_mod]
+ [&lt;ffffffffa0003d7d&gt;] ? dec_pending+0x4d/0x320 [dm_mod]
+ [&lt;ffffffffa00040ef&gt;] ? clone_endio+0x9f/0xd0 [dm_mod]
+ [&lt;ffffffff811e3a5d&gt;] ? bio_endio+0x1d/0x40
+ [&lt;ffffffff8128ef7b&gt;] ? req_bio_endio+0x9b/0xe0
+ [&lt;ffffffff812906dc&gt;] ? blk_update_request+0x11c/0x520
+ [&lt;ffffffff81290999&gt;] ? blk_update_request+0x3d9/0x520
+ [&lt;ffffffff81290b07&gt;] ? blk_update_bidi_request+0x27/0xa0
+ [&lt;ffffffff81291aae&gt;] ? __blk_end_request_all+0x2e/0x60
+ [&lt;ffffffffa006321a&gt;] ? blk_done+0x4a/0x110 [virtio_blk]
+ [&lt;ffffffffa005638c&gt;] ? vring_interrupt+0x3c/0xe0 [virtio_ring]
+ [&lt;ffffffff810fc970&gt;] ? handle_IRQ_event+0x50/0x160
+ [&lt;ffffffff810ff2f0&gt;] ? handle_edge_irq+0xe0/0x170
+ [&lt;ffffffff8100fdc9&gt;] ? handle_irq+0x49/0xa0
+ [&lt;ffffffff81570e7c&gt;] ? do_IRQ+0x6c/0xf0
+ [&lt;ffffffff8100ba93&gt;] ? ret_from_intr+0x0/0x11
+ &lt;EOI&gt;  [&lt;ffffffff8118dd73&gt;] ? __kmalloc+0x143/0x2c0
+ [&lt;ffffffffa00c4e87&gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
+ [&lt;ffffffffa00c4e87&gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
+ [&lt;ffffffffa00c5152&gt;] ? ext4_mb_init+0x1c2/0x450 [ext4]
+ [&lt;ffffffffa00b7128&gt;] ? ext4_fill_super+0x2358/0x2950 [ext4]
+ [&lt;ffffffff812b8684&gt;] ? snprintf+0x34/0x40
+ [&lt;ffffffff811ac141&gt;] ? get_sb_bdev+0x191/0x1d0
+ [&lt;ffffffffa00b4dd0&gt;] ? ext4_fill_super+0x0/0x2950 [ext4]
+ [&lt;ffffffffa00b04f8&gt;] ? ext4_get_sb+0x18/0x20 [ext4]
+ [&lt;ffffffff811ab51b&gt;] ? vfs_kern_mount+0x7b/0x1b0
+ [&lt;ffffffff811ab6c2&gt;] ? do_kern_mount+0x52/0x130
+ [&lt;ffffffff811cdc5b&gt;] ? do_mount+0x2fb/0x920
+ [&lt;ffffffff8115a6d4&gt;] ? strndup_user+0x64/0xc0
+ [&lt;ffffffff811ce310&gt;] ? sys_mount+0x90/0xe0
+ [&lt;ffffffff8100b0d2&gt;] ? system_call_fastpath+0x16/0x1b
 </code></pre>
-
-<p>对于ARM, 其sp是banked的, irq模式和SVC模式的sp不是同一个. 这样, 中断handler还能通过sp来获得当前task吗?</p>
-
-<p>以下内容是本问题的提示.<br>
-为了避免干扰各位思考, 已设置背景色为黑色, 若要查看文字, 可通过按ctrl+a等方法查看.  </p>
-
-<p style="background-color: rgb(0, 0, 0);">中断handler在SVC模式下执行的.
-</p>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/current_in_interrupt_handler" class="btn btn-small">read more..</a>
+          <a href="/posts/io/bi_end_io_occur_but_irqs_disabled" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/signal">信号</a> <span class="date">2017-02-26</span></h3>
+        <h3 class="title"><a href="/posts/debug/ftrace_data_analysis_interval">使用ftrace分析两时间点间隔</a> <span class="date">2018-02-03</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 发送</h4></h1>
+<h1 id="toc_0"><h4>1. 使用 python 提取出 interval</h4></h1>
 
-<p>以tkill为例来说明.
-linux-3.10.86/kernel/signal.c
-假定不是发送给组的, 即<code>__send_signal()</code>的@group为0</p>
+<pre><code># -*- coding: utf-8 -*
 
-<pre><code>do_tkill -&gt; do_send_specific
-|--find_task_by_vpid
-|--check_kill_permission
-|--do_send_sig_info -&gt; send_signal
-|   |--__send_signal
+#添加相应trace_printk, ftrace输出类似:
+#           &lt;...&gt;-3084  [000] 352166.459260: your_func_01: your_point_01
+#           &lt;...&gt;-2892  [000] 352166.459529: your_func_02: your_point_02
 
+read_point_start = 1
+f_in=open('interval.ftrace', 'r')
+f_out = open("interval.dat", "wb")
+line_no = 1
 
-__send_signal
-|--q=__sigqueue_alloc //new sigqueue instance
-|--list_add_tail(&amp;q-&gt;list, &amp;pending-&gt;list);
-|--设置q-&gt;info的各域
-|   |--q-&gt;info.si_signo =
-|   |--q-&gt;info.si_pid =
-|--complete_signal
-|   |--signal_wake_up -&gt; signal_wake_up_state
-|   |   |--set_tsk_thread_flag(t, TIF_SIGPENDING);
-|   |   |--wake_up_state(, |TASK_INTERRUPTIBLE) -&gt; try_to_wake_up
+while 1:
+    line = f_in.readline()
+    if not line:
+        break
+    #print line
+
+    if read_point_start == 1:
+        if "your_func_01" in line:
+            val_point_start=line.split(":")[0].split(" ")[-1]
+            read_point_start = 0
+            print val_point_start,
+    elif "your_func_02" in line:
+            val_point_end=line.split(":")[0].split(" ")[-1]
+            print val_point_end,
+            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
+            print interval
+            f_out.write(str(line_no) + " " + str(interval)+'\n')    
+            line_no+=1
+            read_point_start = 1
+
+f_out.close()
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/other/signal" class="btn btn-small">read more..</a>
+          <a href="/posts/debug/ftrace_data_analysis_interval" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
+        <h3 class="title"><a href="/posts/debug/blktrace_insert_print">让blktrace输出trace_printk的内容</a> <span class="date">2018-01-20</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
+<p>有时需要在blktrace输出中插入一些打印. 由于blktrace是基于ftrace的, 故考虑转用ftrace来实现这个目的.</p>
 
-<p>linux-3.10.86/arch/arm/mm/fault.c</p>
+<h1 id="toc_0"><h4>1. ftrace的过滤</h4></h1>
 
-<pre><code>static int __kprobes
-do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
-{
+<pre><code># cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
+name: block_rq_complete
+ID: 828
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
 
-    if (!user_mode(regs))
-        goto no_context;
+    field:dev_t dev;    offset:8;   size:4; signed:0;
+    field:sector_t sector;  offset:16;  size:8; signed:0;
+    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
+    field:int errors;   offset:28;  size:4; signed:1;
+    field:char rwbs[8]; offset:32;  size:8; signed:1;
+    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
 
-
-no_context:
-    __do_kernel_fault(mm, addr, fsr, regs);
-    return 0;
-}
+print fmt: "%d,%d %s (%s) %llu + %u [%d]", ((unsigned int) ((REC-&gt;dev) &gt;&gt; 20)), ((unsigned int) ((REC-&gt;dev) &amp; ((1U &lt;&lt; 20) - 1))), REC-&gt;rwbs, __get_str(cmd), (unsigned long long)REC-&gt;sector, REC-&gt;nr_sector, REC-&gt;errors
 </code></pre>
-
-<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
-copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
-(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
+          <a href="/posts/debug/blktrace_insert_print" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -229,6 +276,7 @@ copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也�
           <li><a href="/posts/index/12">12</a></li>
           <li><a href="/posts/index/13">13</a></li>
           <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
       </ul>
     </div>
   </div>

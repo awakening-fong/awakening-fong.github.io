@@ -54,174 +54,148 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/generic_perform_write">generic_perform_write流程</a> <span class="date">2016-12-31</span></h3>
+        <h3 class="title"><a href="/posts/scheduler/scheduler_00_implementation">调度器CFS的实现</a> <span class="date">2017-01-10</span></h3>
 
-        <div class="summary"><pre><code class="c">generic_perform_write
-{
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 概述</h4></h1>
 
-        /*
-        ==0==计算没有和PAGE_CACHE_SIZE对齐的那部分的大小, 代码中的bytes.
+<p>主要视角是, 考虑要多久才能轮到某个进程的运行, (称之为targeted preemption latency) 而不是每个进程分配多少份的时间片.</p>
 
-        杂问题:
-        假定PAGE_CACHE_SIZE为4, pos为5, iov_iter_count()大于2个PAGE_CACHE_SIZE,
-        则offset为1, bytes为3
-        所以, 代码中的bytes就是示意图中|///|那部分:
-      pos==0    pos==5
-        ^         ^
-        |         |
-        |----|  |-.---|  |----|
-                  |///|
-                  读取
-        */
-        offset = (pos &amp; (PAGE_CACHE_SIZE - 1));
-        bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
-                        iov_iter_count(i));
-again:
-        /*
-        如何防止dead lock可参考
-        https://lkml.org/lkml/2015/6/30/631
-        */
-        iov_iter_fault_in_readable(...);
+<p>对单个进程 达到 时间段t1内被至少调度一次到, 对所有的进程都达到的话, 就是, 时间段t1内所有进程都跑一遍.
+the interval during which every runnable task should run at least once.
+这个时间段t1我们成为 one latency period.</p>
 
-        /*
-        ==1==准备page
-        答:
-        如果在address_space中没有该pos对应的page, 则分配page并添加到address_space.
-        如果没有写完整的一个sector, 则需要先从磁盘读出原sector.
-        */
-        status = a_ops-&gt;write_begin(file, mapping, pos, bytes, flags,
-                        &amp;page, &amp;fsdata);
+<p>本文仅讨论SCHED<em>NORMAL.
+且没有使能CONFIG</em>FAIR<em>GROUP</em>SCHED. 内核版本3.10.</p>
 
-        /*
-        ==2==填充page cache
-        */
-        /*
-        flush_dcache_page 见https://awakening-fong.github.io/posts/flush_dcache_page
-        */
-        if (mapping_writably_mapped(mapping))
-            flush_dcache_page(page);
-        pagefault_disable();
-        copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
-        pagefault_enable();
-        flush_dcache_page(page);
-        /*
-        ==3==标记为dirty, 处理short write
-        short wrtie是让 copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);复制bytes, 结果实际只复制copied. 若发生short write, 则重来.
-        */
-        a_ops-&gt;write_end(...);
+<h1 id="toc_1"><h4>2. 时间的计算</h4></h1>
 
-}
+<p>等了多久, 具体如何量化?<br>
+每次计算时间, 若是逐个给每个TASK_RUNNING进程计算, 这样势必低效,
+所以, 实现上, 不应该是逐个进程判断等待的时间.<br>
+当前的实现是, 记录各进程运行所占用的时间, 运行占用时间的另一面, 就是 没有运行. 一个进程运行时间久, 其他进程没有运行或者等待的时间就久. 故可以仅记录运行时间来反应等待时间, 这个运行的时间记为vruntime.</p>
 
-</code></pre></div>
+<h3 id="toc_2"><h4>2.1 vruntime</h4></h3>
 
-        <div class="more">
-          <a href="/posts/io/generic_perform_write" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/io/set_buffer_new">set_buffer_new</a> <span class="date">2016-12-31</span></h3>
-
-        <div class="summary">
-本文主要解释BH_New的含义, 以及何时设置该标志.
+<p>virtual run time, 运行时间经加权后的数据, 加权方法为</p>
 </div>
 
         <div class="more">
-          <a href="/posts/io/set_buffer_new" class="btn btn-small">read more..</a>
+          <a href="/posts/scheduler/scheduler_00_implementation" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+        <h3 class="title"><a href="/posts/io/deadline-iosched">deadline-iosched</a> <span class="date">2017-01-06</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. flush<em>dcache</em>page的实现</h4></h1>
+<h1 id="toc_0"><h4>1. 背景</h4></h1>
 
-<p>问题:flush<em>dcache</em>page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+<p>派发队列(q-&gt;queue<em>head)(the block device dispatch queue) 为空时，将request从 I/O调度队列(io scheduler queue) 转移到 派发队列, 
+具体是 通过 调用I/O调度算法的elevator</em>dispatch_fn来完成的:<br>
+linux-3.10.86/block/blk.h</p>
 
-<p>linux-3.10.86/arch/arm/mm/flush.c</p>
-
-<pre><code>flush_dcache_page -&gt; __flush_dcache_page
+<pre><code>__elv_next_request
 {
-    /*
-     * Writeback ...
-    */
-
+    while (1) {
+        if (!list_empty(&amp;q-&gt;queue_head)) {
+            rq = list_entry_rq(q-&gt;queue_head.next);
+            return rq;
+        }
+        ...
+        if ( ... || !q-&gt;elevator-&gt;type-&gt;ops.elevator_dispatch_fn(q, 0))//比如deadline_dispatch_requests
+            return NULL;
+    }       
 }
 </code></pre>
 
-<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
+<p>具体调度策略有 cfq-iosched, deadline-iosched等.</p>
+</div>
 
-<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
+        <div class="more">
+          <a href="/posts/io/deadline-iosched" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/readahead">do_generic_file_read中的readahead</a> <span class="date">2017-01-03</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. readahead</h4></h1>
+
+<p>do<em>generic</em>file_read 中有两个ahead相关的函数:</p>
+
+<pre><code>do_generic_file_read -&gt; page_cache_sync_readahead 
+generic_file_aio_read -&gt; do_generic_file_read -&gt;  page_cache_async_readahead
+</code></pre>
+
+<p>问:page<em>cache</em>sync<em>readahead 和 page</em>cache<em>async</em>readahead  的差别在哪里? sync和async体现在哪?<br>
+答: 一个当前page cache中没有所需的数据, 发起的是对当下要用的数据的读取;<br>
+另一个是page cache中有所需的数据, 发起对后面可能要用的数据的读取.</p>
 
 <p>linux-3.10.86/mm/filemap.c</p>
 
-</div>
-
-        <div class="more">
-          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/arm_kthread_do_exit">关于arm linux中kthread()中的do_exit()</a> <span class="date">2016-12-31</span></h3>
-
-        <div class="summary ellipsis">
-<p>来自本人的旧博客:
-http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
-
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
-
-<p>linux-3.10.86/kernel/kthread.c</p>
-
-<pre><code>static int kthread(void *_create)
+<pre><code>do_generic_file_read
 {
-...
-    /* we can't just return, we must preserve "self" on stack */
-    do_exit(ret);
-}
-</code></pre>
+        page = find_get_page(mapping, index);
+        if (!page){
+            page_cache_sync_readahead(...)
+            ...
+        }
+        if (PageReadahead(page)) {
+            page_cache_async_readahead(...)
+        }
+        ...
 
-<p>这里注释说不能省略do_exit(), why?</p>
-
-<h1 id="toc_1"><h4>2. 解</h4></h1>
-
-<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/other/arm_kthread_do_exit" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a> <span class="date">2016-12-31</span></h3>
-
-        <div class="summary ellipsis">
-<p>来自本人的旧博客:
-http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
-</p>
-
-<p><img src="/assets/media/park_unpark.jpg"></p>
-
-<p>上图为smpboot<em>register</em>percpu<em>thread(), kthread</em>create<em>on</em>cpu(), kthread<em>create</em>on_node(), kthreadd()和kthread()之间的关系.</p>
-
-<p><img src="/assets/media/cpu_hotplug.jpg"></p>
-
-<p>上图为cpu hotplug对内核线程的操作, 以smpboot<em>thread</em>fn()为例.</p>
-
-<p>内核启动时, smpboot<em>register</em>percpu<em>thread()创建,绑定并启动primary cpu的内核线程, 并挂到链表hotplug</em>threads上.</p>
-
-<p>linux-3.10.86/kernel/smpboot.c</p>
-
-<pre><code>smpboot_register_percpu_thread
-{
-    __smpboot_create_thread(plug_thread, cpu);
-    smpboot_unpark_thread(plug_thread, cpu);
-    list_add(&amp;plug_thread-&gt;list, &amp;hotplug_threads);
 }
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/other/kthread_park_unpark" class="btn btn-small">read more..</a>
+          <a href="/posts/io/readahead" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/tag_towrie_livelock">tag TOWRITE to avoid livelocking?</a> <span class="date">2017-01-03</span></h3>
+
+        <div class="summary">
+主要介绍writeback中的livelocking.
+</div>
+
+        <div class="more">
+          <a href="/posts/io/tag_towrie_livelock" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/io/writeback_routine">回写路径</a> <span class="date">2017-01-01</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>方式1. 前期tag dirty</h4></h1>
+
+<p>linux-3.10.86/mm/page-writeback.c</p>
+
+<pre><code class="c">
+write_cache_pages
+{
+
+    while (...) {
+
+        nr_pages = pagevec_lookup_tag(&amp;pvec, mapping, &amp;index, tag,
+                  min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1);
+        if (nr_pages == 0)
+            break;
+
+        ...
+            lock_page(page);
+        ...
+            /*常见的有__mpage_writepage 或者 __writepage*/
+            ret = (*writepage)(page, wbc, data);
+
+
+}
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/io/writeback_routine" class="btn btn-small">read more..</a>
         </div>
       </div>
     
@@ -241,6 +215,7 @@ http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
           <li><a href="/posts/index/12">12</a></li>
           <li class="active"><a href="/posts/index/13">13</a></li>
           <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
       </ul>
     </div>
   </div>

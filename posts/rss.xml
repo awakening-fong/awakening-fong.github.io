@@ -4,7 +4,321 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2021-03-20</pubDate>
+    <pubDate>2022-10-05</pubDate>
+    <item>
+      <title>(TODO &#x8349;&#x7A3F;)perfbook 03 barrier</title>
+      <link>https://awakening-fong.github.io/posts/perf/perfbook-03</link>
+      <pubDate>2022-10-03</pubDate>
+      <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;5.4.4&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x7B2C;16&#x884C;&#x6267;&#x884C;&#x4E00;&#x6761;&#x5185;&#x5B58;&#x5C4F;&#x969C;&#xFF0C;&#x786E;&#x4FDD;&#x4EFB;&#x4F55;&#x770B;&#x89C1;&#x7B2C;17&#x884C;&#x8BBE;&#x7F6E;READY&#x72B6;&#x6001;&#x7684;CPU&#xFF0C;&#x4E5F;&#x80FD;&#x770B;&#x89C1;&#x7B2C;9&#x884C;&#x7684;&#x6548;&#x679C;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;16  smp_mb();
+17 WRITE_ONCE(theft, THEFT_READY);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x8DE8;&#x8FC7;&#x4E86;16&#x884C;&#xFF0C;&#x5C31;&#x662F;&#x5DF2;&#x7ECF;&#x6267;&#x884C;&#x8FC7;&#x7B2C;9&#x884C;&#x7684;&#x8BC1;&#x636E;&#xFF0C;&#x6240;&#x4EE5;&#xFF0C;&#x7B2C;17&#x884C;&#x7ED9;&#x51FA;&#x4E86;&#x4E00;&#x4E2A;&#x7ED3;&#x8BBA;&#x3002;
+16&#x884C;&#x7684;&#x52A8;&#x4F5C;&#x5DF2;&#x6267;&#x884C;&#x5B8C;&#xFF0C;&#x6E05;&#x5355;&#x6B65;&#x9AA4;&#x5DF2;&#x67E5;&#x9A8C;&#xFF0C;17&#x884C;&#x7ED9;&#x4E2A;&#x76D6;&#x7AE0;&#x3002;&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>perfbook 01 &#x6458;&#x5F55;</title>
+      <link>https://awakening-fong.github.io/posts/perf/perfbook-01</link>
+      <pubDate>2022-09-17</pubDate>
+      <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;5.4.6 Applying Exact Limit Counters&lt;/h3&gt;
+
+&lt;p&gt;Quick Quiz 5.58: This is ridiculous! We are read-acquiring a reader-writer lock to update the counter? What are you playing at?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: 
+&#x8FD9;&#x91CC;&#x8981;&#x5F3A;&#x8C03;&#x7684;&#x662F;  &#x8BFB;&#x9501;  &#x5141;&#x8BB8; &#x591A;&#x4EBA;&#x540C;&#x65F6;&#x6301;&#x6709;&#xFF0C;&#x5199;&#x9501;&#x53EA;&#x5141;&#x8BB8;&#x5355;&#x4EBA;&#x6301;&#x6709;&#x3002; &#x8DDF; &#x662F;&#x5426;&#x8FDB;&#x884C; &#x8BFB;&#x5199;&#x64CD;&#x4F5C;&#x6CA1;&#x6709;&#x5FC5;&#x7136;&#x5173;&#x7CFB;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;Chapter 6 Partitioning and Synchronization Design&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x4E00;&#x79CD;&#x5F3A;&#x5236;&#x9501;&#x8303;&#x56F4;&#x4E0D;&#x91CD;&#x53E0;&#x7684;&#x529E;&#x6CD5;&#x3002;&#x4E24;&#x4E2A;&#x5355;&#x72EC;&#x7684;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x4E32;&#x8054;&#x5728;&#x4E00;&#x8D77;&#xFF0C;&#x6BCF;&#x4E2A;&#x961F;&#x5217;&#x7528;&#x81EA;&#x5DF1;&#x7684;&#x9501;&#x4FDD;&#x62A4;&#x3002;&#x8FD9;&#x610F;&#x5473;&#x7740;&#x6570;&#x636E;&#x5076;&#x5C14;&#x4F1A;&#x4ECE;&#x4E00;&#x4E2A;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x8DD1;&#x5230;&#x53E6;&#x4E00;&#x4E2A;&#x53CC;&#x7AEF;&#x961F;&#x5217;&#x3002;&#x6B64;&#x65F6;&#x5FC5;&#x987B;&#x540C;&#x65F6;&#x6301;&#x6709;&#x4E24;&#x628A;&#x9501;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong: &#x5999;&lt;/p&gt;
+
+&lt;p&gt;&lt;/br&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;quot;&#x54C8;&#x5E0C;&#x6C38;&#x8FDC;&#x662F;&#x5206;&#x5272;&#x4E00;&#x4E2A;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x7684;&#x6700;&#x7B80;&#x5355;&#x548C;&#x6700;&#x6709;&#x6548;&#x7684;&#x65B9;&#x6CD5;&#x3002;&amp;quot;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong: &#x8FD9;&#x6837;,&#x6BCF;&#x4E2A;&#x5143;&#x7D20;&#x5C31;&#x90FD;&#x6709; &#x81EA;&#x5DF1;&#x6240;&#x5C5E;&#x7684; bucket&#x4E86;.&lt;/p&gt;
+
+&lt;p&gt;&lt;/br&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x5728;10&#x6838;&#x7CFB;&#x7EDF;&#x4E0A;&#x8FD0;&#x884C;&#x7684;&#x7A0B;&#x5E8F;&#x53EA;&#x80FD;&#x5728;&#x5173;&#x952E;&#x7684;&#x4E34;&#x754C;&#x533A;&#x4E0A;&#x82B1;&#x8D39;&#x5C0F;&#x4E8E;1/10&#x7684;&#x65F6;&#x95F4;&#xFF0C;&#x8FD9;&#x6837;&#x4EE5;&#x540E;&#x624D;&#x80FD;&#x6709;&#x6548;&#x5730;&#x6269;&#x5C55;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;:
+10&#x6838;&#x65F6;, &#x5176;&#x4E2D;&#x7684;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x8017;&#x65F6;t&#xFF0C;&#x5982;&#x679C;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x6D88;&#x8017;&#x5728;&#x4E34;&#x754C;&#x533A;&#x7684;&#x65F6;&#x95F4;&#xFF1E;&#xFF1D;t/10&#xFF0C;&#x90A3;&#x4E48;&#xFF0C;10&#x6838;&#x540E;&#xFF0C;&#x52A0;&#x66F4;&#x591A;cpu&#x4E5F;&#x65E0;&#x76CA;&#x3002;&lt;/p&gt;
+
+&lt;h2 id="toc_2"&gt;RCU&#x4F7F;&#x7528;&lt;/h2&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x201C;&#x5BBD;&#x9650;&#x671F;&#x201D;&#xFF08;grace period&#xFF09;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong:
+&#x7C7B;&#x6BD4; &#x8FD8;&#x94B1;&#xFF0C;&#x5BBD;&#x9650; &#x51E0;&#x5929;&#x3002;&#x5BBD;&#x9650;&#x671F; &#x5373; &#x503A;&#x52A1;&#x7684;&#x7F13;&#x5EF6;&#x507F;&#x8FD8; &#x671F;&#x95F4;&#x3002;
+&#x8FD8;&#x94B1; &#x597D;&#x6BD4; &#x662F;&#x91CA;&#x653E;&#x5185;&#x5B58;&#xFF0C;&#x5C06;&#x5185;&#x5B58;&#x5F52;&#x8FD8;&#x7ED9;&#x7CFB;&#x7EDF;&#x3002;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;Listing 9.21: Existence Guarantees Enable Per-Element Locking
+//&#x8FD9;&#x91CC;&#x5047;&#x5B9A;&#x6CA1;&#x6709;hash&#x51B2;&#x7A81;
+1 int delete(int key)
+2 {
+3     struct element *p;
+4     int b;
+5
+6     b = hashfunction(key);
+7     rcu_read_lock();
+8     p = rcu_dereference(hashtable[b]);
+9     if (p == NULL || p-&amp;gt;key != key) {
+10         rcu_read_unlock();
+11         return 0;
+12     }
+13     spin_lock(&amp;amp;p-&amp;gt;lock);
+14     if (hashtable[b] == p &amp;amp;&amp;amp; p-&amp;gt;key == key) {
+15         rcu_read_unlock();
+16         rcu_assign_pointer(hashtable[b], NULL);
+17         spin_unlock(&amp;amp;p-&amp;gt;lock);
+18         synchronize_rcu();
+19         kfree(p);
+20         return 1;
+21     }
+22     spin_unlock(&amp;amp;p-&amp;gt;lock);
+23     rcu_read_unlock();
+24     return 0;
+25 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Quick Quiz 9.33: Why is it OK to exit the RCU read-side critical section on line 15 of Listing 9.21 before releasing the lock on line 17?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;&#xFF1A;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;7 rcu_read_lock();
+8 p = rcu_dereference(hashtable[b]);
+&#x3002;&#x3002;&#x3002;
+13 spin_lock(&amp;amp;p-&amp;gt;lock); 
+14 if (hashtable[b] == p &amp;amp;&amp;amp; p-&amp;gt;key == key) {
+15     rcu_read_unlock();
+&#x5904;&#x4E8E;rcu read&#x4FDD;&#x62A4;&#x8303;&#x56F4;&#xFF0C;&#x6709;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x7684;&#x6548;&#x679C;&#xFF0C;&#x89E3;&#x5F15;&#x7528;&#x7684; &#x5143;&#x7D20; &#x4E0D;&#x4F1A;&#x88AB;&#x91CA;&#x653E;&#xFF0C;&#x81F3;&#x5C11;&#x5728; rcu_read_unlock() &#x6267;&#x884C;&#x524D;&#x3002;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;13 spin_lock(&amp;amp;p-&amp;gt;lock);
+14 if (hashtable[b] == p &amp;amp;&amp;amp; p-&amp;gt;key == key) {
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x56E0;&#x4E3A;&#x83B7;&#x5F97;&#x4E86;spin lock&#xFF0C;&#x624D;&#x80FD;&#x5220;&#x9664;&#x5143;&#x7D20;&#xFF0C;&#x800C;&#x73B0;&#x5728;&#xFF0C;&#x6211;&#x4EEC;&#x62FF;&#x5230;&#x4E86;&#x8BE5;&#x9501;&#xFF0C;&#x5220;&#x9664;&#x5143;&#x7D20;&#x4E0E;&#x5426;&#x638C;&#x63E1;&#x5728;&#x6211;&#x4EEC;&#x624B;&#x91CC;&#x3002;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;rcu_read_lock&lt;/code&gt;&#x4FDD;&#x8BC1; &#x5143;&#x7D20;&#x4E0D;&#x88AB;&#x91CA;&#x653E;&lt;/li&gt;
+&lt;li&gt;spin+key&#x5224;&#x65AD;(14&#x884C;)&#x4FDD;&#x8BC1; &#x62FF;&#x5230;&#x4E86;&#x5143;&#x7D20;&#x7684;&#x91CA;&#x653E;&#x6743;&#xFF0C; rcu&#x62C5;&#x5FC3;&#x7684;&#x4E8B;&#x60C5;&#x4E0D;&#x5B58;&#x5728;&#x4E86;&#xFF0C; &#x6240;&#x4EE5;&#xFF0C;&#x53EA;&#x9700;&#x8981;&#x4E00;&#x4E2A;&#x9501;&#x3002;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&#x5C0F;&#x95EE;&#x9898;9.34&#xFF1A;&#x4E3A;&#x4EC0;&#x4E48;&#x56FE;9.32&#x7B2C;23&#x884C;&#x4E0D;&#x80FD;&#x5728;&#x7B2C;22&#x884C;&#x91CA;&#x653E;&#x9501;&#x4E4B;&#x524D;&#x5C31;&#x9000;&#x51FA;RCU&#x8BFB;&#x7AEF;&#x4E34;&#x754C;&#x533A;&#xFF1F;&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: &#x6216;&#x8005;&#x8BF4;, &#x4E3A;&#x4F55; 22&#x884C; &#x4E0D;&#x80FD;&#x548C; 23 &#x884C; &#x5BF9;&#x8C03;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;cpu0                   cpu1
+rcu read
+spin lock
+key==
+                       rcu read
+                      spin lock
+&#x4FEE;&#x6539;&#x6307;&#x9488;
+spin unlock
+                         key!=
+                        rcu unlock
+sync rcu
+free(p)
+                       spin unkock(&amp;amp;p-&amp;gt;lock)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&#x6CE8;&#x610F;&#xFF0C;&#x6700;&#x540E;cpu0&#x7684;free(p)&#x53C2;&#x6570;&#x662F;p&#xFF0C;
+cpu1&#x7684;spin unlock&#x53C2;&#x6570;&#x4E5F;&#x662F;p&#x76F8;&#x5173;&#x7684;&#x3002;
+cpu1&#x5BF9;&#x4E00;&#x4E2A;&#x5DF2;&#x7ECF;&#x88AB;&#x91CA;&#x653E;&#x6389;&#x7684;&#x5185;&#x5B58;&#x8FDB;&#x884C; unlock, &#x6545;,BUG&#x3002;&lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;</title>
+      <link>https://awakening-fong.github.io/posts/perf/perfbook-02</link>
+      <pubDate>2022-09-17</pubDate>
+      <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;5.3.3 &#x7684;&#x5185;&#x5BB9;&#x5982;&#x4F55;&#x7406;&#x89E3;&lt;/h3&gt;
+
+&lt;p&gt;&#x53EF;&#x4EE5;&#x7ED3;&#x5408;&#x5982;&#x4E0B;&#x95EE;&#x9898;&#x6765;&#x7406;&#x89E3;
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in &lt;code&gt;add_count()&lt;/code&gt;, why doesn&#x2019;t it count for us in &lt;code&gt;sub_count()&lt;/code&gt; in Listing 5.7?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: awakening-fong: add_count()&#x8FD4;&#x56DE;0&#x662F;&#x5931;&#x8D25;, &#x8BA4;&#x4E3A;&#x662F; against. &#x800C;&#x4E0D;&#x662F;&#x8BF4; &#x8BBF;&#x95EE;&#x9501;&#x662F; against.&lt;/p&gt;
+
+&lt;p&gt;add_count &#x7684;&#x5C40;&#x90E8;&#x4EE3;&#x7801;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;9  if (globalcountmax -
+10      globalcount - globalreserve &amp;lt; delta) {
+11      spin_unlock(&amp;amp;gblcnt_mutex);
+12      return 0;
+13 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;globalreserve &#x5F88;&#x5927;, &#x4F20;&#x9012;&#x7ED9;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684; delta &#x5982;&#x679C;&#x5F88;&#x5927;, 
+&#x90A3;&#x4E48;, &#x5373;&#x4F7F;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B; &#x6D88;&#x8017;&#x7684;&#x5185;&#x5B58; &#x5F88;&#x5C0F;, &#x8FD9;&#x91CC;&#x7684; if &#x8FD8;&#x662F;&#x4F1A;&#x5224;&#x5B9A;&#x4E3A;&#x5185;&#x5B58;&#x8017;&#x5C3D;.&lt;/p&gt;
+
+&lt;p&gt;5.4&#x7AE0;&#x8282;&#x4E2D;, &lt;code&gt;flush_local_count()&lt;/code&gt; &#x5BF9;globalreserve&#x975E;0&#x8FDB;&#x884C;&#x4E86;&#x5904;&#x7406;.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;5.4.3 Signal-Theft Limit Counter Design&lt;/h3&gt;
+
+&lt;p&gt;&#x5173;&#x4E8E;&#x56FE; Signal-Theft State Machine &lt;/p&gt;
+
+&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;&amp;quot;&#x8BF7;&#x6C42;&amp;quot;, &#x8C01;&#x5411;&#x8C01;&#x8BF7;&#x6C42;?
+&#x7B54;: &#x914D;&#x989D;&#x7528;&#x5149;&#x4E86;&#xFF0C;&#x8BF7;&#x6C42;&#x65B0;&#x7684;&#x914D;&#x989D;&#x3002;&#x7EBF;&#x7A0B; &#x5411; &#x5168;&#x5C40; &#x8BF7;&#x6C42;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;ready&#x662F;?, ready to do what?
+&#x7B54;: ready to &#x7A83;&lt;/p&gt;
+
+&lt;p&gt;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x4F7F;&#x7528;&#x201C;&#x8BF7;&#x6C42;&#x201D;&#x548C;&#x201C;&#x786E;&#x8BA4;&#x201D;&#x72B6;&#x6001;&#x6765;&#x786E;&#x5B9A;&#x4FE1;&#x53F7;&#x662F;&#x5426;&#x5E94;&#x5F53;&#x88AB;&#x91CD;&#x53D1;&#x3002;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;flush_local_count()
+{
+    if (READ_ONCE(*theftp[t]) == THEFT_REQ) 
+        pthread_kill(tid, SIGUSR1);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&amp;quot;&#x786E;&#x8BA4;&amp;quot;&#x4EC0;&#x4E48;?
+&#x7B54;: &#x8BF7;&#x6C42;&#x5DF2;&#x6536;&#x5230;&#xFF0C;&#x8BF7;&#x6C42;&#x5DF2;&#x5904;&#x7406;&lt;/p&gt;
+
+&lt;p&gt;&#x4E00;&#x65E6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x53D1;&#x73B0;&#x67D0;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684;theft&#x72B6;&#x6001;&#x4E3A;&#x201C;&#x51C6;&#x5907;&#x5B8C;&#x6BD5;&#x201D;&#xFF0C;&#x8FD9;&#x65F6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x6709;&#x6743;&#x7A83;&#x53D6;&#x6B64;&#x7EBF;&#x7A0B;&#x7684;&#x8BA1;&#x6570;&#x3002;
+awakening-fong&#x6CE8;&#x91CA;: 
+&#x7A83;&#x53D6;&#x610F;&#x601D;&#x662F;  &#x4E0D;&#x662F;&#x4FEE;&#x6539;&#x81EA;&#x5DF1;&#x7684;count&#xFF0C;&#x800C;&#x662F; &#x4FEE;&#x6539;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B;&#xFF0C;&#x62FF;&#x522B;&#x4EBA;&#x7684;&#x4E1C;&#x897F;&#xFF0C;&#x4E3A;&#x7A83;&#x3002;
+&#x51CF;&#x5C11;&#x4E86;per-thread &#x7684;count&#xFF0C;&#x8FD9;&#x4E2A;&#x4E4B;&#x540E;&#x81EA;&#x7136;&#x5C31;&#x662F;&#x53D1;&#x5E03;publish &#x5230;&#x5168;&#x5C40;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;Chapter 6 Partitioning and Synchronization Design&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;quot;&#x6BCF;&#x4E2A;&#x54F2;&#x5B66;&#x5BB6;&#x90FD;&#x5148;&#x62FF;&#x4ED6;&#x76D8;&#x5B50;&#x5468;&#x56F4;&#x7F16;&#x53F7;&#x6700;&#x5C0F;&#x7684;&#x53C9;&#x5B50;&#xFF0C;&#x7136;&#x540E;&#x518D;&#x62FF;&#x7F16;&#x53F7;&#x6700;&#x9AD8;&#x7684;&#x53C9;&#x5B50;&#x3002;&amp;quot;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;: 
+&#x539F;&#x6587;&#x662F; 
+Each philosopher picks up the lowest-numbered fork next to his or her plate, then picks up the other fork. 
+&#x8FD9;&#x91CC;&#x4E2D;&#x6587;&#x7FFB;&#x8BD1;&#x5E94;&#x8BE5;&#x6709;&#x95EE;&#x9898;&#x3002;
+&#x7B2C;2&#x56DE;&#x662F;&#x62FF; &#x7F16;&#x53F7;&#x6700;&#x5927;&#x7684;&#x5417;&#xFF1F;&#x597D;&#x50CF;&#x4E0D;&#x662F;&#xFF0C;&#x62FF;&#x7684;&#x5E94;&#x8BE5;&#x662F; &#x76D8;&#x5B50;&#x4E24;&#x8FB9;&#x7684;&#x53E6;&#x4E00;&#x4E2A;&#x53C9;&#x5B50;&#xFF0C;&#x8FD9;&#x4E2A;&#x53C9;&#x5B50;&#x6BD4;&#x9996;&#x6B21;&#x7684;&#x53C9;&#x5B50;&#x7F16;&#x53F7;&#x8981;&#x5927;&#xFF0C;&#x4F46;&#x4E0D;&#x662F;&#x5168;&#x5C40;&#x6700;&#x5927;&#x7684;&#x7F16;&#x53F7;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;Chapter 7 Locking&lt;/h3&gt;
+
+&lt;p&gt;Strict RAII locking also prohibits overlapping critical sections, due to the fact that scopes must nest. &lt;/p&gt;
+
+&lt;p&gt;awakening-fong&#xFF1A;&#x6BD4;&#x5982;&#x4E0D;&#x5141;&#x8BB8;&#x5982;&#x4E0B;&#x7684;&#x91CD;&#x53E0;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;|-------|       lock1
+   |--------|   lock2
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
+      <title>bit rot</title>
+      <link>https://awakening-fong.github.io/posts/fs/bit_rot</link>
+      <pubDate>2022-07-30</pubDate>
+      <description>&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;
+&#x6839;&#x636E; &lt;a href="https://www.redhat.com/en/blog/what-bit-rot-and-how-can-i-detect-it-rhel"&gt;https://www.redhat.com/en/blog/what-bit-rot-and-how-can-i-detect-it-rhel&lt;/a&gt; btrfs &#x548C; zfs &#x652F;&#x6301; &#x63A2;&#x6D4B;bit rot.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&#x5757;&#x5C42;
+&#x90A3;, &#x5728;&#x5757;&#x5C42;, RAID1&#x662F;&#x5426;&#x80FD;&#x591F;&#x63A2;&#x6D4B;&#x5462;?
+&#x7B54;: &lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;dm-integrity  &#x53EF;&#x4EE5;&#x7528;&#x6765;&#x9632;&#x6B62;  &#x9759;&#x9ED8;&#x6570;&#x636E;&#x635F;&#x574F;, &#x8BFB;&#x53D6;&#x544A;&#x77E5; io &#x9519;&#x8BEF;.   &lt;/p&gt;
+
+&lt;p&gt;lvm&#x547D;&#x4EE4;&#x53EF;&#x4EE5;&#x96C6;&#x6210; DM integrity.  &lt;code&gt;lvcreate --raidintegrity&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;dm-integrity &#x4E5F;&#x53EF;&#x4EE5;&#x7528;&#x5728; Linux Software RAID &#x7684; RAID1.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&#x5176;&#x4ED6;
+Minio &#x548C; Ceph &#x652F;&#x6301; erasure code, &#x6240;&#x4EE5;, &#x53EF;&#x4EE5;&#x5904;&#x7406; bit rot.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x4ECE;&#x6545;&#x969C;&#x573A;&#x666F;&#x770B;paxos</title>
+      <link>https://awakening-fong.github.io/posts/distributed_system/paxos</link>
+      <pubDate>2022-05-01</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6B63;&#x5E38;&#x573A;&#x666F; &lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/paxos_normal.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;&#x56FE;14-3&#xFF1A;Paxos&#x7B97;&#x6CD5;&#xFF1A;&#x6B63;&#x5E38;&#x6267;&#x884C;&lt;/p&gt;
+
+&lt;p&gt;&#x5728;&#x63D0;&#x8BAE;&#x9636;&#x6BB5;&#x4E2D;&#xFF0C;&#x63D0;&#x8BAE;&#x8005;&#x53D1;&#x9001;&#x4E00;&#x6761;Prepare(n)&#x6D88;&#x606F;&#xFF08;&#x5176;&#x4E2D;n&#x662F;&#x63D0;&#x8BAE;&#x7F16;&#x53F7;&#xFF09;.&lt;/p&gt;
+
+&lt;p&gt;&#x5982;&#x679C;&#x63A5;&#x53D7;&#x8005;&#x4E4B;&#x524D;&#x5DF2;&#x7ECF;&#x63A5;&#x53D7;&#x4E86;&#xFF08;&#x6536;&#x5230;&#x8FC7;Accept!(m,vaccepted)&#x6D88;&#x606F;&#xFF09;&#x4EFB;&#x4F55;&#x5176;&#x4ED6;&#x63D0;&#x6848;&#xFF0C;&#x5B83;&#x5C06;&#x56DE;&#x590D;&#x4E00;&#x6761;Promise(m,vaccepted)&#x6D88;&#x606F;&#xFF0C;&#x901A;&#x77E5;&#x63D0;&#x8BAE;&#x8005;&#x5B83;&#x5148;&#x524D;&#x5DF2;&#x7ECF;&#x63A5;&#x53D7;&#x4E86;&#x7F16;&#x53F7;&#x4E3A;m&#x7684;&#x63D0;&#x6848;&#x3002;(m&#x4E0D;&#x7B49;&#x4E8E;n)
+awakening-fong: &#x7528;&#x6765;&#x5904;&#x7406; &#x6709;&#x4EBA;&#x5F53;&#x9009;&#x4E86;&#xFF0C;&#x7136;&#x540E;&#xFF0C;&#x53D1;&#x51FA;&#x590D;&#x5236;&#x7684;&#x6307;&#x4EE4;&#x540E;&#xFF0C;&#x9886;&#x5BFC;&#x8005;&#x6302;&#x6389;&#x4E86;&#x3002;
+&#x8FD9;&#x91CC;&#xFF0C;&#x501F;&#x8FD9;&#x4E2A;&#x673A;&#x4F1A;&#x901A;&#x77E5;&#x65B0;&#x7684;&#x53EF;&#x80FD;&#x7684;&#x9886;&#x5BFC;&#x8005;&#xFF0C;&#x8FC7;&#x53BB;&#x672C;&#x8BE5;&#x5199;&#x5165;&#x7684;&#x503C;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x5173;&#x4E8E;Accept!(n,v) &#x5176;&#x4E2D;&#x7684;v&#xFF0C;
+1. &#x6709;&#x63A5;&#x53D7;&#x65B9;&#x56DE;&#x590D;Promise(m,vaccepted), &#x5219;&#xFF0C;v&#x662F;&#x6536;&#x5230;&#x7684;&#x56DE;&#x590D;&#x4E2D;&#xFF0C; &#x7F16;&#x53F7;&#x6700;&#x9AD8;&#x7684;&#x63D0;&#x6848;&#x5BF9;&#x5E94;&#x7684;&#x503C;&#x3002;
+2. &#x5982;&#x679C;&#x6240;&#x6709;&#x56DE;&#x590D;&#x5747;&#x4E0D;&#x5305;&#x542B;&#x65E7;&#x7684;&#x3001;&#x5DF2;&#x63A5;&#x53D7;&#x7684;&#x63D0;&#x6848;&#xFF0C;&#x90A3;&#x4E48;v&#x53EF;&#x4EE5;&#x662F;&#x63D0;&#x8BAE;&#x8005;&#x81EA;&#x5DF1;&#x63D0;&#x51FA;&#x7684;&#x4EFB;&#x4F55;&#x503C;&#x3002;&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6545;&#x969C; &lt;/h4&gt;&lt;/h1&gt;
+
+&lt;h1 id="toc_2"&gt;&lt;h4&gt;2.1  &#x63D0;&#x8BAE;&#x8005;&#x6545;&#x969C;&#xFF0C;&#x51B3;&#x5B9A;&#x65E7;&#x503C;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/paxos_except_after_be_leader_send_val_crash_01.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;&#x56FE;14-4&#xFF1A;Paxos&#x6545;&#x969C;&#x573A;&#x666F;&#xFF1A;&#x63D0;&#x8BAE;&#x8005;&#x6545;&#x969C;&#xFF0C;&#x51B3;&#x5B9A;&#x65E7;&#x503C;
+&#x63D0;&#x8BAE;&#x8005;P1&#x5DF2;&#x5B8C;&#x6210;&#x63D0;&#x6848;&#x7F16;&#x53F7;&#x4E3A;1&#x7684;&#x9009;&#x4E3E;&#x9636;&#x6BB5;&#xFF0C;&#x4F46;&#x662F;&#x5728;&#x5B83;&#x53D1;&#x9001;&#x503C;V1&#x7ED9;&#x63A5;&#x53D7;&#x8005;A1&#x4E4B;&#x540E;&#x5B95;&#x673A;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x56FE;&#x793A;&#x4E2D;&#x5012;&#x6570;&#x7B2C;3&#x4E2A;promise(1,V1), 1&#x8868;&#x793A;&#x63D0;&#x8BAE;&#x7F16;&#x53F7;&#x4E3A;1&#xFF0C;
+promise(1,V1)&#x6D88;&#x606F;&#x6765;&#x81EA;A1. &lt;/p&gt;
+
+&lt;p&gt;Accept!(2,V1) &#x8FD9;&#x6837;&#x6548;&#x679C;&#x4E0A;&#xFF0C;P2&#x7EE7;&#x7EED;P1&#x7684;&#x5DE5;&#x4F5C;&#x3002;&lt;/p&gt;
+
+&lt;h1 id="toc_3"&gt;&lt;h4&gt;2.2 &#x63D0;&#x8BAE;&#x8005;&#x6545;&#x969C;&#xFF0C;&#x51B3;&#x5B9A;&#x65B0;&#x503C;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src="/assets/media/paxos_except_after_be_leader_send_val_crash_02.jpg"&gt;&lt;/p&gt;
+
+&lt;p&gt;P1&#x5728;&#x5C06;V1&#x53D1;&#x9001;&#x7ED9;A1&#x4E4B;&#x540E;&#x5B95;&#x673A;&#x3002;
+&#x4E0B;&#x4E00;&#x4E2A;&#x63D0;&#x8BAE;&#x8005;P2&#x53D1;&#x8D77;&#x4E00;&#x4E2A;&#x63D0;&#x6848;&#x7F16;&#x53F7;&#x4E3A;2&#x7684;&#x65B0;&#x56DE;&#x5408;&#xFF0C;&#x6536;&#x96C6;Quorum&#x4E2A;&#x63A5;&#x53D7;&#x8005;&#x7684;&#x56DE;&#x590D;&#xFF0C;&#x4F46;&#x662F;&#x8FD9;&#x6B21;A2&#x548C;A3&#x9996;&#x5148;&#x505A;&#x51FA;&#x4E86;&#x54CD;&#x5E94;&#x3002;&lt;/p&gt;
+
+&lt;h1 id="toc_4"&gt;&lt;h4&gt;3. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x672C;&#x6587;&#x5185;&#x5BB9;&#x5927;&#x7BC7;&#x5E45;&#x6765;&#x81EA; [&#x6570;&#x636E;&#x5E93;&#x7CFB;&#x7EDF;&#x5185;&#x5E55;] &lt;/p&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x56E0;&#x679C;&#x5012;&#x7F6E;</title>
+      <link>https://awakening-fong.github.io/posts/debug/inversion_of_cause_and_effect</link>
+      <pubDate>2021-05-15</pubDate>
+      <description>&lt;p&gt;&#x5982;&#x679C;&#x5206;&#x6790;&#x8FDB;&#x5165;&#x6B7B;&#x80E1;&#x540C;, &#x53EF;&#x80FD;&#x662F;&#x5206;&#x6790;&#x95EE;&#x9898;&#x65F6;, &#x56E0;&#x679C;&#x5012;&#x7F6E;&#x4E86;.
+&#x6BD4;&#x5982;, &#x6ED1;&#x52A8;&#x7A97;&#x53E3;&#x592A;&#x5C0F;, &#x548C; &#x63A5;&#x6536;&#x6162; &#x4E4B;&#x95F4;&#x7684;&#x5173;&#x7CFB;. &#x53EF;&#x80FD;&#x662F;&#x56E0;&#x4E3A; &#x63A5;&#x6536;&#x6162;, &#x5BFC;&#x81F4;&#x4E86;&#x6ED1;&#x52A8;&#x7A97;&#x53E3;&#x5C0F;;
+&#x800C;&#x4E0D;&#x662F;&#x56E0;&#x4E3A;&#x6ED1;&#x52A8;&#x7A97;&#x53E3;&#x5C0F;, &#x5BFC;&#x81F4; &#x63A5;&#x6536;&#x6162;.&lt;/p&gt;
+</description>
+    </item>
     <item>
       <title>&#x6A21;&#x5F0F; 05: &#x5927;&#x89C4;&#x6A21;&#x7CFB;&#x7EDF;&#x7684;&#x4E00;&#x4E9B;&#x5904;&#x7406;&#x65B9;&#x6CD5;</title>
       <link>https://awakening-fong.github.io/posts/other/scale_system_pattern</link>
@@ -51,7 +365,7 @@
 &lt;li&gt;&#x6210;&#x672C;&#x8F6C;&#x79FB;: &#x670D;&#x52A1;&#x7AEF;&#x4F20;&#x8F93;&#x538B;&#x7F29;&#x540E;&#x7684;&#x5185;&#x5BB9;, &#x7531;&#x5BA2;&#x6237;&#x7AEF;&#x89E3;&#x538B;&#x7F29;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id="toc_2"&gt;&#x5E73;&#x6ED1;&#x8D1F;&#x8F7D;&lt;/h3&gt;
+&lt;h3 id="toc_2"&gt;&#x5BF9;&#x8D1F;&#x8F7D;&#x524A;&#x5CF0;&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&#x6D88;&#x606F;&#x961F;&#x5217;&lt;/li&gt;
@@ -83,6 +397,13 @@ POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
 &lt;li&gt;/sys/block/sdx/queue/ &lt;/li&gt;
 &lt;li&gt;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x53C2;&#x6570;&lt;/li&gt;
 &lt;li&gt;/proc/sys/vm/&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="toc_4"&gt;4 &#x78C1;&#x76D8;&#x5206;&#x533A;&#x5BF9;&#x9F50;&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;RAID &#x7684;&#x573A;&#x666F;&lt;/li&gt;
+&lt;li&gt;xfs &#x7684;&#x652F;&#x6301;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -1357,7 +1678,8 @@ VersionEdit &#x4E0D;&#x662F; VersionSet. VersionEdit &#x7684;&#x610F;&#x601D;&#x
       <title>&#x63A8;&#x8350;C++&#x7F16;&#x8F91;&#x5668; Clion</title>
       <link>https://awakening-fong.github.io/posts/tools/why_clion</link>
       <pubDate>2018-11-27</pubDate>
-      <description>&lt;p&gt;&#x5907;&#x6CE8;: &#x7136;&#x800C;, 2019&#x5E74;, &#x672C;&#x4EBA;&#x8FD8;&#x662F;&#x4F7F;&#x7528;&#x901A;&#x8FC7;slickedit&#x9605;&#x8BFB;&#x4EE3;&#x7801;, &#x4E3B;&#x8981;&#x662F;&#x770B;&#x4E2D;&#x5176;&#x5FEB;&#x6377;&#x952E;&#x81EA;&#x5B9A;&#x4E49;&#x529F;&#x80FD;.&lt;/p&gt;
+      <description>&lt;p&gt;&#x5907;&#x6CE8;: &#x7136;&#x800C;, 2019&#x5E74;, &#x672C;&#x4EBA;&#x8FD8;&#x662F;&#x4F7F;&#x7528;&#x901A;&#x8FC7;slickedit&#x9605;&#x8BFB;&#x4EE3;&#x7801;, &#x4E3B;&#x8981;&#x662F;&#x770B;&#x4E2D;&#x5176;&#x5FEB;&#x6377;&#x952E;&#x81EA;&#x5B9A;&#x4E49;&#x529F;&#x80FD;.
+2021&#x5E74;: &#x73B0;&#x5728;&#x4F7F;&#x7528; vscode+ccls&lt;/p&gt;
 
 &lt;h2 id="toc_0"&gt;&lt;h4&gt;1. &#x4F18;&#x70B9;&lt;/h4&gt;&lt;/h2&gt;
 
@@ -1617,638 +1939,6 @@ CLR undo T1 ....&lt;br&gt;
 &lt;li&gt;&lt;a href="https://www.postgresql.org/docs/7.3/static/wal.html"&gt;https://www.postgresql.org/docs/7.3/static/wal.html&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Database System Concepts 6th edition&lt;/li&gt;
 &lt;/ol&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft</title>
-      <link>https://awakening-fong.github.io/posts/distributed_system/raft_mit_6-824</link>
-      <pubDate>2018-10-16</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E3A;&#x7406;&#x89E3;raft, &#x53C2;&#x7167;2018&#x5E74;&#x7684; &lt;a href="https://pdos.csail.mit.edu/6.824/labs/lab-raft.html"&gt;https://pdos.csail.mit.edu/6.824/labs/lab-raft.html&lt;/a&gt; 
-&#x8FDB;&#x884C;&#x5176;&#x4E2D;&#x7684;lab 2A &#x548C; 2B.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4EE3;&#x7801;&#x5B9E;&#x73B0;/&#x534F;&#x8BAE;&#x7EC6;&#x8282;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 &#x6587;&#x7AE0;&#x6458;&#x5F55;&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href="https://thesquareplanet.com/blog/students-guide-to-raft/"&gt;https://thesquareplanet.com/blog/students-guide-to-raft/&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;you might reasonably reset a peer&#x2019;s election timer whenever you receive an AppendEntries or RequestVote RPC, as both indicate that some other peer either thinks it&#x2019;s the leader, or is trying to become the leader. Intuitively, this means that we shouldn&#x2019;t be interfering. However, if you read Figure 2 carefully, it says:&lt;/p&gt;
-
-&lt;p&gt;If election timeout elapses without receiving AppendEntries RPC &lt;strong&gt;&lt;em&gt;from current leader&lt;/em&gt;&lt;/strong&gt; or granting vote to candidate: convert to candidate. 
-&#x200B;&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;many would simply reset their election timer when they received a heartbeat, and then return success, without performing any of the checks specified in Figure 2. This is extremely dangerous. By accepting the RPC, the follower is implicitly telling the leader that their log matches the leader&#x2019;s log up to and including the prevLogIndex included in the AppendEntries arguments. Upon receiving the reply, the leader might then decide (incorrectly) that some entry has been replicated to a majority of servers, and start committing it.
-&#x63A5;&#x6536;&#x5230;&#x5FC3;&#x8DF3;, &#x4E0D;&#x80FD;&#x7B80;&#x5355;&#x5730;&#x8FD4;&#x56DE;&#x6210;&#x529F;, &#x800C;&#x5E94;&#x8BE5; &#x5BF9;&#x6BD4;leader&#x53D1;&#x8FC7;&#x6765;&#x7684;prevLogIndex &#x548C; &#x81EA;&#x5DF1;(follower)&#x5DF2;&#x6709;&#x7684;log.
-&#x8FD9;&#x6837;, &#x53EF;&#x4EE5;&#x5E94;&#x5BF9;&#x5982;&#x4E0B;&#x60C5;&#x51B5;: &#x5F53;&#x67D0;&#x4E2A;&#x8282;&#x70B9;&#x7F51;&#x7EDC;&#x65AD;&#x5F00;, &#x91CD;&#x65B0;&#x52A0;&#x5165;&#x96C6;&#x7FA4;&#x65F6;, &#x5C31;&#x80FD;&#x591F;&#x53CA;&#x65F6;&#x5730;&#x66F4;&#x65B0;&#x81EA;&#x8EAB;&#x6570;&#x636E;&#x5230;&#x6700;&#x65B0;&#x72B6;&#x6001;.&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;a href="https://thesquareplanet.com/blog/raft-qa/"&gt;https://thesquareplanet.com/blog/raft-qa/&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;applied &#x548C; committed &#x7684;&#x5173;&#x7CFB;:&lt;/p&gt;
-
-&lt;p&gt;Any log entry that you have applied to the application state machine is &#x201C;applied&#x201D;. An entry should never be applied unless it has already been committed. An entry can be committed, but not yet applied. You will likely apply committed entries very soon after they become committed.
-&#x5148;commit, &#x540E;apply.&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 apply&#x7684;&#x5B9E;&#x73B0;&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x56E0;&#x4E3A;follower&#x8981;&#x80FD;&#x591F;&#x4ECE;&#x53C2;&#x6570;&#x4E2D;&#x770B;&#x51FA;leader&#x7684;apply&#x53D8;&#x52A8;, &#x6545;&lt;br&gt;
-&#x65B9;&#x6848;1: &lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;leader &#x5F80;[commitIndex] &#x5199;&#x5165;logA&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;args.LeaderCommit=commitIndex&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;&#x53D1;&#x9001;&#x7F51;&#x7EDC;&#x5305;, follower&#x6DFB;&#x52A0;log&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;leader&#x6839;&#x636E;&#x6536;&#x5230;&#x7684;&#x5305;, &#x82E5;&#x8FC7;&#x534A;&#x6570;&#x5B8C;&#x6210;, &#x6267;&#x884C;apply,  commitIndex++&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;follower &#x63A5;&#x6536;&#x7684;&#x5FC3;&#x8DF3;&#x4E2D;LeaderCommit &#x53D8;&#x52A8;&#x4E86;, &#x6267;&#x884C;apply&#x52A8;&#x4F5C;&lt;br&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&#x65B9;&#x6848;2:&lt;br&gt;
-AppendEntriesArgs &#x4E2D;&#x6DFB;&#x52A0;&#x65B0;&#x7684;&#x5B57;&#x6BB5; LeaderLastApply &#x6765;&#x5B9E;&#x73B0;&lt;/p&gt;
-
-&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 &#x4EE3;&#x7801;&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href="https://github.com/awakening-fong/mit_6.824"&gt;https://github.com/awakening-fong/mit_6.824&lt;/a&gt;&lt;/p&gt;
-
-&lt;h1 id="toc_5"&gt;&lt;h4&gt;3 &#x5176;&#x4ED6;&#x65E0;&#x5173;&#x7D27;&#x8981;&#x7684;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;h2 id="toc_6"&gt;&lt;h4&gt;3.1 &#x4F1A;&#x53D1;&#x751F;split vote&#x5417;?&lt;/h4&gt;&lt;/h2&gt;
-
-&lt;p&gt;&#x56E0;&#x4E3A; &#x8BBA;&#x6587;&#x4E2D;&#x7684; Figure 2&lt;br&gt;
-&#x5BF9;RequestVote RPC, Receiver implementation:&lt;br&gt;
-If votedFor is null or candidateId, and ....&lt;br&gt;
-&#x6240;&#x4EE5;, &#x5BF9;&#x540C;&#x4E00;&#x4E2A;term, &#x4E00;&#x4E2A;follower&#x4E0D;&#x4F1A;&#x6295;&#x7ED9;2&#x4E2A;&#x4E0D;&#x540C;&#x7684;&#x5019;&#x9009;&#x4EBA;.&lt;/p&gt;
-
-&lt;p&gt;&#x6240;&#x4EE5;, &#x53D1;&#x751F;split vote&#x7684;&#x4E00;&#x4E2A;&#x573A;&#x666F;&#x662F;,&lt;br&gt;
-votedFor &#x672A;&#x5199;&#x5165;&#x5B8C;&#x6210;, &#x56DE;&#x590D;&#x5019;&#x9009;&#x4EBA;. follower crash&#x5E76;&#x91CD;&#x542F;, &#x518D;&#x6295;&#x7ED9;&#x53E6;&#x4E00;&#x4E2A;&#x5019;&#x9009;&#x4EBA;.&lt;br&gt;
-&#x90A3;&#x4E48;, &#x5982;&#x679C;&#x662F;  votedFor &#x5199;&#x5165;&#x5B8C;&#x6210;&#x540E;, &#x5728;&#x56DE;&#x590D;&#x5019;&#x9009;&#x4EBA;, &#x5C31;&#x4E0D;&#x4F1A;&#x53D1;&#x751F;split vote.&lt;/p&gt;
-
-&lt;p&gt;2021-01-10 update:
-&#x4E0A;&#x9762;&#x7684;&#x7406;&#x89E3;&#x4E0D;&#x592A;&#x5BF9;. &#x5E94;&#x8BE5;&#x5982;&#x4E0B;:
-&#x4EE5;5&#x4E2A;&#x8282;&#x70B9;&#x7684;&#x60C5;&#x51B5;&#x4E3A;&#x4F8B;,&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;   A       B
-
-    O      O
-   / \     |
-  /   \    |
- O     O   O
-
- C     D   E
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;A&#x83B7;&#x5F97;&#x4E86;2&#x7968;, B&#x5F97;&#x5230;&#x4E86;1&#x7968;, &#x90FD;&#x6CA1;&#x8D85;&#x8FC7;&#x534A;&#x6570;(3&#x7968;), A&#x548C;B&#x90FD;&#x65E0;&#x6CD5;&#x5F53;&#x9009;.&lt;/p&gt;
-
-&lt;h1 id="toc_7"&gt;&lt;h4&gt;4. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf"&gt;https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf&lt;/a&gt;&lt;br&gt;
-&lt;a href="https://thesquareplanet.com/blog/raft-qa/"&gt;https://thesquareplanet.com/blog/raft-qa/&lt;/a&gt;&lt;br&gt;
-&lt;a href="https://thesquareplanet.com/blog/students-guide-to-raft/"&gt;https://thesquareplanet.com/blog/students-guide-to-raft/&lt;/a&gt;  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>RCU&#x5E38;&#x89C1;&#x95EE;&#x9898;</title>
-      <link>https://awakening-fong.github.io/posts/other/rcu</link>
-      <pubDate>2018-03-22</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x6CA1;&#x6709;&#x9501;&#x4FDD;&#x62A4;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6709;&#x5982;&#x4E0B;&#x7ED3;&#x6784;&#x4F53;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;struct your_obj {
-    struct hlist_node obj_node_hlist;
-    struct rcu_head rcu_head;   
-    atomic_t refcnt;
-    int id;
-};
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x9519;&#x8BEF;&#x5199;&#x6CD5;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;hlist_del_init_rcu(&amp;amp;your_obj-&amp;gt;obj_node_hlist);  
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6B63;&#x786E;&#x5199;&#x6CD5;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;spin_lock(&amp;amp;obj_hash_lock[hash]);
-hlist_del_init_rcu(&amp;amp;your_obj-&amp;gt;obj_node_hlist);
-spin_unlock(&amp;amp;obj_hash_lock[hash]);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x9519;&#x8BEF;&#x539F;&#x56E0;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;rcu_read_lock
-hash = xxx
-hlist_for_each_entry_rcu(tpos, pos, &amp;amp;obj_hlist[hash], obj_node_hlist) {
-    xxx
-}
-rcu_read_unlock();
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x5047;&#x5982;&#x6211;&#x4EEC;&#x4F7F;&#x7528; &lt;code&gt;hlist_for_each_entry_rcu&lt;/code&gt; &#x6765;&#x904D;&#x5386;&#x94FE;&#x8868;, &#x5728;&#x6CA1;&#x6709;&#x9501;&#x4FDD;&#x62A4;&#x65F6;, &#x5F53;&#x6709;&#x4E24;&#x4E2A;&lt;code&gt;hlist_del_init_rcu&lt;/code&gt;&#x5728;&#x5E76;&#x884C;&#x6267;&#x884C;&#x65F6;, &#x53EF;&#x80FD;&#x5BFC;&#x81F4;&#x6211;&#x4EEC;&#x904D;&#x5386;&#x51FA;&#x9519;.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2 &#x5185;&#x5B58;&#x91CA;&#x653E;01&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x9519;&#x8BEF;&#x5199;&#x6CD5;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;void your_obj_unregister(struct your_obj *your_obj)
-{
-    unsigned int hash = 0;
-
-    hash = your_hash(your_obj-&amp;gt;id);
-    spin_lock(&amp;amp;obj_hash_lock[hash]);
-    hlist_del_init_rcu(&amp;amp;your_obj-&amp;gt;obj_node_hlist);
-    spin_unlock(&amp;amp;obj_hash_lock[hash]);
-    your_obj_put(your_obj);
-    return;
-}
-
-int your_obj_get_if_registered(struct your_obj *your_obj)
-{
-    unsigned int hash = 0;
-    struct hlist_node *pos;
-    struct your_obj *tpos;
-    int is_registered = 0;
-    rcu_read_lock(); 
-
-    hash = your_hash(your_obj-&amp;gt;id);
-
-    hlist_for_each_entry_rcu(tpos, pos, &amp;amp;obj_hlist[hash], obj_node_hlist) {
-        if (tpos == your_obj) {
-            is_registered = 1;
-            your_obj_get(your_obj);
-            break;
-        }
-    }
-    rcu_read_unlock();
-    return is_registered ? 0 : 1;
-
-}
-
-your_obj_put(struct your_obj *t)
-{
-    if(atomic_dec_and_test(&amp;amp;t-&amp;gt;refcnt)){
-        kfree(t);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6B63;&#x786E;&#x7684;&#x5199;&#x6CD5;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;void your_obj_free_rcu_callback(struct rcu_head *h)
-{
-    struct your_obj *t = container_of(h, struct your_obj, rcu_head);
-    if (!atomic_read(&amp;amp;t-&amp;gt;refcnt)) {
-        t-&amp;gt;obj_node_hlist.next = NULL;
-        kfree(t);
-    }
-}
-
-your_obj_put(struct your_obj *t)
-{
-    if(atomic_dec_and_test(&amp;amp;t-&amp;gt;refcnt)){        
-        call_rcu(&amp;amp;t-&amp;gt;rcu_head, your_obj_free_rcu_callback);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x9519;&#x8BEF;&#x539F;&#x56E0;:
-&#x6CA1;&#x6709;&#x4F7F;&#x7528;&lt;code&gt;call_rcu()&lt;/code&gt;&#x65F6;, 
-&#x904D;&#x5386;&#x94FE;&#x8868;&#x65F6;, &#x5141;&#x8BB8;&lt;code&gt;hlist_del_init_rcu&lt;/code&gt;&#x628A;&#x8282;&#x70B9;&#x4ECE;&#x94FE;&#x8868;&#x4E0A;&#x8131;&#x79BB;, &#x5E76;&#x91CA;&#x653E;&#x5185;&#x5B58;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;int your_obj_get_if_registered(struct your_obj *your_obj)
-{
-    ...
-    if (tpos == your_obj) {
-                                //&#x8FD9;&#x65F6;&#x8003;&#x8651;&#x53D1;&#x751F; your_obj_put -&amp;gt; kfree
-        is_registered = 1;
-        your_obj_get(your_obj);  //&#x4FEE;&#x6539;&#x5DF2;&#x7ECF;&#x91CA;&#x653E;&#x7684;&#x5185;&#x5B58;, &#x89E6;&#x53D1;BUG
-        break;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3 &#x5185;&#x5B58;&#x91CA;&#x653E;02&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x8003;&#x8651;&#x5982;&#x4E0B;&#x5E8F;&#x5217;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;int your_obj_get_if_registered()                |          your_obj_unregister
-{                                               |         {
-    rcu_read_lock();                            |
-                                                |
-    hlist_for_each_entry_rcu( ... ) {           |
-        if (tpos == your_obj) {                 | 
-            is_registered = 1;                  |   
-                                                |
-                                                |           hlist_del_init_rcu
-                                                |           your_obj_put
-                                                |       }
-
-            your_obj_get(your_obj); //&#x540E;&#x7EED;&#x5BFC;&#x81F4;rcu callback&#x91CD;&#x590D;&#x6CE8;&#x518C;, &#x7B2C;2&#x4E2A;callback&#x91CA;&#x653E;&#x5DF2;&#x91CA;&#x653E;&#x7684;&#x5185;&#x5B58;, &#x6545;BUG.
-            break;
-        }
-    }
-    rcu_read_unlock();
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4F7F;&#x7528;&#x5F15;&#x7528;&#x8BA1;&#x6570;&#x65F6;, get&#x5927;&#x6982;&#x7387;&#x662F;&#x9519;&#x8BEF;&#x7684;, &#x9700;&#x8981;&#x6539;&#x6210;&lt;code&gt;kref_get_unless_zero()&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4 &#x6A21;&#x5757;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6A21;&#x5757;&#x5185;&#x6709;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;if(atomic_dec_and_test(&amp;amp;t-&amp;gt;refcnt)){
-        call_rcu(&amp;amp;t-&amp;gt;rcu_head, your_obj_free_rcu_callback);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x90A3;&#x4E48;, &#x6A21;&#x5757;&#x5378;&#x8F7D;&#x524D;&#x9700;&#x8981;rcu_barrier().
-&#x5426;&#x5219;&#x9020;&#x6210;BUG, &#x56E0;&#x4E3A;callback&#x662F;&#x6A21;&#x5757;&#x5185;&#x7684;&#x51FD;&#x6570;, &#x800C;&#x6A21;&#x5757;&#x5DF2;&#x5378;&#x8F7D;&#x4E86;, &#x6545;BUG.&lt;/p&gt;
-
-&lt;h1 id="toc_4"&gt;&lt;h4&gt;5. &#x76F8;&#x5173;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;RCU Usage In the Linux Kernel: One Decade Later &lt;a href="https://pdos.csail.mit.edu/6.828/2017/readings/rcu-decade-later.pdf"&gt;https://pdos.csail.mit.edu/6.828/2017/readings/rcu-decade-later.pdf&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href="https://www.kernel.org/doc/Documentation/RCU/checklist.txt"&gt;https://www.kernel.org/doc/Documentation/RCU/checklist.txt&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x4EC0;&#x4E48;&#x60C5;&#x51B5;&#x4E0B;bio-&gt;bi_end_io&#x53D1;&#x751F;&#x65F6;&#x4E2D;&#x65AD;&#x662F;&#x7981;&#x6B62;&#x7684;?</title>
-      <link>https://awakening-fong.github.io/posts/io/bi_end_io_occur_but_irqs_disabled</link>
-      <pubDate>2018-03-11</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x95EE;&#x9898;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x901A;&#x5E38;&#x6765;&#x8BF4;, &lt;code&gt;bio-&amp;gt;bi_end_io&lt;/code&gt;&#x662F;&#x8F6F;&#x4E2D;&#x65AD;&#x4E0A;&#x4E0B;&#x6587;&#x4E2D;&#x8FD0;&#x884C;&#x7684;, 
-&#x5728;&lt;code&gt;bio-&amp;gt;bi_end_io&lt;/code&gt;&#x4E2D;&#x5BF9;&lt;code&gt;in_irq()&lt;/code&gt;, &lt;code&gt;in_softirq()&lt;/code&gt;, &lt;code&gt;in_serving_softirq()&lt;/code&gt;,&lt;code&gt;irqs_disabled()&lt;/code&gt;&#x8FDB;&#x884C;&#x5224;&#x65AD;&#x7684;&#x8BDD;,
-&#x4EC5;&#x6709;&lt;code&gt;in_softirq()&lt;/code&gt;, &lt;code&gt;in_serving_softirq()&lt;/code&gt;&#x4F1A;&#x6210;&#x7ACB;.&lt;/p&gt;
-
-&lt;p&gt;&#x73B0;&#x6709;&#x5982;&#x4E0B;&#x95EE;&#x9898;, &lt;code&gt;spin_lock_bh()&lt;/code&gt;&#x65E0;&#x6CD5;&#x7981;&#x6B62;&#x8F6F;&#x4E2D;&#x65AD;&#x8FD0;&#x884C;, why?&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x89E3;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x6D4B;&#x8BD5;&#x53D1;&#x73B0;, 
-&lt;code&gt;bio-&amp;gt;bi_end_io()&lt;/code&gt;&#x4E2D;&#x6709;&#x65F6;&lt;code&gt;in_irq()&lt;/code&gt;, &lt;code&gt;in_softirq()&lt;/code&gt;, &lt;code&gt;in_serving_softirq()&lt;/code&gt;,&lt;code&gt;irqs_disabled()&lt;/code&gt;&#x90FD;&#x6210;&#x7ACB;, 
-&#x6709;&#x65F6; &#x4EC5;&lt;code&gt;in_irq()&lt;/code&gt;, &lt;code&gt;irqs_disabled()&lt;/code&gt;&#x6210;&#x7ACB;.&lt;/p&gt;
-
-&lt;p&gt;&#x67E5;&#x770B;&#x8C03;&#x7528;&#x6808;, &#x53D1;&#x73B0;&#x6709;&lt;code&gt;virtio_blk&lt;/code&gt;&#x6A21;&#x5757;, &#x4E5F;&#x5C31;&#x662F;&#x8FD0;&#x884C;&#x5728;&#x865A;&#x62DF;&#x673A;&#x73AF;&#x5883;&#x4E2D;.
-&#x4EC5;&lt;code&gt;in_irq()&lt;/code&gt;, &lt;code&gt;irqs_disabled()&lt;/code&gt;&#x6210;&#x7ACB;&#x65F6;&#x7684;&#x8C03;&#x7528;&#x6808;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Pid: 3660, comm: mount Not tainted 2.6.32-debug #2
-Call Trace:
- &amp;lt;IRQ&amp;gt;  [&amp;lt;ffffffffa03e18f5&amp;gt;] ? your_bio_end_io+0x2b5/0x310 [your_kmod]
- [&amp;lt;ffffffff811e3a5d&amp;gt;] ? bio_endio+0x1d/0x40
- [&amp;lt;ffffffffa0003efc&amp;gt;] ? dec_pending+0x1cc/0x320 [dm_mod]
- [&amp;lt;ffffffffa0003d7d&amp;gt;] ? dec_pending+0x4d/0x320 [dm_mod]
- [&amp;lt;ffffffffa00040ef&amp;gt;] ? clone_endio+0x9f/0xd0 [dm_mod]
- [&amp;lt;ffffffff811e3a5d&amp;gt;] ? bio_endio+0x1d/0x40
- [&amp;lt;ffffffff8128ef7b&amp;gt;] ? req_bio_endio+0x9b/0xe0
- [&amp;lt;ffffffff812906dc&amp;gt;] ? blk_update_request+0x11c/0x520
- [&amp;lt;ffffffff81290999&amp;gt;] ? blk_update_request+0x3d9/0x520
- [&amp;lt;ffffffff81290b07&amp;gt;] ? blk_update_bidi_request+0x27/0xa0
- [&amp;lt;ffffffff81291aae&amp;gt;] ? __blk_end_request_all+0x2e/0x60
- [&amp;lt;ffffffffa006321a&amp;gt;] ? blk_done+0x4a/0x110 [virtio_blk]
- [&amp;lt;ffffffffa005638c&amp;gt;] ? vring_interrupt+0x3c/0xe0 [virtio_ring]
- [&amp;lt;ffffffff810fc970&amp;gt;] ? handle_IRQ_event+0x50/0x160
- [&amp;lt;ffffffff810ff2f0&amp;gt;] ? handle_edge_irq+0xe0/0x170
- [&amp;lt;ffffffff8100fdc9&amp;gt;] ? handle_irq+0x49/0xa0
- [&amp;lt;ffffffff81570e7c&amp;gt;] ? do_IRQ+0x6c/0xf0
- [&amp;lt;ffffffff8100ba93&amp;gt;] ? ret_from_intr+0x0/0x11
- &amp;lt;EOI&amp;gt;  [&amp;lt;ffffffff8118dd73&amp;gt;] ? __kmalloc+0x143/0x2c0
- [&amp;lt;ffffffffa00c4e87&amp;gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
- [&amp;lt;ffffffffa00c4e87&amp;gt;] ? ext4_mb_add_groupinfo+0xd7/0x1e0 [ext4]
- [&amp;lt;ffffffffa00c5152&amp;gt;] ? ext4_mb_init+0x1c2/0x450 [ext4]
- [&amp;lt;ffffffffa00b7128&amp;gt;] ? ext4_fill_super+0x2358/0x2950 [ext4]
- [&amp;lt;ffffffff812b8684&amp;gt;] ? snprintf+0x34/0x40
- [&amp;lt;ffffffff811ac141&amp;gt;] ? get_sb_bdev+0x191/0x1d0
- [&amp;lt;ffffffffa00b4dd0&amp;gt;] ? ext4_fill_super+0x0/0x2950 [ext4]
- [&amp;lt;ffffffffa00b04f8&amp;gt;] ? ext4_get_sb+0x18/0x20 [ext4]
- [&amp;lt;ffffffff811ab51b&amp;gt;] ? vfs_kern_mount+0x7b/0x1b0
- [&amp;lt;ffffffff811ab6c2&amp;gt;] ? do_kern_mount+0x52/0x130
- [&amp;lt;ffffffff811cdc5b&amp;gt;] ? do_mount+0x2fb/0x920
- [&amp;lt;ffffffff8115a6d4&amp;gt;] ? strndup_user+0x64/0xc0
- [&amp;lt;ffffffff811ce310&amp;gt;] ? sys_mount+0x90/0xe0
- [&amp;lt;ffffffff8100b0d2&amp;gt;] ? system_call_fastpath+0x16/0x1b
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x4F7F;&#x7528;ftrace&#x5206;&#x6790;&#x4E24;&#x65F6;&#x95F4;&#x70B9;&#x95F4;&#x9694;</title>
-      <link>https://awakening-fong.github.io/posts/debug/ftrace_data_analysis_interval</link>
-      <pubDate>2018-02-03</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x4F7F;&#x7528; python &#x63D0;&#x53D6;&#x51FA; interval&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;# -*- coding: utf-8 -*
-
-#&#x6DFB;&#x52A0;&#x76F8;&#x5E94;trace_printk, ftrace&#x8F93;&#x51FA;&#x7C7B;&#x4F3C;:
-#           &amp;lt;...&amp;gt;-3084  [000] 352166.459260: your_func_01: your_point_01
-#           &amp;lt;...&amp;gt;-2892  [000] 352166.459529: your_func_02: your_point_02
-
-read_point_start = 1
-f_in=open(&amp;#39;interval.ftrace&amp;#39;, &amp;#39;r&amp;#39;)
-f_out = open(&amp;quot;interval.dat&amp;quot;, &amp;quot;wb&amp;quot;)
-line_no = 1
-
-while 1:
-    line = f_in.readline()
-    if not line:
-        break
-    #print line
-
-    if read_point_start == 1:
-        if &amp;quot;your_func_01&amp;quot; in line:
-            val_point_start=line.split(&amp;quot;:&amp;quot;)[0].split(&amp;quot; &amp;quot;)[-1]
-            read_point_start = 0
-            print val_point_start,
-    elif &amp;quot;your_func_02&amp;quot; in line:
-            val_point_end=line.split(&amp;quot;:&amp;quot;)[0].split(&amp;quot; &amp;quot;)[-1]
-            print val_point_end,
-            interval = int((float(val_point_end) - float(val_point_start)) * 1000 * 1000)
-            print interval
-            f_out.write(str(line_no) + &amp;quot; &amp;quot; + str(interval)+&amp;#39;\n&amp;#39;)    
-            line_no+=1
-            read_point_start = 1
-
-f_out.close()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x8F93;&#x51FA;&#x6587;&#x4EF6;&#x5185;&#x5BB9;  interval.dat&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;1 269
-2 150
-3 161
-4 78
-5 21
-6 18
-7 63
-8 134
-9 453
-10 139
-11 26
-12 57
-13 34
-14 18
-15 46
-16 312
-17 17
-18 101
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. your_plot_cmds.plt&#x5185;&#x5BB9;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;set terminal jpeg small
-set output &amp;quot;gnuplot_interval.jpg&amp;quot;
-#set terminal png  
-#set output &amp;quot;interval.png&amp;quot;
-
-#set key right bottom
-set key left top
-#set key 6,100
-
-set xlabel &amp;quot;point&amp;quot;
-set ylabel &amp;quot;(10^-3ms)&amp;quot;
-set title &amp;quot;cnt&amp;quot;
-
-#set xrange [0.5:12.5]
-#set xtics 1, 1, 12
-plot &amp;quot;interval.dat&amp;quot; with linespoints pointtype 7  pointsize 1
-
-set output
-unset key
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_3"&gt;&lt;h4&gt;4. &#x8FD0;&#x884C;gnuplot&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;gnuplot  your_plot_cmds.plt
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6548;&#x679C;:&lt;br&gt;
-&lt;img src="/assets/media/gnuplot_interval.jpg"&gt;&lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>&#x8BA9;blktrace&#x8F93;&#x51FA;trace_printk&#x7684;&#x5185;&#x5BB9;</title>
-      <link>https://awakening-fong.github.io/posts/debug/blktrace_insert_print</link>
-      <pubDate>2018-01-20</pubDate>
-      <description>&lt;p&gt;&#x6709;&#x65F6;&#x9700;&#x8981;&#x5728;blktrace&#x8F93;&#x51FA;&#x4E2D;&#x63D2;&#x5165;&#x4E00;&#x4E9B;&#x6253;&#x5370;. &#x7531;&#x4E8E;blktrace&#x662F;&#x57FA;&#x4E8E;ftrace&#x7684;, &#x6545;&#x8003;&#x8651;&#x8F6C;&#x7528;ftrace&#x6765;&#x5B9E;&#x73B0;&#x8FD9;&#x4E2A;&#x76EE;&#x7684;.&lt;/p&gt;
-
-&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. ftrace&#x7684;&#x8FC7;&#x6EE4;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/block_rq_complete/format 
-name: block_rq_complete
-ID: 828
-format:
-    field:unsigned short common_type;   offset:0;   size:2; signed:0;
-    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
-    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
-    field:int common_pid;   offset:4;   size:4; signed:1;
-
-    field:dev_t dev;    offset:8;   size:4; signed:0;
-    field:sector_t sector;  offset:16;  size:8; signed:0;
-    field:unsigned int nr_sector;   offset:24;  size:4; signed:0;
-    field:int errors;   offset:28;  size:4; signed:1;
-    field:char rwbs[8]; offset:32;  size:8; signed:1;
-    field:__data_loc char[] cmd;    offset:40;  size:4; signed:1;
-
-print fmt: &amp;quot;%d,%d %s (%s) %llu + %u [%d]&amp;quot;, ((unsigned int) ((REC-&amp;gt;dev) &amp;gt;&amp;gt; 20)), ((unsigned int) ((REC-&amp;gt;dev) &amp;amp; ((1U &amp;lt;&amp;lt; 20) - 1))), REC-&amp;gt;rwbs, __get_str(cmd), (unsigned long long)REC-&amp;gt;sector, REC-&amp;gt;nr_sector, REC-&amp;gt;errors
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8BBE;&#x7F6E;&#x8FC7;&#x6EE4;&#x6761;&#x4EF6;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;echo &amp;#39;dev == 264241152&amp;#39; &amp;gt; /sys/kernel/debug/tracing/events/block/filter
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8BBE;&#x7F6E;&#x8FC7;&#x6EE4;&#x6761;&#x4EF6;&#x540E;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/block_rq_complete/filter 
-dev == 264241152
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/filter 
-### global filter ###
-# Use this to set filters for multiple events.
-# Only events with the given fields will be affected.
-# If no events are modified, an error message will be displayed here
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x597D;&#x50CF;&#x6CA1;&#x6709;&#x751F;&#x6548;&#x4F3C;&#x7684;,  &#x4F46;&#x5DF2;&#x751F;&#x6548;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/block_bio_bounce/filter 
-dev == 264241152
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x7531;&#x4E8E;block_unplug&#x7B49;&#x683C;&#x5F0F;&#x6CA1;&#x6709;dev, &#x6545;&#x4E0D;&#x4F1A;&#x8FC7;&#x6EE4;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/events/block/block_unplug/filter 
-none
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x53EF;&#x4EE5;&#x4F7F;&#x7528; &#x6216;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;echo &amp;#39;dev == 264241152 || dev == 265289729 || dev ==265289732&amp;#39; &amp;gt; /sys/kernel/debug/tracing/events/block/filter
-echo 1 &amp;gt; /sys/kernel/debug/tracing/events/block/enable
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6548;&#x679C;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;# cat /sys/kernel/debug/tracing/trace_pipe
-   systemd-udevd-25619 [000] .... 84980.888417: block_bio_queue: 252,0 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.888429: block_bio_queue: 253,4 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.888439: block_plug: [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.888441: block_unplug: [systemd-udevd] 1
-            sshd-21711 [000] d.H. 84980.888658: block_bio_complete: 253,4 R 2056064 + 8 [0]
-            sshd-21711 [000] d.H. 84980.888661: block_bio_complete: 253,4 R 2056064 + 8 [0]
-   systemd-udevd-25619 [000] .... 84980.888742: block_bio_queue: 252,0 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.888746: block_bio_queue: 253,4 R 2056064 + 8 [systemd-udevd]
-            sshd-21711 [000] d.H. 84980.888930: block_bio_complete: 253,4 R 2056064 + 8 [0]
-            sshd-21711 [000] d.H. 84980.888932: block_bio_complete: 253,4 R 2056064 + 8 [0]
-             fio-25618 [000] .... 84980.988455: block_bio_queue: 252,0 WS 0 + 8 [fio]
-        biowr_00-21649 [000] .... 84980.988511: block_bio_queue: 253,1 W 230796 + 9 [biowr_00]
-        biowr_00-21649 [000] .... 84980.988526: block_plug: [biowr_00]
-        biowr_00-21649 [000] .... 84980.988527: block_unplug: [biowr_00] 1
-          &amp;lt;idle&amp;gt;-0     [000] d.h. 84980.998134: block_bio_complete: 253,1 W 230796 + 9 [0]
-          &amp;lt;idle&amp;gt;-0     [000] dNh. 84980.998145: block_bio_complete: 252,0 WS 0 + 8 [-2128359984]
-        lsync_00-21650 [000] .... 84980.998158: block_bio_queue: 253,4 WS 0 + 8 [lsync_00]
-        lsync_00-21650 [000] .... 84980.998164: block_plug: [lsync_00]
-        lsync_00-21650 [000] .... 84980.998164: block_unplug: [lsync_00] 1
-            sshd-21711 [000] d.H. 84980.998469: block_bio_complete: 253,4 WS 0 + 8 [0]
-   systemd-udevd-25619 [000] .... 84980.999310: block_bio_queue: 252,0 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.999323: block_bio_queue: 253,4 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.999329: block_plug: [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84980.999330: block_unplug: [systemd-udevd] 1
-          &amp;lt;idle&amp;gt;-0     [000] d.h. 84980.999668: block_bio_complete: 253,4 R 2056064 + 8 [0]
-          &amp;lt;idle&amp;gt;-0     [000] d.h. 84980.999675: block_bio_complete: 253,4 R 2056064 + 8 [0]
-   systemd-udevd-25619 [000] .... 84981.000032: block_bio_queue: 252,0 R 2056064 + 8 [systemd-udevd]
-   systemd-udevd-25619 [000] .N.. 84981.000045: block_bio_queue: 253,4 R 2056064 + 8 [systemd-udevd]
-            sshd-21711 [000] d.H. 84981.000366: block_bio_complete: 253,4 R 2056064 + 8 [0]
-            sshd-21711 [000] d.H. 84981.000370: block_bio_complete: 253,4 R 2056064 + 8 [0]
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x6548;&#x679C;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E0D;&#x542B;&#x6709;trace printk&#x65F6;, ftrace&#x7684;&#x8F93;&#x51FA;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;&amp;lt;idle&amp;gt;-0     [000] dNh. 84980.998145: block_bio_complete: 252,0 WS 0 + 8 [-2128359984]
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x6DFB;&#x52A0; trace printk&#x540E;, &#x6BD4;&#x5982;, &lt;code&gt;my_read_endio()&lt;/code&gt;&#x6709;&#x4EE3;&#x7801;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;if(wrapper-&amp;gt;err)
-    trace_printk(&amp;quot;%s error:%d\n&amp;quot;, __func__, wrapper-&amp;gt;err);
-trace_block_bio_complete(bdev_get_queue(wrapper-&amp;gt;bio-&amp;gt;bi_bdev), wrapper-&amp;gt;bio, wrapper-&amp;gt;err);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;ftrace&#x7684;&#x8F93;&#x51FA;&#x6548;&#x679C;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;sshd-2911  [000] d.H.   246.153491: my_read_endio: my_read_endio error:1935632128
-sshd-2911  [000] d.H.   246.153491: block_bio_complete: 252,0 R 2056064 + 8 [1935632128]
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
-      <title>x86-64&#x4E0B;, crash&#x901A;&#x8FC7;bt -f&#x627E;&#x51FA;&#x51FD;&#x6570;&#x53C2;&#x6570;</title>
-      <link>https://awakening-fong.github.io/posts/debug/crash_func_args_x86_64</link>
-      <pubDate>2018-01-20</pubDate>
-      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;/&#x5F15;&#x8A00;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&#x4E0D;&#x540C;&#x4E8E;x86, x86-64&#x7684;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x6CA1;&#x6709;&#x538B;&#x6808;, &#x800C;&#x662F;&#x901A;&#x8FC7;&#x5BC4;&#x5B58;&#x5668;&#x4F20;&#x9012;. &#x8FD9;&#x6837;, &#x4F3C;&#x4E4E;&#x65E0;&#x6CD5;&#x901A;&#x8FC7;bt -f&#x6765;&#x83B7;&#x5F97;&#x53C2;&#x6570;.
-&#x672C;&#x6587;&#x7ED9;&#x51FA;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;, &#x8BF4;&#x660E;x86-64&#x5728;&#x4E00;&#x4E9B;&#x60C5;&#x51B5;&#x4E0B;, &#x4F9D;&#x65E7;&#x80FD;&#x591F;&#x83B7;&#x5F97;&#x51FD;&#x6570;&#x7684;&#x53C2;&#x6570;.&lt;/p&gt;
-
-&lt;p&gt;&#x524D;6&#x4E2A;&#x53C2;&#x6570;&#x5206;&#x522B;&#x5B58;&#x653E;&#x5230;rdi, rsi, rdx, rcx, r8d, r9d.&lt;/p&gt;
-
-&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4F8B;&#x5B50;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: &amp;quot;your_cmd&amp;quot;
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...&#x7565;...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x8FD9;&#x91CC;&#x60F3;&#x77E5;&#x9053;&#x4F20;&#x9012;&#x7ED9;&lt;code&gt;structone_mod_free&lt;/code&gt;&#x7684;&#x53C2;&#x6570;&#x7684;&#x5177;&#x4F53;&#x503C;.
-&#x5176;&#x539F;&#x578B;&#x662F; &lt;code&gt;void structone_mod_free(struct structone *structone)&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; bt -f
-...&#x7701;&#x7565;...
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
-    ffff8801836b3bd0: ffffffff8302e658 ffffffff810ace2a 
-    ffff8801836b3be0: ffffffff8302e640 ffff8801bb635810 
-    ffff8801836b3bf0: ffff8801bb635828 0000000000000046 
-    ffff8801836b3c00: ffff8801bb635810 0000000000000282 
-    ffff8801836b3c10: 0000000000000282 ffff8801bb635810 
-    ffff8801836b3c20: ffff8801836b3c30 ffffffff810c6cad 
-    ffff8801836b3c30: ffff8801836b3c50 0000000000000282 
-    ffff8801836b3c40: ffff8801bb635810 0000000000000000 
-    ffff8801836b3c50: ffff8801836b3c90 00000000bc3fea60 
-    ffff8801836b3c60: ffff8801836b3ce0 ffff8801bb635800 
-    ffff8801836b3c70: ffff8801836b3ca0 ffff8801b6d5eb60 (r13)
-    ffff8801836b3c80: ffff8801bb635810(r14) 7fffffffffffffff  (r15)
-    ffff8801836b3c90: ffff8801836b3d00 (bp)    ffffffffa0771156(ra) 
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
-    ffff8801836b3ca0: 0000000000000000 ffff8801b7af0880 
-    ffff8801836b3cb0: ffffffff810acb20 ffff8801bb635850 
-    ffff8801836b3cc0: ffff8801bb635850 0000000000000282 
-    ffff8801836b3cd0: ffff8801836b3ce0 ffff8801b6d5eb60 
-    ffff8801836b3ce0: ffff8801b5fe76b8 ffff8801bb1091e0 
-    ffff8801836b3cf0: 0000000000000000 0000000000000000 
-    ffff8801836b3d00: ffff8801836b3d30 ffffffffa077146b 
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...&#x7701;&#x7565;...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass structone_mod_free
-Dump of assembler code for function structone_mod_free:
-   0xffffffffa07710b0 &amp;lt;+0&amp;gt;:     push   %rbp   #&#x5E94;&#x8BE5;&#x662F; ffff8801836b3d30
-   0xffffffffa07710b1 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
-   0xffffffffa07710b4 &amp;lt;+4&amp;gt;:     sub    $0x60,%rsp
-   0xffffffffa07710b8 &amp;lt;+8&amp;gt;:     mov    %rbx,-0x28(%rbp)  #
-   0xffffffffa07710bc &amp;lt;+12&amp;gt;:    mov    %r12,-0x20(%rbp)
-   0xffffffffa07710c0 &amp;lt;+16&amp;gt;:    mov    %r13,-0x18(%rbp)
-   0xffffffffa07710c4 &amp;lt;+20&amp;gt;:    mov    %r14,-0x10(%rbp)
-   0xffffffffa07710c8 &amp;lt;+24&amp;gt;:    mov    %r15,-0x8(%rbp)
-
-
-
-   0xffffffffa07710cc &amp;lt;+28&amp;gt;:    nopl   0x0(%rax,%rax,1)
-   0xffffffffa07710d1 &amp;lt;+33&amp;gt;:    mov    0x88(%rdi),%rbx   #&#x8BBF;&#x95EE;structone&#x7684;&#x6210;&#x5458;
-   0xffffffffa07710d8 &amp;lt;+40&amp;gt;:    mov    %rdi,%r13  #&#x5907;&#x4EFD;&#x53C2;&#x6570;struct structone *structone
-   0xffffffffa07710db &amp;lt;+43&amp;gt;:    test   %rbx,%rbx
-
-   ...
-   0xffffffffa077114e &amp;lt;+158&amp;gt;:   mov    %r15,%rdi
-   0xffffffffa0771151 &amp;lt;+161&amp;gt;:   callq  0xffffffff8157da10 &amp;lt;schedule_timeout&amp;gt;  #&#x8FD9;&#x91CC;
-   0xffffffffa0771156 &amp;lt;+166&amp;gt;:   test   %rax,%rax    
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x4E0A;&#x9762;&#x7701;&#x7565;&#x4E86;&#x90E8;&#x5206;&#x6C47;&#x7F16;, &#x7701;&#x7565;&#x7684;&#x90A3;&#x90E8;&#x5206;&#x6CA1;&#x6709;&#x4FEE;&#x6539;&#x5230; %r13.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;crash&amp;gt; disass schedule_timeout
-Dump of assembler code for function schedule_timeout:
-   0xffffffff8157da10 &amp;lt;+0&amp;gt;:     push   %rbp
-   0xffffffff8157da11 &amp;lt;+1&amp;gt;:     mov    %rsp,%rbp
-   0xffffffff8157da14 &amp;lt;+4&amp;gt;:     sub    $0xc0,%rsp
-   0xffffffff8157da1b &amp;lt;+11&amp;gt;:    mov    %rbx,-0x28(%rbp)
-   0xffffffff8157da1f &amp;lt;+15&amp;gt;:    mov    %r12,-0x20(%rbp)
-   0xffffffff8157da23 &amp;lt;+19&amp;gt;:    mov    %r13,-0x18(%rbp)
-   0xffffffff8157da27 &amp;lt;+23&amp;gt;:    mov    %r14,-0x10(%rbp)
-   0xffffffff8157da2b &amp;lt;+27&amp;gt;:    mov    %r15,-0x8(%rbp)   
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&#x770B;&#x5230;&#x5C06;r13&#x7B2C;3&#x4E2A;&#x538B;&#x6808;. &lt;/p&gt;
-
-&lt;p&gt;&#x7ED3;&#x5408;bt -f, &#x53EF;&#x77E5;&#x53C2;&#x6570;&#x5B58;&#x653E;&#x7684;&#x5730;&#x5740;&#x662F; 0xffff8801b6d5eb60.&lt;br&gt;
-crash&amp;gt; p *(struct structone *)0xffff8801b6d5eb60&lt;br&gt;
-&#x6216;&#x8005;  crash&amp;gt; structone 0xffff8801b6d5eb60&lt;br&gt;
-&#x5373;&#x53EF;&#x77E5; structone &#x7684;&#x5177;&#x4F53;&#x503C;&#x4E86;.&lt;/p&gt;
-
-&lt;h1 id="toc_2"&gt;&lt;h4&gt;3. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href="https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html"&gt;https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href="http://www.x86-64.org/documentation/abi.pdf"&gt;http://www.x86-64.org/documentation/abi.pdf&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
   </channel>
