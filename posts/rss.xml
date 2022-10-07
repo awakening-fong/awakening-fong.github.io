@@ -4,9 +4,9 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2022-10-05</pubDate>
+    <pubDate>2022-10-07</pubDate>
     <item>
-      <title>(TODO &#x8349;&#x7A3F;)perfbook 03 barrier</title>
+      <title>perfbook 03 barrier</title>
       <link>https://awakening-fong.github.io/posts/perf/perfbook-03</link>
       <pubDate>2022-10-03</pubDate>
       <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
@@ -14,13 +14,19 @@ Is Parallel Programming Hard, And, If So, What Can You Do About It?
 pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
 &lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
 
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;p&gt;&#x672C;&#x6587;&#x4E0D;&#x6253;&#x7B97;&#x4ECE;&#x539F;&#x7406;&#x4E0A;&#x6765;&#x7406;&#x89E3;, &#x4EC5;&#x4E3A;&#x4E86;&#x5FEB;&#x901F;&#x4F7F;&#x7528;, &#x6545;&#x7F3A;&#x5931;&#x4E25;&#x8C28;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+
 &lt;h3 id="toc_0"&gt;5.4.4&lt;/h3&gt;
 
 &lt;blockquote&gt;
 &lt;p&gt;&#x7B2C;16&#x884C;&#x6267;&#x884C;&#x4E00;&#x6761;&#x5185;&#x5B58;&#x5C4F;&#x969C;&#xFF0C;&#x786E;&#x4FDD;&#x4EFB;&#x4F55;&#x770B;&#x89C1;&#x7B2C;17&#x884C;&#x8BBE;&#x7F6E;READY&#x72B6;&#x6001;&#x7684;CPU&#xFF0C;&#x4E5F;&#x80FD;&#x770B;&#x89C1;&#x7B2C;9&#x884C;&#x7684;&#x6548;&#x679C;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;:&lt;/p&gt;
+&lt;p&gt;awakening-fong &#x6CE8;&#x91CA;:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;16  smp_mb();
 17 WRITE_ONCE(theft, THEFT_READY);
@@ -28,6 +34,108 @@ pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x8
 
 &lt;p&gt;&#x8DE8;&#x8FC7;&#x4E86;16&#x884C;&#xFF0C;&#x5C31;&#x662F;&#x5DF2;&#x7ECF;&#x6267;&#x884C;&#x8FC7;&#x7B2C;9&#x884C;&#x7684;&#x8BC1;&#x636E;&#xFF0C;&#x6240;&#x4EE5;&#xFF0C;&#x7B2C;17&#x884C;&#x7ED9;&#x51FA;&#x4E86;&#x4E00;&#x4E2A;&#x7ED3;&#x8BBA;&#x3002;
 16&#x884C;&#x7684;&#x52A8;&#x4F5C;&#x5DF2;&#x6267;&#x884C;&#x5B8C;&#xFF0C;&#x6E05;&#x5355;&#x6B65;&#x9AA4;&#x5DF2;&#x67E5;&#x9A8C;&#xFF0C;17&#x884C;&#x7ED9;&#x4E2A;&#x76D6;&#x7AE0;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x5185;&#x5B58;&#x5C4F;&#x969C;&#x4EE5;&#x6210;&#x5BF9;&#x7684;&#x5F62;&#x5F0F;&#x8FDB;&#x884C;&#x64CD;&#x4F5C;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;14.2.4.3 Pair-Wise Memory Barriers&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x5728;&#x5982;&#x4E0B;&#x64CD;&#x4F5C;&#x4E2D;&#xFF0C;&#x4ECE;&#x5916;&#x90E8;&#x903B;&#x8F91;&#x5206;&#x6790;&#x5668;&#x7684;&#x89D2;&#x5EA6;&#x6765;&#x8BF4;&#xFF0C;CPU 1&#x5BF9;A&#x7684;&#x8BBF;&#x95EE;&#x5E76;&#x975E;&#x7EDD;&#x5BF9;&#x65E9;&#x4E8E;&#x5BF9;B&#x7684;&#x8BBF;&#x95EE;&#xFF08;&#x53C2;&#x89C1;&#x9644;&#x5F55;C&#x7684;&#x4F8B;&#x5B50;&#xFF09;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code&gt;CPU 1          CPU 2
+access(A);   access(B);
+smp_mb();    smp_mb();
+access(B);   access(A);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;awakening-fong &#x6CE8;&#x91CA;:
+&#x8FD9;&#x91CC;&#x7684;&#x5916;&#x90E8;&#x903B;&#x8F91;&#x5206;&#x6790;&#x4EEA;&#xFF0C;&#x4E0D;&#x53EF;&#x4EE5;&#x7406;&#x89E3;&#x4E3A; &#x5176;&#x4ED6;cpu&#xFF0C;
+cpu&#x4E4B;&#x95F4;&#x53EF;&#x4EE5;&#x6709;&#x76F8;&#x5173;&#x534F;&#x8BAE;&#xFF0C;cpu &#x548C; &#x5206;&#x6790;&#x4EEA; &#x4E4B;&#x95F4; &#x5374;&#x6CA1;&#x6709;&#x8FD9;&#x4E9B;&#x7EA6;&#x5B9A;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x4F46;&#x662F;&#xFF0C;&#x5982;&#x679C; CPU 2&#x5BF9;B&#x7684;&#x8BBF;&#x95EE;&#x770B;&#x5230;CPU 1&#x5BF9;B&#x7684;&#x8BBF;&#x95EE;&#xFF0C;&#x90A3;&#x4E48;CPU 2&#x5BF9;A&#x7684;&#x8BBF;&#x95EE;&#x662F;&#x786E;&#x4FDD;&#x80FD;&#x591F;&#x770B;&#x5230;CPU 1&#x5BF9;A&#x7684;&#x8BBF;&#x95EE;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;However, if CPU 2&#x2019;s access to B sees the result of CPU 1&#x2019;s access to B, then CPU 2&#x2019;s access to A is guaranteed to see the result of CPU 1&#x2019;s access to A.&lt;/p&gt;
+
+&lt;p&gt;awakening-fong &#x6CE8;&#x91CA;:
+&#x6765;&#x81EA; &#x540C;&#x4E00;&#x4E2A;cpu&#x7684;&#x4E24;&#x53D8;&#x91CF;&#xFF0C;&#x8FD9;&#x4E24;&#x53D8;&#x91CF;&#x5230;   &#x5176;&#x4ED6;cpu&#x7684;&#x4F20;&#x64AD;  &#x53D7;  mb &#x7EA6;&#x675F;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;C.4.3&lt;/h3&gt;
+
+&lt;p&gt;CPU 0 executes foo() while CPU 1 executes function
+bar() in the following code fragment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;1 void foo(void)
+2 {
+3 a = 1;
+4 smp_mb();
+5 b = 1;
+6 }
+7
+8 void bar(void)
+9 {
+10 while (b == 0) continue;
+11 assert(a == 1); // &#x6982;&#x7387;&#x5BFC;&#x81F4;&#x7A0B;&#x5E8F;&#x9000;&#x51FA;
+12 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;9.CPU 1&#x6267;&#x884C;assert&#xFF08;a==1&#xFF09;&#xFF0C;&#x5E76;&#x4E14;&#xFF0C;&#x7531;&#x4E8E;&#x65E7;&#x7684;&#x201C;a&#x201D;&#x503C;&#x8FD8;&#x5728;CPU 1&#x7684;&#x7F13;&#x5B58;&#x4E2D;&#xFF0C;&#x56E0;&#x6B64;&#x9677;&#x5165;&#x9519;&#x8BEF;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;10.&#x867D;&#x7136;&#x9677;&#x5165;&#x9519;&#x8BEF;&#xFF0C;CPU 1&#x5904;&#x7406;&#x5DF2;&#x7ECF;&#x6392;&#x961F;&#x7684;&#x201C;&#x4F7F;&#x65E0;&#x6548;&#x201D;&#x6D88;&#x606F;&#xFF0C;&#x5E76;&#x4E14;&#xFF08;&#x8FDF;&#x5230;&#xFF09;&#x5728;&#x81EA;&#x5DF1;&#x7684;&#x7F13;&#x5B58;&#x4E2D;&#x5237;&#x65B0;&#x5305;&#x542B;&#x201C;a&#x201D;&#x503C;&#x7684;&#x7F13;&#x5B58;&#x884C;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong &#x6CE8;&#x91CA;:&lt;/p&gt;
+
+&lt;p&gt;cpu&#x4F1A;&#x8BD5;&#x56FE;&#x7EF4;&#x62A4;cache line&#x4E00;&#x81F4;&#x6027;&#xFF0C;&#x65B9;&#x6CD5;&#x662F;&#x53D1;&#x9001;&#x6D88;&#x606F;&#xFF0C;&#x4F46;&#x63A5;&#x6536;&#x7AEF;&#x63A5;&#x6536;&#x5230;&#x6D88;&#x606F;&#x524D;&#xFF0C;&#x53EF;&#x80FD;&#x5DF2;&#x7ECF;&#x4ECE;cache line&#x4E2D;&#x8BFB;&#x53D6;&#x8D70;&#x65E7;&#x7684;&#x503C;&#x4E86;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x4E24;&#x4E2A;&#x53D8;&#x91CF;&#xFF0C;&#x5176;&#x5728;cpu&#x4E4B;&#x95F4;&#x7684;&#x4F20;&#x64AD;&#x901F;&#x5EA6;&#x4E0D;&#x4E00;&#x6837;&#xFF0C;&#x56E0;&#x4E3A;&#x4F20;&#x64AD;&#x8DEF;&#x5F84;&#x4E0D;&#x4E00;&#x6837;&#x3002;&#x672C;&#x4F8B;&#x4E2D;&#xFF0C;b&#x7684;&#x4F20;&#x64AD;&#x901F;&#x5EA6;&#x5FEB;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;C.4.3&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;1 void foo(void)
+2 {
+3 a = 1;
+4 smp_mb();
+5 b = 1;
+6 }
+7
+8 void bar(void)
+9 {
+10 while (b == 0) continue;
+11 smp_mb();
+12 assert(a == 1); // &#x4E0D;&#x4F1A;&#x8BA9;&#x7A0B;&#x5E8F;&#x9000;&#x51FA;
+13 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;8.CPU 1 &#x73B0;&#x5728;&#x7ED3;&#x675F;&#x6267;&#x884C;while&#xFF08;b==0&#xFF09;continue&#xFF0C;&#x56E0;&#x4E3A;&#x5B83;&#x53D1;&#x73B0;&#x201C;b&#x201D;&#x7684;&#x503C;&#x4E3A; 1&#xFF0C;&#x5B83;&#x5904;&#x7406;&#x4E0B;&#x4E00;&#x6761;&#x8BED;&#x53E5;&#xFF0C;&#x8FD9;&#x662F;&#x4E00;&#x6761;&#x5185;&#x5B58;&#x5C4F;&#x969C;&#x6307;&#x4EE4;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;9.CPU 1 &#x5FC5;&#x987B;&#x505C;&#x987F;&#xFF0C;&#x76F4;&#x5230;&#x5B83;&#x5904;&#x7406;&#x5B8C;&#x4F7F;&#x65E0;&#x6548;&#x961F;&#x5217;&#x4E2D;&#x7684;&#x6240;&#x6709;&#x6D88;&#x606F;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;10.CPU 1 &#x5904;&#x7406;&#x5DF2;&#x7ECF;&#x5165;&#x961F;&#x7684;&#x201C;&#x4F7F;&#x65E0;&#x6548;&#x201D;&#x6D88;&#x606F;&#xFF0C;&#x4ECE;&#x5B83;&#x7684;&#x7F13;&#x5B58;&#x4E2D;&#x4F7F;&#x65E0;&#x6548;&#x5305;&#x542B;&#x201C;a&#x201D;&#x7684;&#x7F13;&#x5B58;&#x884C;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;11.CPU 1 &#x6267;&#x884C;assert&#xFF08;a==1&#xFF09;&#xFF0C;&#x7531;&#x4E8E;&#x5305;&#x542B;&#x201C;a&#x201D;&#x7684;&#x7F13;&#x5B58;&#x884C;&#x5DF2;&#x7ECF;&#x4E0D;&#x5728;&#x5B83;&#x7684;&#x7F13;&#x5B58;&#x4E2D;&#xFF0C;&#x5B83;&#x53D1;&#x9001;&#x4E00;&#x4E2A;&#x201C;&#x8BFB;&#x201D;&#x6D88;&#x606F;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;12.CPU 0 &#x4EE5;&#x5305;&#x542B;&#x65B0;&#x7684;&#x201C;a&#x201D;&#x503C;&#x7684;&#x7F13;&#x5B58;&#x884C;&#x54CD;&#x5E94;&#x8BE5;&#x201C;&#x8BFB;&#x201D;&#x6D88;&#x606F;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;13.CPU 1 &#x63A5;&#x6536;&#x5230;&#x8BE5;&#x7F13;&#x5B58;&#x884C;&#xFF0C;&#x5B83;&#x5305;&#x542B;&#x65B0;&#x7684;&#x201C;a&#x201D;&#x7684;&#x503C;1&#xFF0C;&#x56E0;&#x6B64;&#x65AD;&#x8A00;&#x4E0D;&#x4F1A;&#x88AB;&#x89E6;&#x53D1;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong &#x6CE8;&#x91CA;:&lt;/p&gt;
+
+&lt;p&gt;&#x5199;&#x7AEF; cpu0 &#x5904;&#x7406;&#x4E86;&#x68C0;&#x67E5;&#x6E05;&#x5355; :a&#x5199;&#x5B8C;&#x6210;&#xFF0C;&#x7136;&#x540E;  &#x76D6;&#x7AE0;&#x4E86;b&#x7F6E;1&#x3002;&lt;br&gt;
+&#x8BFB;&#x7AEF; cpu1 &#x770B;&#x5230;&#x5370;&#x7AE0; b&#xFF0C;&#x9700;&#x8981;&#x5237;&#x65B0;&#x8BA4;&#x77E5;&#xFF08;&#x914D;&#x5BF9;&#x7684;mb&#xFF09;&#xFF0C;&#x91CD;&#x65B0;&#x6293;&#x53D6;a&#x3002;&lt;/p&gt;
 </description>
     </item>
     <item>
@@ -71,7 +179,7 @@ pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x8
 &lt;p&gt;awakening-fong&#x6CE8;&#x91CA;:
 10&#x6838;&#x65F6;, &#x5176;&#x4E2D;&#x7684;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x8017;&#x65F6;t&#xFF0C;&#x5982;&#x679C;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x6D88;&#x8017;&#x5728;&#x4E34;&#x754C;&#x533A;&#x7684;&#x65F6;&#x95F4;&#xFF1E;&#xFF1D;t/10&#xFF0C;&#x90A3;&#x4E48;&#xFF0C;10&#x6838;&#x540E;&#xFF0C;&#x52A0;&#x66F4;&#x591A;cpu&#x4E5F;&#x65E0;&#x76CA;&#x3002;&lt;/p&gt;
 
-&lt;h2 id="toc_2"&gt;RCU&#x4F7F;&#x7528;&lt;/h2&gt;
+&lt;h3 id="toc_2"&gt;RCU&#x4F7F;&#x7528;&lt;/h3&gt;
 
 &lt;blockquote&gt;
 &lt;p&gt;&#x201C;&#x5BBD;&#x9650;&#x671F;&#x201D;&#xFF08;grace period&#xFF09;&lt;/p&gt;
@@ -156,6 +264,17 @@ free(p)
 &lt;p&gt;&#x6CE8;&#x610F;&#xFF0C;&#x6700;&#x540E;cpu0&#x7684;free(p)&#x53C2;&#x6570;&#x662F;p&#xFF0C;
 cpu1&#x7684;spin unlock&#x53C2;&#x6570;&#x4E5F;&#x662F;p&#x76F8;&#x5173;&#x7684;&#x3002;
 cpu1&#x5BF9;&#x4E00;&#x4E2A;&#x5DF2;&#x7ECF;&#x88AB;&#x91CA;&#x653E;&#x6389;&#x7684;&#x5185;&#x5B58;&#x8FDB;&#x884C; unlock, &#x6545;,BUG&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;11&#x7AE0; &#x9A8C;&#x8BC1;&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&#x5047;&#x8BBE;&#x4E00;&#x4E2A;&#x7279;&#x5B9A;&#x6D4B;&#x8BD5;&#x6709;10%&#x7684;&#x5931;&#x8D25;&#x51E0;&#x7387;&#x3002;&#x4F60;&#x9700;&#x8981;&#x8FD0;&#x884C;&#x591A;&#x5C11;&#x6B21;&#x6D4B;&#x8BD5;&#x7528;&#x4F8B;&#xFF0C;&#x624D;&#x80FD;&#x5BFC;&#x81F4;&#x5931;&#x8D25;&#x7684;&#x51E0;&#x7387;&#x8D85;&#x8FC7;99%&#xFF1F;&#x6BD5;&#x7ADF;&#xFF0C;&#x5982;&#x679C;&#x6211;&#x4EEC;&#x5C06;&#x6D4B;&#x8BD5;&#x7528;&#x4F8B;&#x8FD0;&#x884C;&#x8DB3;&#x591F;&#x6B21;&#x6570;&#xFF0C;&#x4F7F;&#x5F97;&#x81F3;&#x5C11;&#x6709;&#x4E00;&#x6B21;&#x5931;&#x8D25;&#x7684;&#x51E0;&#x7387;&#x8FBE;&#x5230;99%&#xFF0C;&#x5982;&#x679C;&#x6B64;&#x65F6;&#x5E76;&#x6CA1;&#x6709;&#x5931;&#x8D25;&#xFF0C;&#x90A3;&#x4E48;&#x4EC5;&#x4EC5;&#x53EA;&#x6709;1%&#x7684;&#x51E0;&#x7387;&#x8868;&#x660E;&#x8FD9;&#x662F;&#x7531;&#x4E8E;&#x597D;&#x8FD0;&#x6C14;&#x6240;&#x5BFC;&#x81F4;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x516C;&#x5F0F;11.6&lt;br&gt;
+&#x6240;&#x9700;&#x7684;&#x6D4B;&#x8BD5;&#x6B21;&#x6570;&#x662F; n = log (1 &#x2212; Fn )/log(1&#x2212; f)&lt;/p&gt;
+
+&lt;p&gt;&#x5C06;f=0.1&#x53CA;Fn=0.99&#x4EE3;&#x5165;&#x516C;&#x5F0F;11.6&#xFF0C;&#x5F97;&#x5230;&#x7ED3;&#x679C;43.7&#xFF0C;&#x8FD9;&#x8868;&#x793A;&#x6211;&#x4EEC;&#x9700;&#x8981;44&#x6B21;&#x8FDE;&#x7EED;&#x6210;&#x529F;&#x8FD0;&#x884C;&#x6D4B;&#x8BD5;&#x7528;&#x4F8B;&#xFF0C;&#x624D;&#x80FD;&#x6709;99%&#x7684;&#x628A;&#x63E1;&#x786E;&#x4FDD;&#x5BF9;&#x6545;&#x969C;&#x7684;&#x4FEE;&#x590D;&#x771F;&#x7684;&#x751F;&#x6548;&#x3002;&lt;/p&gt;
+&lt;/blockquote&gt;
 </description>
     </item>
     <item>
@@ -382,7 +501,7 @@ promise(1,V1)&#x6D88;&#x606F;&#x6765;&#x81EA;A1. &lt;/p&gt;
 &lt;h3 id="toc_1"&gt;1.1 other&lt;/h3&gt;
 
 &lt;p&gt;&#x5982;&#x679C; &#x6570;&#x636E; &#x4EC5;&#x4F7F;&#x7528;&#x4E00;&#x6B21;&#x7684;&#x8BDD;.
-POSIX&lt;em&gt;FADV&lt;/em&gt;DONTNEED and O_DIRECT&lt;/p&gt;
+&lt;code&gt;POSIX_FADV_DONTNEED&lt;/code&gt; and &lt;code&gt;O_DIRECT&lt;/code&gt;&lt;/p&gt;
 
 &lt;h2 id="toc_2"&gt;2 &#x5199; &#x5206;&#x79BB;&lt;/h2&gt;
 

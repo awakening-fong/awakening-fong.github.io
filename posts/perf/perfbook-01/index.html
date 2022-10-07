@@ -99,7 +99,7 @@ pdf 版本可以从如下网址获取:
 <p>awakening-fong注释:
 10核时, 其中的单个线程耗时t，如果单个线程消耗在临界区的时间＞＝t/10，那么，10核后，加更多cpu也无益。</p>
 
-<h2 id="toc_2">RCU使用</h2>
+<h3 id="toc_2">RCU使用</h3>
 
 <blockquote>
 <p>“宽限期”（grace period）</p>
@@ -185,6 +185,17 @@ free(p)
 cpu1的spin unlock参数也是p相关的。
 cpu1对一个已经被释放掉的内存进行 unlock, 故,BUG。</p>
 
+<h3 id="toc_3">11章 验证</h3>
+
+<blockquote>
+<p>假设一个特定测试有10%的失败几率。你需要运行多少次测试用例，才能导致失败的几率超过99%？毕竟，如果我们将测试用例运行足够次数，使得至少有一次失败的几率达到99%，如果此时并没有失败，那么仅仅只有1%的几率表明这是由于好运气所导致。</p>
+
+<p>公式11.6<br>
+所需的测试次数是 n = log (1 − Fn )/log(1− f)</p>
+
+<p>将f=0.1及Fn=0.99代入公式11.6，得到结果43.7，这表示我们需要44次连续成功运行测试用例，才能有99%的把握确保对故障的修复真的生效。</p>
+</blockquote>
+
 	  <p>
 	  本文地址: <a href=https://awakening-fong.github.io/posts/perf/perfbook-01>https://awakening-fong.github.io/posts/perf/perfbook-01</a>
 	  </p>
@@ -204,6 +215,9 @@ cpu1对一个已经被释放掉的内存进行 unlock, 故,BUG。</p>
       <li>
         <a href="/tags#性能-ref">性能 <span>8</span></a>
       </li>
+      <li>
+        <a href="/tags#perfbook-ref">perfbook <span>3</span></a>
+      </li>
     </ul>
     <hr>
     <div class="pagination">
@@ -212,7 +226,7 @@ cpu1对一个已经被释放掉的内存进行 unlock, 故,BUG。</p>
 
           <li><a href="/archive">Archive</a></li>
 
-          <li class="next"><a href="/posts/perf/perfbook-03" title="(TODO 草稿)perfbook 03 barrier">Next &rarr;</a></li>
+          <li class="next"><a href="/posts/perf/perfbook-03" title="perfbook 03 barrier">Next &rarr;</a></li>
       </ul>
     </div>
 	<p>

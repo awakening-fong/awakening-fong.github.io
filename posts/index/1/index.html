@@ -54,13 +54,19 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/perf/perfbook-03">(TODO 草稿)perfbook 03 barrier</a> <span class="date">2022-10-03</span></h3>
+        <h3 class="title"><a href="/posts/perf/perfbook-03">perfbook 03 barrier</a> <span class="date">2022-10-03</span></h3>
 
-        <div class="summary">
+        <div class="summary ellipsis">
 <p>perfbook 指的是 
 Is Parallel Programming Hard, And, If So, What Can You Do About It?
 pdf 版本可以从如下网址获取: 
 <a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<p><br></p>
+
+<p>本文不打算从原理上来理解, 仅为了快速使用, 故缺失严谨.</p>
+
+<p><br></p>
 
 <h3 id="toc_0">5.4.4</h3>
 
@@ -68,14 +74,11 @@ pdf 版本可以从如下网址获取:
 <p>第16行执行一条内存屏障，确保任何看见第17行设置READY状态的CPU，也能看见第9行的效果</p>
 </blockquote>
 
-<p>awakening-fong注释:</p>
+<p>awakening-fong 注释:</p>
 
 <pre><code>16  smp_mb();
 17 WRITE_ONCE(theft, THEFT_READY);
 </code></pre>
-
-<p>跨过了16行，就是已经执行过第9行的证据，所以，第17行给出了一个结论。
-16行的动作已执行完，清单步骤已查验，17行给个盖章。</p>
 </div>
 
         <div class="more">
