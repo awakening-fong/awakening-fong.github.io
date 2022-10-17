@@ -85,20 +85,6 @@ disaster recovery (DR) volume 才是不需要起始地址的, 因为是volume.</
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/lang/stl_trap">C++ STL 的一些trap(待更新)</a> <span class="date">2020-07-12</span></h3>
-
-        <div class="summary">
-<h2 id="toc_0">遍历过程中删除节点, it=your_stl.erase(it) 就可以吗?</h2>
-
-<p>答: 考虑map的情景, 由于删除后, 会做平衡动作, 导致继续往下遍历, 存在 没有完整遍历的情况.
-所以, 需要先将要删除的放入临时list, 待遍历完成后, 在统一删除list上的节点.</p>
-</div>
-
-        <div class="more">
-          <a href="/posts/lang/stl_trap" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/database/leveldb_05_perf_latency">LevelDB 05: 性能</a> <span class="date">2019-09-13</span></h3>
 
         <div class="summary ellipsis">
@@ -196,6 +182,38 @@ disaster recovery (DR) volume 才是不需要起始地址的, 因为是volume.</
 
         <div class="more">
           <a href="/posts/database/leveldb_03_data_format" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/database/leveldb_02_snapshot">LevelDB 02: snapshot</a> <span class="date">2019-09-10</span></h3>
+
+        <div class="summary ellipsis">
+<p>目录:
+</p>
+<li> <a href="#toc_0"> 1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</a>  </li>
+<li> <a href="#toc_1"> 1.1 写 MANIFEST</a>  </li>
+<li> <a href="#toc_2"> 1.2 Builder一个用途</a>  </li>
+<li> <a href="#toc_3"> 2. Get</a>  </li>
+<li> <a href="#toc_4"> 2.1 序列号在 SkipList 查找中的作用</a>  </li>
+<li> <a href="#toc_5"> 2.2 leveldb读写可以同时进行吗？</a>  </li>
+<li> <a href="#toc_6"> 2.3 对于skiplist, 在哪些地方加锁了?</a>  </li>
+<li> <a href="#toc_7"> 2.3 没有处理 序列号 溢出/回绕问题</a>  </li>
+<li> <a href="#toc_8"> 3. manifest</a>  </li>
+<li> <a href="#toc_9"> 3.1 为何有多个 manifest 文件?</a>  </li>
+<li> <a href="#toc_10"> 3.2 manifest 存储的内容是啥:</a>  </li>
+<li> <a href="#toc_11"> 4. VersionEdit (未完成)</a>  </li>
+<li> <a href="#toc_12"> 4.1 ctor</a>  </li>
+
+<hr>
+
+<h2 id="toc_0">1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</h2>
+
+<p>使用场景:</p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/database/leveldb_02_snapshot" class="btn btn-small">read more..</a>
         </div>
       </div>
     

@@ -54,147 +54,45 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a> <span class="date">2017-01-18</span></h3>
+        <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
 
         <div class="summary ellipsis">
-<p> 文来自本人的旧博客 
-http://blog.163.com/awaken_ing/blog/static/12061319720157119242210
+<p>
+来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
 </p>
 
-<h1 id="toc_0"><h4>1. _<em>create</em>page_tables</h4></h1>
+<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
+ # CONFIG<em>ARM</em>LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
 
-<pre><code>pgtbl r4 @ page table address
+<pre><code>31                         7          0
++-------------------------+-----------+
+|      PROCID             |   ASID    |
++-------------------------+-----------+
 </code></pre>
 
-<p>其中pgtbl为宏</p>
+<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
 
-<pre><code>.macro pgtbl, rd
-ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
-.endm
-</code></pre>
+<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
+linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
 
-<p>这里KERNEL<em>RAM</em>PADDR和zreladdr的值相等.</p>
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
+                  pte_t *ptep, pte_t pteval) 
+{ 
+...
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
+... 
+        ext |= PTE_EXT_NG; 
+    } 
+... 
+    set_pte_ext(ptep, pteval, ext); 
+}
 
-<h1 id="toc_1"><h4>1.1 identity mapping</h4></h1>
-
-<pre><code>/*
-* Create identity mapping for first MB of kernel to
-* cater for the MMU enable. This identity mapping
-* will be removed by paging_init(). We use our current program
-* counter to determine corresponding section base address.
-*/
-mov r6, pc
-mov r6, r6, lsr #20 @ start of kernel section
-orr r3, r7, r6, lsl #20 @ flags + kernel base
-str r3, [r4, r6, lsl #2] @ identity mapping
-@ 和arch\arm\boot\compressed\head.S类似
-@ r3内容:
-@ 31       20       19                 0  
-@  PC高12bit       __cpu_mm_mmu_flags
-@存放的地址:
-@   31          14           13            2                1 0  
-@  页表基址(0x4000)         页表index(pc高12bit)              00  
+set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
 </code></pre>
 </div>
 
         <div class="more">
-          <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a> <span class="date">2017-01-18</span></h3>
-
-        <div class="summary ellipsis">
-<p>文来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159</p>
-
-<p>本篇只提问, 不解答, 祝开心.</p>
-
-<p>如果读写锁是unlocked, 然后cpu 0和cpu 1都想获取写锁,
-如表格所示, CPU 0在t2时刻执行的是wfene, 这时, CPU 1执行的是ldrex, 然后是否会有cpu能够获取到锁?
-源码来自
-linux-3.10.86/arch/arm/include/asm/spinlock.h
-arch<em>write</em>lock()</p>
-
-<!--
-查看源码后, 将第1个<table>改为
-<table class="table table-bordered table-striped table-condensed">
-
-时间 | CPU0                      |时间  |CPU1
------|---------------------------|------|----
-t0/t6| 1:    ldrex    %0, [%1]   |      |
-t1/t7| teq    %0, #0             |      |
-t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
-t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
-t4   |teq    %0, #0              |t4    |WFE("ne")
-t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
-t6   |                           |t6    |teq    %0, #0
-t7   |                           |t7    |bne    1b
--->
-
-<table class="table table-bordered table-striped table-condensed">
-<thead>
-<tr>
-<th>时间</th>
-<th>CPU0</th>
-<th>时间</th>
-<th>CPU1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>t0/t6</td>
-<td>1:    ldrex    %0, [%1]</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>t1/t7</td>
-<td>teq    %0, #0</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>t2</td>
-<td>WFE("ne")</td>
-<td>t2</td>
-<td>1:    ldrex    %0, [%1]</td>
-</tr>
-<tr>
-<td>t3</td>
-<td>strexeq    %0, %2, [%1]</td>
-<td>t3</td>
-<td>teq    %0, #0</td>
-</tr>
-<tr>
-<td>t4</td>
-<td>teq    %0, #0</td>
-<td>t4</td>
-<td>WFE("ne")</td>
-</tr>
-<tr>
-<td>t5</td>
-<td>bne    1b</td>
-<td>t5</td>
-<td>strexeq    %0, %2, [%1]</td>
-</tr>
-<tr>
-<td>t6</td>
-<td></td>
-<td>t6</td>
-<td>teq    %0, #0</td>
-</tr>
-<tr>
-<td>t7</td>
-<td></td>
-<td>t7</td>
-<td>bne    1b</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-        <div class="more">
-          <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
+          <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -237,39 +135,36 @@ linux-3.10.86/arch/arm/kernel/setup.c</p>
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
+        <h3 class="title"><a href="/posts/mm/slub_tid">SLUB 04:tid</a> <span class="date">2017-01-14</span></h3>
 
         <div class="summary ellipsis">
-<p>本文假定没有打开CONFIG<em>SLUB</em>DEBUG, 没有配置CONFIG_NUMA.</p>
-
-<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
-
-<p>linux-3.10.86/mm/slub.c</p>
-
-<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
- *   on any list. It is not on any list. The processor that froze the slab is the one who can
- *   perform list operations on the page. Other processors may put objects
- *   onto the freelist but the processor that froze the slab is the only
- *   one that can retrieve the objects from the page's freelist.
-</code></pre>
-
-<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
-cpu02不能从该page中取obj, 只能把obj还给该page.</p>
-
-<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
+<h1 id="toc_0"><h4>1. tid</h4></h1>
 
 <p>linux-3.10.86/include/linux/slub_def.h</p>
 
 <pre><code>struct kmem_cache_cpu {
-...
-    struct page *partial;   /* Partially allocated frozen slabs */
     ...
+    unsigned long tid;  /* Globally unique transaction id */
+    ..
 };
 </code></pre>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code>#ifdef CONFIG_PREEMPT
+/*
+ * Calculate the next globally unique transaction for disambiguiation
+ * during cmpxchg. The transactions start with the cpu number and are then
+ * incremented by CONFIG_NR_CPUS.
+</code></pre>
+
+<p>问题:一次不是加1, 而是加CONFIG<em>NR</em>CPUS, 为啥?<br>
+答:这个设计是为了让任何时刻每个cpu的tid值都不一样.
+不过上面的注释有点老, 因为实际并不是加CONFIG<em>NR</em>CPUS, 而是TID_STEP.</p>
 </div>
 
         <div class="more">
-          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/slub_tid" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -376,6 +271,42 @@ static void deactivate_slab(struct kmem_cache *s, struct page *page, void *freel
 
         <div class="more">
           <a href="/posts/mm/slub_partial" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/slub_frozen">SLUB 02:frozen</a> <span class="date">2017-01-14</span></h3>
+
+        <div class="summary ellipsis">
+<p>本文假定没有打开CONFIG<em>SLUB</em>DEBUG, 没有配置CONFIG_NUMA.</p>
+
+<h1 id="toc_0"><h4>1. 什么是frozen</h4></h1>
+
+<p>linux-3.10.86/mm/slub.c</p>
+
+<pre><code> *   If a slab is frozen then it is exempt(免除) from list management. It is not
+ *   on any list. It is not on any list. The processor that froze the slab is the one who can
+ *   perform list operations on the page. Other processors may put objects
+ *   onto the freelist but the processor that froze the slab is the only
+ *   one that can retrieve the objects from the page's freelist.
+</code></pre>
+
+<p>cpu01的c-&gt;page是frozen, 那么cpu01可以从该page中取出或放回obj, 
+cpu02不能从该page中取obj, 只能把obj还给该page.</p>
+
+<h1 id="toc_1"><h4>2. cpu partial上的page都是frozen状态</h4></h1>
+
+<p>linux-3.10.86/include/linux/slub_def.h</p>
+
+<pre><code>struct kmem_cache_cpu {
+...
+    struct page *partial;   /* Partially allocated frozen slabs */
+    ...
+};
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/slub_frozen" class="btn btn-small">read more..</a>
         </div>
       </div>
     

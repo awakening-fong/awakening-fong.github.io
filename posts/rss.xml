@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2022-10-07</pubDate>
+    <pubDate>2022-10-17</pubDate>
     <item>
       <title>perfbook 03 barrier</title>
       <link>https://awakening-fong.github.io/posts/perf/perfbook-03</link>
@@ -659,16 +659,6 @@ ROW&#x7684;&#x5199;&#x6027;&#x80FD;&#x57FA;&#x672C;&#x6CA1;&#x6709;&#x635F;&#x80
 &#x7B54;: &#x66F4;&#x6539;&#x6570;&#x636E;&#x65F6;&#xFF0C;&#x4F1A;&#x62F7;&#x8D1D;&#x65E7;&#x6570;&#x636E;&#x5230;&#x5FEB;&#x7167;&#x5377;&#xFF0C;&#x6E90;&#x6570;&#x636E;&#x4F1A;&#x88AB;&#x8986;&#x76D6;, &#xFF0C;&#x5FEB;&#x7167;&#x6307;&#x9488;&#x8868;&#x7684;&#x5730;&#x5740;&#x4F1A;&#x66F4;&#x65B0;, &#x540E;&#x7EED;&#x7684;&#x5199;&#x6620;&#x5C04;&#x5230; &#x6570;&#x636E;&#x5377;. &#x5FEB;&#x7167;&#x5377;&#x662F;&#x53EA;&#x8BFB;&#x7684;.&lt;br&gt;
 &#x4F18;&#x70B9;&#xFF1A;&#x539F;&#x59CB;&#x5377;&#x7269;&#x7406;&#x5757;&#x8FDE;&#x7EED;.&lt;br&gt;
 &#x7F3A;&#x70B9;&#xFF1A;&#x964D;&#x4F4E;&#x6E90;&#x6570;&#x636E;&#x5377;&#x7684;&#x5199;&#x6027;&#x80FD;  &lt;/p&gt;
-</description>
-    </item>
-    <item>
-      <title>C++ STL &#x7684;&#x4E00;&#x4E9B;trap(&#x5F85;&#x66F4;&#x65B0;)</title>
-      <link>https://awakening-fong.github.io/posts/lang/stl_trap</link>
-      <pubDate>2020-07-12</pubDate>
-      <description>&lt;h2 id="toc_0"&gt;&#x904D;&#x5386;&#x8FC7;&#x7A0B;&#x4E2D;&#x5220;&#x9664;&#x8282;&#x70B9;, it=your_stl.erase(it) &#x5C31;&#x53EF;&#x4EE5;&#x5417;?&lt;/h2&gt;
-
-&lt;p&gt;&#x7B54;: &#x8003;&#x8651;map&#x7684;&#x60C5;&#x666F;, &#x7531;&#x4E8E;&#x5220;&#x9664;&#x540E;, &#x4F1A;&#x505A;&#x5E73;&#x8861;&#x52A8;&#x4F5C;, &#x5BFC;&#x81F4;&#x7EE7;&#x7EED;&#x5F80;&#x4E0B;&#x904D;&#x5386;, &#x5B58;&#x5728; &#x6CA1;&#x6709;&#x5B8C;&#x6574;&#x904D;&#x5386;&#x7684;&#x60C5;&#x51B5;.
-&#x6240;&#x4EE5;, &#x9700;&#x8981;&#x5148;&#x5C06;&#x8981;&#x5220;&#x9664;&#x7684;&#x653E;&#x5165;&#x4E34;&#x65F6;list, &#x5F85;&#x904D;&#x5386;&#x5B8C;&#x6210;&#x540E;, &#x5728;&#x7EDF;&#x4E00;&#x5220;&#x9664;list&#x4E0A;&#x7684;&#x8282;&#x70B9;.&lt;/p&gt;
 </description>
     </item>
     <item>
@@ -2058,6 +2048,88 @@ CLR undo T1 ....&lt;br&gt;
 &lt;li&gt;&lt;a href="https://www.postgresql.org/docs/7.3/static/wal.html"&gt;https://www.postgresql.org/docs/7.3/static/wal.html&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Database System Concepts 6th edition&lt;/li&gt;
 &lt;/ol&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x4F7F;&#x7528;lab&#x6765;&#x7406;&#x89E3;raft</title>
+      <link>https://awakening-fong.github.io/posts/distributed_system/raft_mit_6-824</link>
+      <pubDate>2018-10-16</pubDate>
+      <description>&lt;h1 id="toc_0"&gt;&lt;h4&gt;1. &#x80CC;&#x666F;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&#x4E3A;&#x7406;&#x89E3;raft, &#x53C2;&#x7167;2018&#x5E74;&#x7684; &lt;a href="https://pdos.csail.mit.edu/6.824/labs/lab-raft.html"&gt;https://pdos.csail.mit.edu/6.824/labs/lab-raft.html&lt;/a&gt; 
+&#x8FDB;&#x884C;&#x5176;&#x4E2D;&#x7684;lab 2A &#x548C; 2B.&lt;/p&gt;
+
+&lt;h1 id="toc_1"&gt;&lt;h4&gt;2. &#x4EE3;&#x7801;&#x5B9E;&#x73B0;/&#x534F;&#x8BAE;&#x7EC6;&#x8282;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;h2 id="toc_2"&gt;&lt;h4&gt;2.1 &#x6587;&#x7AE0;&#x6458;&#x5F55;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href="https://thesquareplanet.com/blog/students-guide-to-raft/"&gt;https://thesquareplanet.com/blog/students-guide-to-raft/&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;you might reasonably reset a peer&#x2019;s election timer whenever you receive an AppendEntries or RequestVote RPC, as both indicate that some other peer either thinks it&#x2019;s the leader, or is trying to become the leader. Intuitively, this means that we shouldn&#x2019;t be interfering. However, if you read Figure 2 carefully, it says:&lt;/p&gt;
+
+&lt;p&gt;If election timeout elapses without receiving AppendEntries RPC &lt;strong&gt;&lt;em&gt;from current leader&lt;/em&gt;&lt;/strong&gt; or granting vote to candidate: convert to candidate. 
+&#x200B;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;many would simply reset their election timer when they received a heartbeat, and then return success, without performing any of the checks specified in Figure 2. This is extremely dangerous. By accepting the RPC, the follower is implicitly telling the leader that their log matches the leader&#x2019;s log up to and including the prevLogIndex included in the AppendEntries arguments. Upon receiving the reply, the leader might then decide (incorrectly) that some entry has been replicated to a majority of servers, and start committing it.
+&#x63A5;&#x6536;&#x5230;&#x5FC3;&#x8DF3;, &#x4E0D;&#x80FD;&#x7B80;&#x5355;&#x5730;&#x8FD4;&#x56DE;&#x6210;&#x529F;, &#x800C;&#x5E94;&#x8BE5; &#x5BF9;&#x6BD4;leader&#x53D1;&#x8FC7;&#x6765;&#x7684;prevLogIndex &#x548C; &#x81EA;&#x5DF1;(follower)&#x5DF2;&#x6709;&#x7684;log.
+&#x8FD9;&#x6837;, &#x53EF;&#x4EE5;&#x5E94;&#x5BF9;&#x5982;&#x4E0B;&#x60C5;&#x51B5;: &#x5F53;&#x67D0;&#x4E2A;&#x8282;&#x70B9;&#x7F51;&#x7EDC;&#x65AD;&#x5F00;, &#x91CD;&#x65B0;&#x52A0;&#x5165;&#x96C6;&#x7FA4;&#x65F6;, &#x5C31;&#x80FD;&#x591F;&#x53CA;&#x65F6;&#x5730;&#x66F4;&#x65B0;&#x81EA;&#x8EAB;&#x6570;&#x636E;&#x5230;&#x6700;&#x65B0;&#x72B6;&#x6001;.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href="https://thesquareplanet.com/blog/raft-qa/"&gt;https://thesquareplanet.com/blog/raft-qa/&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;applied &#x548C; committed &#x7684;&#x5173;&#x7CFB;:&lt;/p&gt;
+
+&lt;p&gt;Any log entry that you have applied to the application state machine is &#x201C;applied&#x201D;. An entry should never be applied unless it has already been committed. An entry can be committed, but not yet applied. You will likely apply committed entries very soon after they become committed.
+&#x5148;commit, &#x540E;apply.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&#x5F53; Leader &#x53D1;&#x73B0; entry &#x5DF2;&#x7ECF;&#x88AB;&#x5927;&#x591A;&#x6570;&#x8282;&#x70B9; Append&#x5230;&#x65E5;&#x5FD7;&#xFF0C;&#x5C31;&#x8BA4;&#x4E3A;&#x8FD9;&#x4E2A; entry &#x5DF2;&#x7ECF;&#x662F; Committed &#x7684;&#x4E86;, &#x4E4B;&#x540E;&#x5C31;&#x662F;&#x64CD;&#x4F5C;&#x72B6;&#x6001;&#x673A;&#x4E86;.&lt;/p&gt;
+
+&lt;h2 id="toc_3"&gt;&lt;h4&gt;2.2 apply&#x7684;&#x5B9E;&#x73B0;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x56E0;&#x4E3A;follower&#x8981;&#x80FD;&#x591F;&#x4ECE;&#x53C2;&#x6570;&#x4E2D;&#x770B;&#x51FA;leader&#x7684;apply&#x53D8;&#x52A8;, &#x6545;&lt;br&gt;
+&#x65B9;&#x6848;1: &lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;leader &#x5F80;[commitIndex] &#x5199;&#x5165;logA&lt;br&gt;&lt;/li&gt;
+&lt;li&gt;args.LeaderCommit=commitIndex&lt;br&gt;&lt;/li&gt;
+&lt;li&gt;&#x53D1;&#x9001;&#x7F51;&#x7EDC;&#x5305;, follower&#x6DFB;&#x52A0;log&lt;br&gt;&lt;/li&gt;
+&lt;li&gt;leader&#x6839;&#x636E;&#x6536;&#x5230;&#x7684;&#x5305;, &#x82E5;&#x8FC7;&#x534A;&#x6570;&#x5B8C;&#x6210;, &#x6267;&#x884C;apply,  commitIndex++&lt;br&gt;&lt;/li&gt;
+&lt;li&gt;follower &#x63A5;&#x6536;&#x7684;&#x5FC3;&#x8DF3;&#x4E2D;LeaderCommit &#x53D8;&#x52A8;&#x4E86;, &#x6267;&#x884C;apply&#x52A8;&#x4F5C;&lt;br&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&#x65B9;&#x6848;2:&lt;br&gt;
+AppendEntriesArgs &#x4E2D;&#x6DFB;&#x52A0;&#x65B0;&#x7684;&#x5B57;&#x6BB5; LeaderLastApply &#x6765;&#x5B9E;&#x73B0;&lt;/p&gt;
+
+&lt;h2 id="toc_4"&gt;&lt;h4&gt;2.3 &#x4EE3;&#x7801;&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href="https://github.com/awakening-fong/mit_6.824"&gt;https://github.com/awakening-fong/mit_6.824&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id="toc_5"&gt;&lt;h4&gt;3 &#x5176;&#x4ED6;&#x65E0;&#x5173;&#x7D27;&#x8981;&#x7684;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;h2 id="toc_6"&gt;&lt;h4&gt;3.1 &#x4F1A;&#x53D1;&#x751F;split vote&#x5417;?&lt;/h4&gt;&lt;/h2&gt;
+
+&lt;p&gt;&#x53D1;&#x751F;split vote&#x7684;&#x4E00;&#x4E2A;&#x573A;&#x666F;&#x662F;
+&#x4EE5;5&#x4E2A;&#x8282;&#x70B9;(A~E)&#x7684;&#x60C5;&#x51B5;&#x4E3A;&#x4F8B;,&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   A       B
+
+    O      O
+   / \     |
+  /   \    |
+ O     O   O
+
+ C     D   E
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A&#x83B7;&#x5F97;&#x4E86;2&#x7968;(&#x6765;&#x81EA;C&#x548C;D), B&#x5F97;&#x5230;&#x4E86;1&#x7968;(&#x6765;&#x81EA;E), &#x90FD;&#x6CA1;&#x8D85;&#x8FC7;&#x534A;&#x6570;(3&#x7968;), A&#x548C;B&#x90FD;&#x65E0;&#x6CD5;&#x5F53;&#x9009;.&lt;/p&gt;
+
+&lt;h1 id="toc_7"&gt;&lt;h4&gt;4. &#x53C2;&#x8003;&#x8D44;&#x6599;&lt;/h4&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf"&gt;https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://thesquareplanet.com/blog/raft-qa/"&gt;https://thesquareplanet.com/blog/raft-qa/&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://thesquareplanet.com/blog/students-guide-to-raft/"&gt;https://thesquareplanet.com/blog/students-guide-to-raft/&lt;/a&gt;  &lt;/p&gt;
 </description>
     </item>
   </channel>

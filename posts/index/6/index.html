@@ -54,38 +54,6 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/debug/crash_func_args_x86_64">x86-64下, crash通过bt -f找出函数参数</a> <span class="date">2018-01-20</span></h3>
-
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
-
-<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
-本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
-
-<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
-
-<h1 id="toc_1"><h4>2. 例子</h4></h1>
-
-<pre><code>crash&gt; bt
-PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: "your_cmd"
- #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
- #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
- #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
- #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
- ...略...
- #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
-#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
-</code></pre>
-
-<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
-其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
-</div>
-
-        <div class="more">
-          <a href="/posts/debug/crash_func_args_x86_64" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/tools/source_insight_custom_parsing">让source insight识别非标准的函数实现</a> <span class="date">2018-01-12</span></h3>
 
         <div class="summary ellipsis">
@@ -211,6 +179,37 @@ __send_signal
 
         <div class="more">
           <a href="/posts/other/signal" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/fixup_exception">fixup_exception</a> <span class="date">2017-02-25</span></h3>
+
+        <div class="summary ellipsis">
+<h1 id="toc_0"><h4>1. 什么情况下会调用fixup_exception</h4></h1>
+
+<p>linux-3.10.86/arch/arm/mm/fault.c</p>
+
+<pre><code>static int __kprobes
+do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+{
+
+    if (!user_mode(regs))
+        goto no_context;
+
+
+no_context:
+    __do_kernel_fault(mm, addr, fsr, regs);
+    return 0;
+}
+</code></pre>
+
+<p>所以,  用户态(user<em>mode(regs))发起的 读或写 , 
+copy to/from user等<em>不会</em>调用到 _</em>do<em>kernel</em>fault, 也就不会调用fixup<em>exception的.
+(fixup</em>exception 仅会被 _<em>do</em>kernel_fault调用.)</p>
+</div>
+
+        <div class="more">
+          <a href="/posts/mm/fixup_exception" class="btn btn-small">read more..</a>
         </div>
       </div>
     
