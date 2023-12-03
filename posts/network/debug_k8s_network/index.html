@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>(草稿)调试k8s网络</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>(草稿)调试k8s网络 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2022-11-19</strong>
+    </div>
+    <div class="content">
+      <h2 id="toc_0">nicolaka/netshoot</h2>
+
+<pre><code>$ kubectl run  -ti --rm awakening-fong -n cattle-system --image nicolaka/netshoot:v0.8 -- /bin/bash
+</code></pre>
+
+<p>执行 ip route add 会出错, 如何 privileged?</p>
+
+<p>处理:</p>
+
+<pre><code>    securityContext:
+      privileged: true
+</code></pre>
+
+<p>无效的: --overrides=&#39;{&quot;securityContext&quot;: {&quot;privileged&quot;: true}}&#39;        </p>
+
+<h2 id="toc_1">nsenter 容器 中执行</h2>
+
+<p>使用 netstat -s 检查下是否有丢包统计:</p>
+
+<pre><code>$ netstat -s | grep -E &#39;overflow|drop&#39;
+    123 times the listen queue of a socket overflowed
+    456 SYNs to LISTEN sockets dropped
+
+</code></pre>
+
+<p>问题: 如果是 iptable 规则导致丢包,   netstat 是否会统计到???</p>
+
+<p>在 net/ipv4/tcp<em>input.c 的 tcp</em>conn_request 函数:</p>
+
+<pre><code>if (sk_acceptq_is_full(sk)) {
+    NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENOVERFLOWS);
+    goto drop;
+}
+</code></pre>
+
+<pre><code>static inline void tcp_listendrop(const struct sock *sk)
+{
+    atomic_inc(&amp;((struct sock *)sk)-&gt;sk_drops);
+    __NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENDROPS);
+}
+</code></pre>
+
+<p>netstat -s 看到的丢包统计，对应的 ListenOverflows 和 ListenDrops 这两个计数器。</p>
+
+<h2 id="toc_2">ipvsadm</h2>
+
+<p>如何开启 ipvs </p>
+
+<p>kube-proxy listens on port 10249, You can query the kube-proxy mode by fetching
+<code>
+$ curl http://localhost:10249/proxyMode
+iptables
+</code></p>
+
+<p>ip a show kube-ipvs0</p>
+
+<p>kube-ipvs0 是一个 dummy interface，实际不会接收报文，可以看到它的网卡状态是 DOWN，主要用于绑 ipvs 规则的 VIP，因为 ipvs 主要工作在 netfilter 的 INPUT 链，报文通过 PREROUTING 链之后需要决定下一步该进入 INPUT 还是 FORWARD 链，如果是本机 IP 就会进入 INPUT，如果不是就会进入 FORWARD 转发到其它机器。所以 k8s 利用 kube-ipvs0 这个网卡将 service 相关的 VIP 绑在上面以便让报文进入 INPUT 进而被 ipvs 转发。</p>
+
+<p>ip route show table local
+ip route show local
+local - the destinations are assigned to this host. The
+               packets are looped back and delivered locally.</p>
+
+<p>ip route show table local type local</p>
+
+<pre><code> ip route show table local type local
+local 10.42.0.0 dev flannel.1 proto kernel scope host src 10.42.0.0 
+local 127.0.0.0/8 dev lo proto kernel scope host src 127.0.0.1 
+local 127.0.0.1 dev lo proto kernel scope host src 127.0.0.1 
+local 172.17.0.1 dev docker0 proto kernel scope host src 172.17.0.1 
+local 192.168.4.167 dev eth0 proto kernel scope host src 192.168.4.167
+</code></pre>
+
+<pre><code> ip route show table local 
+local 10.42.0.0 dev flannel.1 proto kernel scope host src 10.42.0.0 
+broadcast 127.0.0.0 dev lo proto kernel scope link src 127.0.0.1 
+local 127.0.0.0/8 dev lo proto kernel scope host src 127.0.0.1 
+local 127.0.0.1 dev lo proto kernel scope host src 127.0.0.1 
+broadcast 127.255.255.255 dev lo proto kernel scope link src 127.0.0.1 
+broadcast 172.17.0.0 dev docker0 proto kernel scope link src 172.17.0.1 
+local 172.17.0.1 dev docker0 proto kernel scope host src 172.17.0.1 
+broadcast 172.17.255.255 dev docker0 proto kernel scope link src 172.17.0.1 
+broadcast 192.168.4.0 dev eth0 proto kernel scope link src 192.168.4.167 
+local 192.168.4.167 dev eth0 proto kernel scope host src 192.168.4.167 
+broadcast 192.168.4.255 dev eth0 proto kernel scope link src 192.168.4.167
+</code></pre>
+
+<p>iptables -t nat -A POSTROUTING -s 10.42.0.0/16  -d 192.168.4.167  -o eth0 -j MASQUERADE</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/network/debug_k8s_network>https://awakening-fong.github.io/posts/network/debug_k8s_network</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#network-ref">network <span>1</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#network-ref">network <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/perf/perfbook-03" title="perfbook 03 barrier">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/other/rust_atomics_and_locks" title="Rust Atomics and Locks 摘录和评注">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>

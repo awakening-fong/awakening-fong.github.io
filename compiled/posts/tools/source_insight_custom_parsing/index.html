@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>让source insight识别非标准的函数实现</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>让source insight识别非标准的函数实现 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2018-01-12</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. 问题</h4></h1>
+
+<p>drbd-8.4中有如下代码</p>
+
+<pre><code>BIO_ENDIO_TYPE drbd_request_endio BIO_ENDIO_ARGS(struct bio *bio, int error)
+{
+具体实现略
+}
+</code></pre>
+
+<p>这里 <code>drbd_request_endio</code> 不会被source insight当成函数名.</p>
+
+<h1 id="toc_1"><h4>2. 处理</h4></h1>
+
+<p>source insight版本4.0<br>
+option- file type option -<br>
+左侧file type 选 c/c++ source file,  右侧 parsing,  language...<br>
+弹出的对话框中,<br>
+左侧选 c/c++ language, 右侧点击 properties...  </p>
+
+<p>弹出的对话框中, 
+标签页 custom parsing<br>
+打钩 Enable expressions below for parsing  </p>
+
+<p>Regular expression pattern:<br>
+填写 </p>
+
+<pre><code>BIO_ENDIO_TYPE\w+\(.*\)\w+BIO_ENDIO_ARGS
+</code></pre>
+
+<p>Regular expression syntax:
+选Source Insight</p>
+
+<p>Finds this symbol type:
+选 function
+如图所示:</p>
+
+<p><img src="/assets/media/si_custom_parsing_expression.png" width="60%"  height="60%"></p>
+
+<h1 id="toc_2"><h4>3. 效果</h4></h1>
+
+<p>f7 输入  <code>drbd_request_endio</code> , 可以定位到该函数的实现.</p>
+
+<p><img src="/assets/media/si_custom_parsing_result.png" width="50%"  height="50%"></p>
+
+<h1 id="toc_3"><h4>4. 附上元字符</h4></h1>
+
+<p>和vim等不太一样. 如下:</p>
+
+<pre><code>\s matches a single space character.
+
+\w matches a single white space character. In other words, \w matches either a tab or space character.
+</code></pre>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/tools/source_insight_custom_parsing>https://awakening-fong.github.io/posts/tools/source_insight_custom_parsing</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#tools-ref">tools <span>2</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#tools-ref">tools <span>2</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/debug/softlockup" title="探测softlockup的原理">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/debug/crash_func_args_x86_64" title="x86-64下, crash通过bt -f找出函数参数">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>

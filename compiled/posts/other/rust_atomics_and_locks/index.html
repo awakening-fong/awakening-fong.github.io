@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rust Atomics and Locks 摘录和评注</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>Rust Atomics and Locks 摘录和评注 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2023-11-21</strong>
+    </div>
+    <div class="content">
+      <p>内容摘自 &lt;&lt;Rust Atomics and Locks&gt;&gt;.</p>
+
+<h2 id="toc_0">1 release-acquire 和 fence</h2>
+
+<h3 id="toc_1">1.1 拆分</h3>
+
+<p>The store of a release-acquire relationship,</p>
+
+<pre><code>a.store(1, Release);
+</code></pre>
+
+<p>can be substituted by a release fence followed by a relaxed store:</p>
+
+<pre><code class="rust">fence(Release);
+a.store(1, Relaxed);
+</code></pre>
+
+<p>类似的, The load of a release-acquire relationship,</p>
+
+<pre><code>a.load(Acquire);
+</code></pre>
+
+<p>can be substituted by a relaxed load followed by an acquire fence:</p>
+
+<pre><code>a.load(Relaxed);
+fence(Acquire);
+</code></pre>
+
+<p>For example, if we load a pointer from an atomic variable using acquire memory ordering, we could use a fence to apply the acquire ordering only when the pointer is not null:</p>
+
+<p>Using an acquire-load:</p>
+
+<pre><code>let p = PTR.load(Acquire);
+if p.is_null() {
+    println!(&quot;no data&quot;);
+} else {
+    println!(&quot;data = {}&quot;, unsafe { *p });
+}
+</code></pre>
+
+<p>改写成  Using a conditional acquire fence:</p>
+
+<pre><code>let p = PTR.load(Relaxed);
+if p.is_null() {
+    println!(&quot;no data&quot;);
+} else {
+    fence(Acquire);
+    println!(&quot;data = {}&quot;, unsafe { *p });
+}
+</code></pre>
+
+<p>This can be beneficial if the pointer is often expected to be null, to avoid acquire memory ordering when not necessary.</p>
+
+<p>awakening-fong注释: fence 不影响其前面指令的读取结果.</p>
+
+<h3 id="toc_2">1.2 对应的汇编</h3>
+
+<pre><code>pub fn a() {
+    fence(Acquire);
+}
+</code></pre>
+
+<p>Compiled x86-64:</p>
+
+<pre><code>a:
+    ret
+</code></pre>
+
+<p>Compiled ARM64:</p>
+
+<pre><code>a:
+    dmb ishld
+    ret
+</code></pre>
+
+<p>Unsurprisingly, release and acquire fences on x86-64 do not result in any instruction. x86-64上, fence(Acquire)并不生成任何指令.
+We get release and acquire semantics “for free” on this architecture. Only a SeqCst fence results in an mfence (memory fence) instruction. This instruction makes sure
+that all memory operations before it have been completed before continuing. 而<code>fence(SeqCst)</code>确保其之前的内存操作已全部完成.</p>
+
+<p>dmb ish 的含义是 data memory barrier, inner shared
+domain.</p>
+
+<h2 id="toc_3">2 cas</h2>
+
+<p>Remember that <code>stxr</code> is allowed to have false negatives; it might fail here even if the five wasn’t overwritten.    That’s okay, because we’re using <code>compare_exchange_weak</code>, which is allowed to have false negatives too. awakening-fong注释:<code>x.compare_exchange_weak(5, 6, Relaxed, Relaxed);</code> 会错误的认为旧值在执行过程中被他人修改了, 而实际并没有被修改. </p>
+
+<p>on most processor architectures, the
+instruction(s) of <code>compare_exchange</code> will claim exclusive access of the relevant cache line regardless of whether the comparison succeeds or not.
+This means that it can be beneficial to not use <code>compare_exchange</code> (or swap) in a spin loop like we did for our SpinLock in Chapter 4, but instead use a load operation first to check if the lock has been unlocked. That way, we avoid unnecessarily claiming exclusive access to the relevant cache line.</p>
+
+<h2 id="toc_4">3 其他</h2>
+
+<p>Pipelining: Before an instruction finishes executing, the processor might already start executing the next one.  awakening-fong注释: 流水线, 自然是一道工序完成后, 才会交给下一道工序. 所以, 单条指令的执行 被拆分成更多步骤/工序.  Modern processors can often start the execution of quite a few
+instructions in series while the first one is still in progress. awakening-fong注释: 这里说的和 多核无关.</p>
+
+<p>mutex 实现上, 可以先spin一会儿，还是没拿到锁，再改成wait方式.</p>
+
+<p>The most interesting part about the RCU pattern is the last step, which does not have a letter in the acronym: deallocating the old data.  awakening-fong注释:RCU这几个字母缩写没有提及释放, 而释放却是最interesting的部分. After a successful update,
+other threads might still be reading the old copy, if they read the pointer before the update. You’ll have to wait for all those threads to be done before the old copy can be
+deallocated.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/other/rust_atomics_and_locks>https://awakening-fong.github.io/posts/other/rust_atomics_and_locks</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#other-ref">other <span>8</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#fence-ref">fence <span>1</span></a>
+      </li>
+      <li>
+        <a href="/tags#barrier-ref">barrier <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#assembly-ref">assembly <span>2</span></a>
+      </li>
+      <li>
+        <a href="/tags#性能-ref">性能 <span>9</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/network/debug_k8s_network" title="(草稿)调试k8s网络">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next disabled"><a>Next &rarr;</a>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>

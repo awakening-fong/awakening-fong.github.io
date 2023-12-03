@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>x86-64下, crash通过bt -f找出函数参数</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>x86-64下, crash通过bt -f找出函数参数 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2018-01-20</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. 背景/引言</h4></h1>
+
+<p>不同于x86, x86-64的前6个参数没有压栈, 而是通过寄存器传递. 这样, 似乎无法通过bt -f来获得参数.
+本文给出一个例子, 说明x86-64在一些情况下, 依旧能够获得函数的参数.</p>
+
+<p>前6个参数分别存放到rdi, rsi, rdx, rcx, r8d, r9d.</p>
+
+<h1 id="toc_1"><h4>2. 例子</h4></h1>
+
+<pre><code>crash&gt; bt
+PID: 4392   TASK: ffff8801b7af0880  CPU: 0   COMMAND: &quot;your_cmd&quot;
+ #0 [ffff8801836b3af0] schedule at ffffffff8157cc1d
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...略...
+ #9 [ffff8801836b3eb8] kthread at ffffffff810ac69e
+#10 [ffff8801836b3f48] kernel_thread at ffffffff8100c38a
+</code></pre>
+
+<p>这里想知道传递给<code>structone_mod_free</code>的参数的具体值.
+其原型是 <code>void structone_mod_free(struct structone *structone)</code></p>
+
+<pre><code>crash&gt; bt -f
+...省略...
+ #1 [ffff8801836b3bc8] schedule_timeout at ffffffff8157dc75
+    ffff8801836b3bd0: ffffffff8302e658 ffffffff810ace2a 
+    ffff8801836b3be0: ffffffff8302e640 ffff8801bb635810 
+    ffff8801836b3bf0: ffff8801bb635828 0000000000000046 
+    ffff8801836b3c00: ffff8801bb635810 0000000000000282 
+    ffff8801836b3c10: 0000000000000282 ffff8801bb635810 
+    ffff8801836b3c20: ffff8801836b3c30 ffffffff810c6cad 
+    ffff8801836b3c30: ffff8801836b3c50 0000000000000282 
+    ffff8801836b3c40: ffff8801bb635810 0000000000000000 
+    ffff8801836b3c50: ffff8801836b3c90 00000000bc3fea60 
+    ffff8801836b3c60: ffff8801836b3ce0 ffff8801bb635800 
+    ffff8801836b3c70: ffff8801836b3ca0 ffff8801b6d5eb60 (r13)
+    ffff8801836b3c80: ffff8801bb635810(r14) 7fffffffffffffff  (r15)
+    ffff8801836b3c90: ffff8801836b3d00 (bp)    ffffffffa0771156(ra) 
+ #2 [ffff8801836b3c98] structone_mod_free at ffffffffa0771156 [your_kmod]
+    ffff8801836b3ca0: 0000000000000000 ffff8801b7af0880 
+    ffff8801836b3cb0: ffffffff810acb20 ffff8801bb635850 
+    ffff8801836b3cc0: ffff8801bb635850 0000000000000282 
+    ffff8801836b3cd0: ffff8801836b3ce0 ffff8801b6d5eb60 
+    ffff8801836b3ce0: ffff8801b5fe76b8 ffff8801bb1091e0 
+    ffff8801836b3cf0: 0000000000000000 0000000000000000 
+    ffff8801836b3d00: ffff8801836b3d30 ffffffffa077146b 
+ #3 [ffff8801836b3d08] free_structone at ffffffffa077146b [your_kmod]
+ ...省略...
+</code></pre>
+
+<pre><code>crash&gt; disass structone_mod_free
+Dump of assembler code for function structone_mod_free:
+   0xffffffffa07710b0 &lt;+0&gt;:     push   %rbp   #应该是 ffff8801836b3d30
+   0xffffffffa07710b1 &lt;+1&gt;:     mov    %rsp,%rbp
+   0xffffffffa07710b4 &lt;+4&gt;:     sub    $0x60,%rsp
+   0xffffffffa07710b8 &lt;+8&gt;:     mov    %rbx,-0x28(%rbp)  #
+   0xffffffffa07710bc &lt;+12&gt;:    mov    %r12,-0x20(%rbp)
+   0xffffffffa07710c0 &lt;+16&gt;:    mov    %r13,-0x18(%rbp)
+   0xffffffffa07710c4 &lt;+20&gt;:    mov    %r14,-0x10(%rbp)
+   0xffffffffa07710c8 &lt;+24&gt;:    mov    %r15,-0x8(%rbp)
+
+
+
+   0xffffffffa07710cc &lt;+28&gt;:    nopl   0x0(%rax,%rax,1)
+   0xffffffffa07710d1 &lt;+33&gt;:    mov    0x88(%rdi),%rbx   #访问structone的成员
+   0xffffffffa07710d8 &lt;+40&gt;:    mov    %rdi,%r13  #备份参数struct structone *structone
+   0xffffffffa07710db &lt;+43&gt;:    test   %rbx,%rbx
+
+   ...
+   0xffffffffa077114e &lt;+158&gt;:   mov    %r15,%rdi
+   0xffffffffa0771151 &lt;+161&gt;:   callq  0xffffffff8157da10 &lt;schedule_timeout&gt;  #这里
+   0xffffffffa0771156 &lt;+166&gt;:   test   %rax,%rax    
+</code></pre>
+
+<p>上面省略了部分汇编, 省略的那部分没有修改到 %r13.</p>
+
+<pre><code>crash&gt; disass schedule_timeout
+Dump of assembler code for function schedule_timeout:
+   0xffffffff8157da10 &lt;+0&gt;:     push   %rbp
+   0xffffffff8157da11 &lt;+1&gt;:     mov    %rsp,%rbp
+   0xffffffff8157da14 &lt;+4&gt;:     sub    $0xc0,%rsp
+   0xffffffff8157da1b &lt;+11&gt;:    mov    %rbx,-0x28(%rbp)
+   0xffffffff8157da1f &lt;+15&gt;:    mov    %r12,-0x20(%rbp)
+   0xffffffff8157da23 &lt;+19&gt;:    mov    %r13,-0x18(%rbp)
+   0xffffffff8157da27 &lt;+23&gt;:    mov    %r14,-0x10(%rbp)
+   0xffffffff8157da2b &lt;+27&gt;:    mov    %r15,-0x8(%rbp)   
+</code></pre>
+
+<p>看到将r13第3个压栈. </p>
+
+<p>结合bt -f, 可知参数存放的地址是 0xffff8801b6d5eb60.<br>
+crash&gt; p *(struct structone *)0xffff8801b6d5eb60<br>
+或者  crash&gt; structone 0xffff8801b6d5eb60<br>
+即可知 structone 的具体值了.</p>
+
+<h1 id="toc_2"><h4>3. 参考资料</h4></h1>
+
+<p><a href="https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html">https://people.redhat.com/anderson/crash_whitepaper/help_pages/bt.html</a></p>
+
+<p><a href="http://www.x86-64.org/documentation/abi.pdf">http://www.x86-64.org/documentation/abi.pdf</a></p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/debug/crash_func_args_x86_64>https://awakening-fong.github.io/posts/debug/crash_func_args_x86_64</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#debug-ref">debug <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#crash-ref">crash <span>1</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/tools/source_insight_custom_parsing" title="让source insight识别非标准的函数实现">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/debug/blktrace_insert_print" title="让blktrace输出trace_printk的内容">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+  </body>
+</html>
