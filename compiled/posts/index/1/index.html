@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        <div class="row-fluid">
+  <div class="span12">
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/rust_atomics_and_locks">Rust Atomics and Locks 摘录和评注</a> <span class="date">2023-11-21</span></h3>
+
+        <div class="summary ellipsis">
+<p>内容摘自 &lt;&lt;Rust Atomics and Locks&gt;&gt;.</p>
+
+<h2 id="toc_0">1 release-acquire 和 fence</h2>
+
+<h3 id="toc_1">1.1 拆分</h3>
+
+<p>The store of a release-acquire relationship,</p>
+
+<pre><code>a.store(1, Release);
+</code></pre>
+
+<p>can be substituted by a release fence followed by a relaxed store:</p>
+
+<pre><code class="rust">fence(Release);
+a.store(1, Relaxed);
+</code></pre>
+
+<p>类似的, The load of a release-acquire relationship,</p>
+
+<pre><code>a.load(Acquire);
+</code></pre>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/rust_atomics_and_locks" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/network/debug_k8s_network">(草稿)调试k8s网络</a> <span class="date">2022-11-19</span></h3>
+
+        <div class="summary ellipsis">
+<h2 id="toc_0">nicolaka/netshoot</h2>
+
+<pre><code>$ kubectl run  -ti --rm awakening-fong -n cattle-system --image nicolaka/netshoot:v0.8 -- /bin/bash
+</code></pre>
+
+<p>执行 ip route add 会出错, 如何 privileged?</p>
+
+<p>处理:</p>
+
+<pre><code>    securityContext:
+      privileged: true
+</code></pre>
+
+<p>无效的: --overrides='{"securityContext": {"privileged": true}}'        </p>
+
+<h2 id="toc_1">nsenter 容器 中执行</h2>
+
+<p>使用 netstat -s 检查下是否有丢包统计:</p>
+
+<pre><code>$ netstat -s | grep -E 'overflow|drop'
+    123 times the listen queue of a socket overflowed
+    456 SYNs to LISTEN sockets dropped
+
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/network/debug_k8s_network" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/perf/perfbook-03">perfbook 03 barrier</a> <span class="date">2022-10-03</span></h3>
+
+        <div class="summary ellipsis">
+<p>perfbook 指的是 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf 版本可以从如下网址获取: 
+<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<p><br></p>
+
+<p>本文不打算从原理上来理解, 仅为了快速使用, 故缺失严谨.</p>
+
+<p><br></p>
+
+<h3 id="toc_0">5.4.4</h3>
+
+<blockquote>
+<p>第16行执行一条内存屏障，确保任何看见第17行设置READY状态的CPU，也能看见第9行的效果</p>
+</blockquote>
+
+<p>awakening-fong 注释:</p>
+
+<pre><code>16  smp_mb();
+17 WRITE_ONCE(theft, THEFT_READY);
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/perf/perfbook-03" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/perf/perfbook-02">(草稿)perfbook 02 自问自答</a> <span class="date">2022-09-17</span></h3>
+
+        <div class="summary ellipsis">
+<p>perfbook 指的是 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf 版本可以从如下网址获取: 
+<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<h3 id="toc_0">5.3.3 的内容如何理解</h3>
+
+<p>可以结合如下问题来理解
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in <code>add_count()</code>, why doesn’t it count for us in <code>sub_count()</code> in Listing 5.7?</p>
+
+<p>答: awakening-fong: add_count()返回0是失败, 认为是 against. 而不是说 访问锁是 against.</p>
+
+<p>add_count 的局部代码:</p>
+
+<pre><code class="c">9  if (globalcountmax -
+10      globalcount - globalreserve &lt; delta) {
+11      spin_unlock(&amp;gblcnt_mutex);
+12      return 0;
+13 }
+</code></pre>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/perf/perfbook-02" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/perf/perfbook-01">perfbook 01 摘录</a> <span class="date">2022-09-17</span></h3>
+
+        <div class="summary ellipsis">
+<p>perfbook 指的是 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf 版本可以从如下网址获取: 
+<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<h3 id="toc_0">5.4.6 Applying Exact Limit Counters</h3>
+
+<p>Quick Quiz 5.58: This is ridiculous! We are read-acquiring a reader-writer lock to update the counter? What are you playing at?</p>
+
+<p>答: 
+这里要强调的是  读锁  允许 多人同时持有，写锁只允许单人持有。 跟 是否进行 读写操作没有必然关系。</p>
+
+<h3 id="toc_1">Chapter 6 Partitioning and Synchronization Design</h3>
+
+<blockquote>
+<p>一种强制锁范围不重叠的办法。两个单独的双端队列串联在一起，每个队列用自己的锁保护。这意味着数据偶尔会从一个双端队列跑到另一个双端队列。此时必须同时持有两把锁。</p>
+</blockquote>
+
+<p>awakening-fong: 妙</p>
+
+<p></p>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/perf/perfbook-01" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+    
+    <div class="pagination">
+      <ul>
+          <li class="active"><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
+          <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
+          <li><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
+          <li><a href="/posts/index/9">9</a></li>
+          <li><a href="/posts/index/10">10</a></li>
+          <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
+          <li><a href="/posts/index/13">13</a></li>
+          <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>

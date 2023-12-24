@@ -1,0 +1,13 @@
+--- 
+tagline: blog
+title: 首页
+author: 
+  email: "awaken_ing#163#com"
+  feedburner: feedname
+  github: awakening-fong
+  name: awaken_ing
+navigation: 
+  - archive
+  - tags
+  - categories
+  - about-me

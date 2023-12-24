@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        <div class="row-fluid">
+  <div class="span12">
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_smp_rwlock">arm linux多核同时获取读写锁, 会死循环吗, 还是都得到写锁</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p>文来自本人的旧博客: http://blog.163.com/awaken_ing/blog/static/120613197201631133058159</p>
+
+<p>本篇只提问, 不解答, 祝开心.</p>
+
+<p>如果读写锁是unlocked, 然后cpu 0和cpu 1都想获取写锁,
+如表格所示, CPU 0在t2时刻执行的是wfene, 这时, CPU 1执行的是ldrex, 然后是否会有cpu能够获取到锁?
+源码来自
+linux-3.10.86/arch/arm/include/asm/spinlock.h
+arch<em>write</em>lock()</p>
+
+<!--
+查看源码后, 将第1个<table>改为
+<table class="table table-bordered table-striped table-condensed">
+
+时间 | CPU0                      |时间  |CPU1
+-----|---------------------------|------|----
+t0/t6| 1:    ldrex    %0, [%1]   |      |
+t1/t7| teq    %0, #0             |      |
+t2   |WFE("ne")                  |t2    |1:    ldrex    %0, [%1]
+t3   |strexeq    %0, %2, [%1]    |t3    |teq    %0, #0
+t4   |teq    %0, #0              |t4    |WFE("ne")
+t5   |bne    1b                  |t5    |strexeq    %0, %2, [%1]
+t6   |                           |t6    |teq    %0, #0
+t7   |                           |t7    |bne    1b
+-->
+
+<table class="table table-bordered table-striped table-condensed">
+<thead>
+<tr>
+<th>时间</th>
+<th>CPU0</th>
+<th>时间</th>
+<th>CPU1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t0/t6</td>
+<td>1:    ldrex    %0, [%1]</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t1/t7</td>
+<td>teq    %0, #0</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>t2</td>
+<td>WFE("ne")</td>
+<td>t2</td>
+<td>1:    ldrex    %0, [%1]</td>
+</tr>
+<tr>
+<td>t3</td>
+<td>strexeq    %0, %2, [%1]</td>
+<td>t3</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t4</td>
+<td>teq    %0, #0</td>
+<td>t4</td>
+<td>WFE("ne")</td>
+</tr>
+<tr>
+<td>t5</td>
+<td>bne    1b</td>
+<td>t5</td>
+<td>strexeq    %0, %2, [%1]</td>
+</tr>
+<tr>
+<td>t6</td>
+<td></td>
+<td>t6</td>
+<td>teq    %0, #0</td>
+</tr>
+<tr>
+<td>t7</td>
+<td></td>
+<td>t7</td>
+<td>bne    1b</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_smp_rwlock" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_qemu_02">qemu观察arm linux启动过程02</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157119242210
+</p>
+
+<h1 id="toc_0"><h4>1. _<em>create</em>page_tables</h4></h1>
+
+<pre><code>pgtbl r4 @ page table address
+</code></pre>
+
+<p>其中pgtbl为宏</p>
+
+<pre><code>.macro pgtbl, rd
+ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
+.endm
+</code></pre>
+
+<p>这里KERNEL<em>RAM</em>PADDR和zreladdr的值相等.</p>
+
+<h1 id="toc_1"><h4>1.1 identity mapping</h4></h1>
+
+<pre><code>/*
+* Create identity mapping for first MB of kernel to
+* cater for the MMU enable. This identity mapping
+* will be removed by paging_init(). We use our current program
+* counter to determine corresponding section base address.
+*/
+mov r6, pc
+mov r6, r6, lsr #20 @ start of kernel section
+orr r3, r7, r6, lsl #20 @ flags + kernel base
+str r3, [r4, r6, lsl #2] @ identity mapping
+@ 和arch\arm\boot\compressed\head.S类似
+@ r3内容:
+@ 31       20       19                 0  
+@  PC高12bit       __cpu_mm_mmu_flags
+@存放的地址:
+@   31          14           13            2                1 0  
+@  页表基址(0x4000)         页表index(pc高12bit)              00  
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_qemu_02" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_qemu_01">qemu观察arm linux启动过程01</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p> 文来自本人的旧博客 
+http://blog.163.com/awaken_ing/blog/static/12061319720157611510386
+</p> 
+
+<h1 id="toc_0"><h4>1. 方法</h4></h1>
+
+<p>qemu-system-arm -M versatilepb -m 128M -kernel /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux -S -s</p>
+
+<p>需要留意, 这里-kernel的参数不是/opt/qemu_arm/linux-2.6.35.7/vmlinux</p>
+
+<pre><code>arm-none-linux-gnueabi-gdb -tui -q /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux
+Reading symbols from /opt/qemu_arm/linux-2.6.35.7/arch/arm/boot/compressed/vmlinux...done.
+(gdb) target extended-remote localhost:1234
+Remote debugging using localhost:1234
+warning: Source file is more recent than executable.
+start () at arch/arm/boot/compressed/head.S:115
+(gdb) b __setup_mmu
+Breakpoint 1 at 0x200: file arch/arm/boot/compressed/head.S, line 409.
+(gdb) c
+Continuing.
+Breakpoint 1, __setup_mmu () at arch/arm/boot/compressed/head.S:409
+(gdb) i r r3 r4
+r3 0x4000 16384
+r4 0x8000 32768
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_qemu_01" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_create_mapping_page_table">从create_mapping()看arm linux的页表</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p>
+来自本人的旧博客
+http://blog.163.com/awaken_ing/blog/static/120613197201571932454226
+</p>
+
+<p>create<em>mapping会调用到alloc</em>init<em>pte(), 进而调用set</em>pte_ext()</p>
+
+<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+</code></pre>
+
+<p>这里qemu模拟的versatilepb ARM Versatile/PB (ARM926EJ-S) ARMv5TEJ</p>
+
+<p>所以set<em>pte</em>ext(pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
+
+<p>就是</p>
+
+<p>cpu<em>arm926</em>set<em>pte</em>ext (pte, pfn<em>pte(pfn, _</em>pgprot(type-&gt;prot_pte)), 0);</p>
+
+<pre><code>/*
+ * cpu_arm926_set_pte_ext(ptep, pte, ext)
+ *
+ * Set a PTE and flush it out
+ */
+    .align  5
+ENTRY(cpu_arm926_set_pte_ext)
+#ifdef CONFIG_MMU
+    armv3_set_pte_ext
+    mov r0, r0
+#ifndef CONFIG_CPU_DCACHE_WRITETHROUGH
+    mcr p15, 0, r0, c7, c10, 1      @ clean D entry
+#endif
+    mcr p15, 0, r0, c7, c10, 4      @ drain WB
+#endif
+    mov pc, lr
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_create_mapping_page_table" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/arm/arm_asid">arm linux的ASID (Address Space ID)</a> <span class="date">2017-01-18</span></h3>
+
+        <div class="summary ellipsis">
+<p>
+来自本人的旧博客 http://blog.163.com/awaken_ing/blog/static/1206131972015112011286335
+</p>
+
+<p>平台:ARM Versatile Express for Cortex-A9 (ARMv7)<br>
+ # CONFIG<em>ARM</em>LPAE is not set, 也就是使用Short-descriptor格式, ASID存储在CONTEXTIDR的低8 bit:</p>
+
+<pre><code>31                         7          0
++-------------------------+-----------+
+|      PROCID             |   ASID    |
++-------------------------+-----------+
+</code></pre>
+
+<p>页表项中 nG == 1时, 这个页表项信息就是 non-global, 或者说 process-specific, 对应的TLB中就会有ASID信息, 执行虚拟地址到物理地址转换时, ASID也需要参与该过程.</p>
+
+<p>用户地址空间的页表才会设置nG标志 (内核地址的一部分地址范围使用TLB lockdown比较合适):
+linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr, 
+                  pte_t *ptep, pte_t pteval) 
+{ 
+...
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) { 
+... 
+        ext |= PTE_EXT_NG; 
+    } 
+... 
+    set_pte_ext(ptep, pteval, ext); 
+}
+
+set_pte_at -&gt; set_pte_ext -&gt; cpu_v7_set_pte_ext
+</code></pre>
+</div>
+
+        <div class="more">
+          <a href="/posts/arm/arm_asid" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+    
+    <div class="pagination">
+      <ul>
+          <li><a href="/posts/index/1">1</a></li>
+          <li><a href="/posts/index/2">2</a></li>
+          <li><a href="/posts/index/3">3</a></li>
+          <li><a href="/posts/index/4">4</a></li>
+          <li><a href="/posts/index/5">5</a></li>
+          <li><a href="/posts/index/6">6</a></li>
+          <li><a href="/posts/index/7">7</a></li>
+          <li><a href="/posts/index/8">8</a></li>
+          <li><a href="/posts/index/9">9</a></li>
+          <li class="active"><a href="/posts/index/10">10</a></li>
+          <li><a href="/posts/index/11">11</a></li>
+          <li><a href="/posts/index/12">12</a></li>
+          <li><a href="/posts/index/13">13</a></li>
+          <li><a href="/posts/index/14">14</a></li>
+          <li><a href="/posts/index/15">15</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>

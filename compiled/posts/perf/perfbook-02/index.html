@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>(草稿)perfbook 02 自问自答</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>(草稿)perfbook 02 自问自答 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2022-09-17</strong>
+    </div>
+    <div class="content">
+      <p>perfbook 指的是 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf 版本可以从如下网址获取: 
+<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<h3 id="toc_0">5.3.3 的内容如何理解</h3>
+
+<p>可以结合如下问题来理解
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in <code>add_count()</code>, why doesn’t it count for us in <code>sub_count()</code> in Listing 5.7?</p>
+
+<p>答: awakening-fong: add_count()返回0是失败, 认为是 against. 而不是说 访问锁是 against.</p>
+
+<p>add_count 的局部代码:</p>
+
+<pre><code class="c">9  if (globalcountmax -
+10      globalcount - globalreserve &lt; delta) {
+11      spin_unlock(&amp;gblcnt_mutex);
+12      return 0;
+13 }
+</code></pre>
+
+<p>globalreserve 很大, 传递给单个线程的 delta 如果很大, 
+那么, 即使其他线程 消耗的内存 很小, 这里的 if 还是会判定为内存耗尽.</p>
+
+<p>5.4章节中, <code>flush_local_count()</code> 对globalreserve非0进行了处理.</p>
+
+<h3 id="toc_1">5.4.3 Signal-Theft Limit Counter Design</h3>
+
+<p>关于图 Signal-Theft State Machine </p>
+
+<p>图中的&quot;请求&quot;, 谁向谁请求?
+答: 配额用光了，请求新的配额。线程 向 全局 请求。</p>
+
+<p>图中的ready是?, ready to do what?
+答: ready to 窃</p>
+
+<p>慢速路径使用“请求”和“确认”状态来确定信号是否应当被重发。</p>
+
+<pre><code>flush_local_count()
+{
+    if (READ_ONCE(*theftp[t]) == THEFT_REQ) 
+        pthread_kill(tid, SIGUSR1);
+}
+</code></pre>
+
+<p>&quot;确认&quot;什么?
+答: 请求已收到，请求已处理</p>
+
+<p>一旦慢速路径发现某个线程的theft状态为“准备完毕”，这时慢速路径有权窃取此线程的计数。
+awakening-fong注释: 
+窃取意思是  不是修改自己的count，而是 修改其他线程，拿别人的东西，为窃。
+减少了per-thread 的count，这个之后自然就是发布publish 到全局。</p>
+
+<h3 id="toc_2">Chapter 6 Partitioning and Synchronization Design</h3>
+
+<blockquote>
+<p>&quot;每个哲学家都先拿他盘子周围编号最小的叉子，然后再拿编号最高的叉子。&quot;</p>
+</blockquote>
+
+<p>awakening-fong注释: 
+原文是 
+Each philosopher picks up the lowest-numbered fork next to his or her plate, then picks up the other fork. 
+这里中文翻译应该有问题。
+第2回是拿 编号最大的吗？好像不是，拿的应该是 盘子两边的另一个叉子，这个叉子比首次的叉子编号要大，但不是全局最大的编号。</p>
+
+<h3 id="toc_3">Chapter 7 Locking</h3>
+
+<p>Strict RAII locking also prohibits overlapping critical sections, due to the fact that scopes must nest. </p>
+
+<p>awakening-fong：比如不允许如下的重叠</p>
+
+<pre><code>|-------|       lock1
+   |--------|   lock2
+
+</code></pre>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/perf/perfbook-02>https://awakening-fong.github.io/posts/perf/perfbook-02</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#other-ref">other <span>8</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#性能-ref">性能 <span>9</span></a>
+      </li>
+      <li>
+        <a href="/tags#perfbook-ref">perfbook <span>3</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/perf/perfbook-01" title="perfbook 01 摘录">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/perf/perfbook-03" title="perfbook 03 barrier">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>
