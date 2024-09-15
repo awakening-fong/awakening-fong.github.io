@@ -156,38 +156,6 @@ pdf 版本可以从如下网址获取:
   </div>
 </div>
 <div class="post">
-  <h3 class="title"><a href="/posts/perf/perfbook-02">(草稿)perfbook 02 自问自答</a> <span class="date">2022-09-17</span></h3>
-
-  <div class="summary ellipsis">
-<p>perfbook 指的是 
-Is Parallel Programming Hard, And, If So, What Can You Do About It?
-pdf 版本可以从如下网址获取: 
-<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
-
-<h3 id="toc_0">5.3.3 的内容如何理解</h3>
-
-<p>可以结合如下问题来理解
-Quick Quiz 5.33: p.129
-Given that globalreserve counted against us in <code>add_count()</code>, why doesn’t it count for us in <code>sub_count()</code> in Listing 5.7?</p>
-
-<p>答: awakening-fong: add_count()返回0是失败, 认为是 against. 而不是说 访问锁是 against.</p>
-
-<p>add_count 的局部代码:</p>
-
-<pre><code class="c">9  if (globalcountmax -
-10      globalcount - globalreserve &lt; delta) {
-11      spin_unlock(&amp;gblcnt_mutex);
-12      return 0;
-13 }
-</code></pre>
-
-</div>
-
-  <div class="more">
-    <a href="/posts/perf/perfbook-02" class="btn btn-small">read more..</a>
-  </div>
-</div>
-<div class="post">
   <h3 class="title"><a href="/posts/perf/perfbook-01">perfbook 01 摘录</a> <span class="date">2022-09-17</span></h3>
 
   <div class="summary ellipsis">
@@ -217,6 +185,38 @@ pdf 版本可以从如下网址获取:
 
   <div class="more">
     <a href="/posts/perf/perfbook-01" class="btn btn-small">read more..</a>
+  </div>
+</div>
+<div class="post">
+  <h3 class="title"><a href="/posts/perf/perfbook-02">(草稿)perfbook 02 自问自答</a> <span class="date">2022-09-17</span></h3>
+
+  <div class="summary ellipsis">
+<p>perfbook 指的是 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf 版本可以从如下网址获取: 
+<a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html</a></p>
+
+<h3 id="toc_0">5.3.3 的内容如何理解</h3>
+
+<p>可以结合如下问题来理解
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in <code>add_count()</code>, why doesn’t it count for us in <code>sub_count()</code> in Listing 5.7?</p>
+
+<p>答: awakening-fong: add_count()返回0是失败, 认为是 against. 而不是说 访问锁是 against.</p>
+
+<p>add_count 的局部代码:</p>
+
+<pre><code class="c">9  if (globalcountmax -
+10      globalcount - globalreserve &lt; delta) {
+11      spin_unlock(&amp;gblcnt_mutex);
+12      return 0;
+13 }
+</code></pre>
+
+</div>
+
+  <div class="more">
+    <a href="/posts/perf/perfbook-02" class="btn btn-small">read more..</a>
   </div>
 </div>
 

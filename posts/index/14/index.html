@@ -88,17 +88,6 @@ write_cache_pages
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/io/set_buffer_new">set_buffer_new</a> <span class="date">2016-12-31</span></h3>
-
-        <div class="summary">
-本文主要解释BH_New的含义, 以及何时设置该标志.
-</div>
-
-        <div class="more">
-          <a href="/posts/io/set_buffer_new" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/arm/arm_asm">ARM的一些汇编</a> <span class="date">2016-12-31</span></h3>
 
         <div class="summary ellipsis">
@@ -196,34 +185,45 @@ again:
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/arm_kthread_do_exit">关于arm linux中kthread()中的do_exit()</a> <span class="date">2016-12-31</span></h3>
+        <h3 class="title"><a href="/posts/io/set_buffer_new">set_buffer_new</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary">
+本文主要解释BH_New的含义, 以及何时设置该标志.
+</div>
+
+        <div class="more">
+          <a href="/posts/io/set_buffer_new" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
 
         <div class="summary ellipsis">
-<p>来自本人的旧博客:
-http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
+<h1 id="toc_0"><h4>1. flush<em>dcache</em>page的实现</h4></h1>
 
-<h1 id="toc_0"><h4>1. 问题</h4></h1>
+<p>问题:flush<em>dcache</em>page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
 
-<p>linux-3.10.86/kernel/kthread.c</p>
+<p>linux-3.10.86/arch/arm/mm/flush.c</p>
 
-<pre><code>static int kthread(void *_create)
+<pre><code>flush_dcache_page -&gt; __flush_dcache_page
 {
-...
-    /* we can't just return, we must preserve "self" on stack */
-    do_exit(ret);
+    /*
+     * Writeback ...
+    */
+
 }
 </code></pre>
 
-<p>这里注释说不能省略do_exit(), why?</p>
+<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
 
-<h1 id="toc_1"><h4>2. 解</h4></h1>
+<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
 
-<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
+<p>linux-3.10.86/mm/filemap.c</p>
 
 </div>
 
         <div class="more">
-          <a href="/posts/other/arm_kthread_do_exit" class="btn btn-small">read more..</a>
+          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
         </div>
       </div>
     

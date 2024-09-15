@@ -54,41 +54,34 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/scheduler/scheduler_02_preempt">仅检查TIF_NEED_RESCHED,不检查preempt_count?</a> <span class="date">2017-01-11</span></h3>
+        <h3 class="title"><a href="/posts/scheduler/scheduler_03_switch_to">arm linux的switch_to</a> <span class="date">2017-01-11</span></h3>
 
         <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. 何时设置 TIF<em>NEED</em>RESCHED</h4></h1>
+<p>文来自本人的旧博客: blog.163.com/awaken_ing/blog/static/12061319720158310574442/</p>
 
-<p>任务task01还没有完成, 但调度器认为 其运行的够久了, 就设置TIF<em>NEED</em>RESCHED, 这样, 在合适的时机, task01就会被调度走, 由其他task使用cpu.</p>
+<p>&lt;&lt; Professional Linux Kernel Architecture &gt;&gt; page105标题为 Intricacies of switch<em>to (intricacies:错综复杂的) , 絮絮叨叨着switch</em>to.</p>
 
-<p>除了scheduler<em>tick会设置外, 当一个优先级高的进程进入可执行状态的时候, try</em>to<em>wake</em>up()也会设置这个标志。</p>
+<p>下面看下arm linux的情况.</p>
 
-<h1 id="toc_1"><h4>2. 不检查preempt_count?</h4></h1>
-
-<p>例 linux-3.10.86/arch/arm/kernel/entry-armv.S</p>
-
-<pre><code>__vector_irq()
-|--__irq_usr()  @entry-armv.S
-|   |--usr_entry()
-|   |--irq_handler()
-|   |--ret_to_user_from_irq() @entry-common.S
-|   |   |--work_pending()   
-|   |   |   |--do_work_pending @signal.c
-
-do_work_pending
+<pre><code>context_switch(struct rq *rq, struct task_struct *prev,
+           struct task_struct *next)
 {
-    do {
-        if (likely(thread_flags &amp; _TIF_NEED_RESCHED))
-            schedule();
-        else
-           ...
-    }
+...
+switch_to(prev, next, prev);
+barrier();
+ /*
+假定进程A被调出去, 进程B运行, 即switch_to(A, B, A)
+那么, 这里是刚才被调度走的进程A 恢复运行后, 会执行这个地方, 
+要验证的话, 可以看看进程A让出CPU前, 最后一条修改lr的指令.
+*/
+ finish_task_switch(this_rq(), prev);
 }
 </code></pre>
+
 </div>
 
         <div class="more">
-          <a href="/posts/scheduler/scheduler_02_preempt" class="btn btn-small">read more..</a>
+          <a href="/posts/scheduler/scheduler_03_switch_to" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">

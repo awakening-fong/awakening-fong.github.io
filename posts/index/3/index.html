@@ -54,38 +54,6 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
-        <h3 class="title"><a href="/posts/other/io_perf">模式 02: IO性能优化的一些方法</a> <span class="date">2020-10-17</span></h3>
-
-        <div class="summary ellipsis">
-<h2 id="toc_0">1 避免 给内存管理添堵</h2>
-
-<h3 id="toc_1">1.1 other</h3>
-
-<p>如果 数据 仅使用一次的话.
-<code>POSIX_FADV_DONTNEED</code> and <code>O_DIRECT</code></p>
-
-<h2 id="toc_2">2 写 分离</h2>
-
-<ul>
-<li>日志盘 和 数据盘 分离</li>
-<li>顺序写 和 随机读写 分离</li>
-</ul>
-
-<h2 id="toc_3">3 内核参数</h2>
-
-<ul>
-<li>/sys/block/sdx/queue/ </li>
-<li>文件系统参数</li>
-<li>/proc/sys/vm/</li>
-</ul>
-
-</div>
-
-        <div class="more">
-          <a href="/posts/other/io_perf" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
         <h3 class="title"><a href="/posts/other/optimize_user_space">模式 03: 用户态的一些性能优化方法</a> <span class="date">2020-10-17</span></h3>
 
         <div class="summary ellipsis">
@@ -119,6 +87,30 @@
 
         <div class="more">
           <a href="/posts/other/optimize_user_space" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
+        <h3 class="title"><a href="/posts/other/trouble_less_pattern">模式 04: trouble less 的一些模式(待更新)</a> <span class="date">2020-10-17</span></h3>
+
+        <div class="summary">
+<h3 id="toc_0">多线程</h3>
+
+<p>进程间交互通过传递消息, 而不要共享状态.</p>
+
+<h3 id="toc_1">少用多线程</h3>
+
+<h3 id="toc_2">信号</h3>
+
+<ul>
+<li>方式1: 屏蔽一些信号, 然后使用 signalfd 或 sigwaitinfo.</li>
+<li>方式2: 信号处理函数中仅仅 设置信号到来的标志, 其他地方检测该标志.</li>
+<li>方式3: 信号 handler 中, 往 pipe/eventfd 写入内容,
+主程序通过 poll/epoll 来判断有事件到来.</li>
+</ul>
+</div>
+
+        <div class="more">
+          <a href="/posts/other/trouble_less_pattern" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">

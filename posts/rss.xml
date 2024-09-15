@@ -4,7 +4,7 @@
     <title>&#x9996;&#x9875;</title>
     <description>&#x9996;&#x9875;</description>
     <link>https://awakening-fong.github.io</link>
-    <pubDate>2023-12-24</pubDate>
+    <pubDate>2024-09-15</pubDate>
     <item>
       <title>Rust Atomics and Locks &#x6458;&#x5F55;&#x548C;&#x8BC4;&#x6CE8;</title>
       <link>https://awakening-fong.github.io/posts/other/rust_atomics_and_locks</link>
@@ -339,88 +339,6 @@ bar() in the following code fragment:&lt;/p&gt;
 </description>
     </item>
     <item>
-      <title>(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;</title>
-      <link>https://awakening-fong.github.io/posts/perf/perfbook-02</link>
-      <pubDate>2022-09-17</pubDate>
-      <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
-Is Parallel Programming Hard, And, If So, What Can You Do About It?
-pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
-&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id="toc_0"&gt;5.3.3 &#x7684;&#x5185;&#x5BB9;&#x5982;&#x4F55;&#x7406;&#x89E3;&lt;/h3&gt;
-
-&lt;p&gt;&#x53EF;&#x4EE5;&#x7ED3;&#x5408;&#x5982;&#x4E0B;&#x95EE;&#x9898;&#x6765;&#x7406;&#x89E3;
-Quick Quiz 5.33: p.129
-Given that globalreserve counted against us in &lt;code&gt;add_count()&lt;/code&gt;, why doesn&#x2019;t it count for us in &lt;code&gt;sub_count()&lt;/code&gt; in Listing 5.7?&lt;/p&gt;
-
-&lt;p&gt;&#x7B54;: awakening-fong: add_count()&#x8FD4;&#x56DE;0&#x662F;&#x5931;&#x8D25;, &#x8BA4;&#x4E3A;&#x662F; against. &#x800C;&#x4E0D;&#x662F;&#x8BF4; &#x8BBF;&#x95EE;&#x9501;&#x662F; against.&lt;/p&gt;
-
-&lt;p&gt;add_count &#x7684;&#x5C40;&#x90E8;&#x4EE3;&#x7801;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class="c"&gt;9  if (globalcountmax -
-10      globalcount - globalreserve &amp;lt; delta) {
-11      spin_unlock(&amp;amp;gblcnt_mutex);
-12      return 0;
-13 }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;globalreserve &#x5F88;&#x5927;, &#x4F20;&#x9012;&#x7ED9;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684; delta &#x5982;&#x679C;&#x5F88;&#x5927;, 
-&#x90A3;&#x4E48;, &#x5373;&#x4F7F;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B; &#x6D88;&#x8017;&#x7684;&#x5185;&#x5B58; &#x5F88;&#x5C0F;, &#x8FD9;&#x91CC;&#x7684; if &#x8FD8;&#x662F;&#x4F1A;&#x5224;&#x5B9A;&#x4E3A;&#x5185;&#x5B58;&#x8017;&#x5C3D;.&lt;/p&gt;
-
-&lt;p&gt;5.4&#x7AE0;&#x8282;&#x4E2D;, &lt;code&gt;flush_local_count()&lt;/code&gt; &#x5BF9;globalreserve&#x975E;0&#x8FDB;&#x884C;&#x4E86;&#x5904;&#x7406;.&lt;/p&gt;
-
-&lt;h3 id="toc_1"&gt;5.4.3 Signal-Theft Limit Counter Design&lt;/h3&gt;
-
-&lt;p&gt;&#x5173;&#x4E8E;&#x56FE; Signal-Theft State Machine &lt;/p&gt;
-
-&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;&amp;quot;&#x8BF7;&#x6C42;&amp;quot;, &#x8C01;&#x5411;&#x8C01;&#x8BF7;&#x6C42;?
-&#x7B54;: &#x914D;&#x989D;&#x7528;&#x5149;&#x4E86;&#xFF0C;&#x8BF7;&#x6C42;&#x65B0;&#x7684;&#x914D;&#x989D;&#x3002;&#x7EBF;&#x7A0B; &#x5411; &#x5168;&#x5C40; &#x8BF7;&#x6C42;&#x3002;&lt;/p&gt;
-
-&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;ready&#x662F;?, ready to do what?
-&#x7B54;: ready to &#x7A83;&lt;/p&gt;
-
-&lt;p&gt;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x4F7F;&#x7528;&#x201C;&#x8BF7;&#x6C42;&#x201D;&#x548C;&#x201C;&#x786E;&#x8BA4;&#x201D;&#x72B6;&#x6001;&#x6765;&#x786E;&#x5B9A;&#x4FE1;&#x53F7;&#x662F;&#x5426;&#x5E94;&#x5F53;&#x88AB;&#x91CD;&#x53D1;&#x3002;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;flush_local_count()
-{
-    if (READ_ONCE(*theftp[t]) == THEFT_REQ) 
-        pthread_kill(tid, SIGUSR1);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&amp;quot;&#x786E;&#x8BA4;&amp;quot;&#x4EC0;&#x4E48;?
-&#x7B54;: &#x8BF7;&#x6C42;&#x5DF2;&#x6536;&#x5230;&#xFF0C;&#x8BF7;&#x6C42;&#x5DF2;&#x5904;&#x7406;&lt;/p&gt;
-
-&lt;p&gt;&#x4E00;&#x65E6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x53D1;&#x73B0;&#x67D0;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684;theft&#x72B6;&#x6001;&#x4E3A;&#x201C;&#x51C6;&#x5907;&#x5B8C;&#x6BD5;&#x201D;&#xFF0C;&#x8FD9;&#x65F6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x6709;&#x6743;&#x7A83;&#x53D6;&#x6B64;&#x7EBF;&#x7A0B;&#x7684;&#x8BA1;&#x6570;&#x3002;
-awakening-fong&#x6CE8;&#x91CA;: 
-&#x7A83;&#x53D6;&#x610F;&#x601D;&#x662F;  &#x4E0D;&#x662F;&#x4FEE;&#x6539;&#x81EA;&#x5DF1;&#x7684;count&#xFF0C;&#x800C;&#x662F; &#x4FEE;&#x6539;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B;&#xFF0C;&#x62FF;&#x522B;&#x4EBA;&#x7684;&#x4E1C;&#x897F;&#xFF0C;&#x4E3A;&#x7A83;&#x3002;
-&#x51CF;&#x5C11;&#x4E86;per-thread &#x7684;count&#xFF0C;&#x8FD9;&#x4E2A;&#x4E4B;&#x540E;&#x81EA;&#x7136;&#x5C31;&#x662F;&#x53D1;&#x5E03;publish &#x5230;&#x5168;&#x5C40;&#x3002;&lt;/p&gt;
-
-&lt;h3 id="toc_2"&gt;Chapter 6 Partitioning and Synchronization Design&lt;/h3&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;&amp;quot;&#x6BCF;&#x4E2A;&#x54F2;&#x5B66;&#x5BB6;&#x90FD;&#x5148;&#x62FF;&#x4ED6;&#x76D8;&#x5B50;&#x5468;&#x56F4;&#x7F16;&#x53F7;&#x6700;&#x5C0F;&#x7684;&#x53C9;&#x5B50;&#xFF0C;&#x7136;&#x540E;&#x518D;&#x62FF;&#x7F16;&#x53F7;&#x6700;&#x9AD8;&#x7684;&#x53C9;&#x5B50;&#x3002;&amp;quot;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;: 
-&#x539F;&#x6587;&#x662F; 
-Each philosopher picks up the lowest-numbered fork next to his or her plate, then picks up the other fork. 
-&#x8FD9;&#x91CC;&#x4E2D;&#x6587;&#x7FFB;&#x8BD1;&#x5E94;&#x8BE5;&#x6709;&#x95EE;&#x9898;&#x3002;
-&#x7B2C;2&#x56DE;&#x662F;&#x62FF; &#x7F16;&#x53F7;&#x6700;&#x5927;&#x7684;&#x5417;&#xFF1F;&#x597D;&#x50CF;&#x4E0D;&#x662F;&#xFF0C;&#x62FF;&#x7684;&#x5E94;&#x8BE5;&#x662F; &#x76D8;&#x5B50;&#x4E24;&#x8FB9;&#x7684;&#x53E6;&#x4E00;&#x4E2A;&#x53C9;&#x5B50;&#xFF0C;&#x8FD9;&#x4E2A;&#x53C9;&#x5B50;&#x6BD4;&#x9996;&#x6B21;&#x7684;&#x53C9;&#x5B50;&#x7F16;&#x53F7;&#x8981;&#x5927;&#xFF0C;&#x4F46;&#x4E0D;&#x662F;&#x5168;&#x5C40;&#x6700;&#x5927;&#x7684;&#x7F16;&#x53F7;&#x3002;&lt;/p&gt;
-
-&lt;h3 id="toc_3"&gt;Chapter 7 Locking&lt;/h3&gt;
-
-&lt;p&gt;Strict RAII locking also prohibits overlapping critical sections, due to the fact that scopes must nest. &lt;/p&gt;
-
-&lt;p&gt;awakening-fong&#xFF1A;&#x6BD4;&#x5982;&#x4E0D;&#x5141;&#x8BB8;&#x5982;&#x4E0B;&#x7684;&#x91CD;&#x53E0;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;|-------|       lock1
-   |--------|   lock2
-
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    <item>
       <title>perfbook 01 &#x6458;&#x5F55;</title>
       <link>https://awakening-fong.github.io/posts/perf/perfbook-01</link>
       <pubDate>2022-09-17</pubDate>
@@ -560,6 +478,88 @@ cpu1&#x5BF9;&#x4E00;&#x4E2A;&#x5DF2;&#x7ECF;&#x88AB;&#x91CA;&#x653E;&#x6389;&#x7
 </description>
     </item>
     <item>
+      <title>(&#x8349;&#x7A3F;)perfbook 02 &#x81EA;&#x95EE;&#x81EA;&#x7B54;</title>
+      <link>https://awakening-fong.github.io/posts/perf/perfbook-02</link>
+      <pubDate>2022-09-17</pubDate>
+      <description>&lt;p&gt;perfbook &#x6307;&#x7684;&#x662F; 
+Is Parallel Programming Hard, And, If So, What Can You Do About It?
+pdf &#x7248;&#x672C;&#x53EF;&#x4EE5;&#x4ECE;&#x5982;&#x4E0B;&#x7F51;&#x5740;&#x83B7;&#x53D6;: 
+&lt;a href="https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html"&gt;https://www.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id="toc_0"&gt;5.3.3 &#x7684;&#x5185;&#x5BB9;&#x5982;&#x4F55;&#x7406;&#x89E3;&lt;/h3&gt;
+
+&lt;p&gt;&#x53EF;&#x4EE5;&#x7ED3;&#x5408;&#x5982;&#x4E0B;&#x95EE;&#x9898;&#x6765;&#x7406;&#x89E3;
+Quick Quiz 5.33: p.129
+Given that globalreserve counted against us in &lt;code&gt;add_count()&lt;/code&gt;, why doesn&#x2019;t it count for us in &lt;code&gt;sub_count()&lt;/code&gt; in Listing 5.7?&lt;/p&gt;
+
+&lt;p&gt;&#x7B54;: awakening-fong: add_count()&#x8FD4;&#x56DE;0&#x662F;&#x5931;&#x8D25;, &#x8BA4;&#x4E3A;&#x662F; against. &#x800C;&#x4E0D;&#x662F;&#x8BF4; &#x8BBF;&#x95EE;&#x9501;&#x662F; against.&lt;/p&gt;
+
+&lt;p&gt;add_count &#x7684;&#x5C40;&#x90E8;&#x4EE3;&#x7801;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class="c"&gt;9  if (globalcountmax -
+10      globalcount - globalreserve &amp;lt; delta) {
+11      spin_unlock(&amp;amp;gblcnt_mutex);
+12      return 0;
+13 }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;globalreserve &#x5F88;&#x5927;, &#x4F20;&#x9012;&#x7ED9;&#x5355;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684; delta &#x5982;&#x679C;&#x5F88;&#x5927;, 
+&#x90A3;&#x4E48;, &#x5373;&#x4F7F;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B; &#x6D88;&#x8017;&#x7684;&#x5185;&#x5B58; &#x5F88;&#x5C0F;, &#x8FD9;&#x91CC;&#x7684; if &#x8FD8;&#x662F;&#x4F1A;&#x5224;&#x5B9A;&#x4E3A;&#x5185;&#x5B58;&#x8017;&#x5C3D;.&lt;/p&gt;
+
+&lt;p&gt;5.4&#x7AE0;&#x8282;&#x4E2D;, &lt;code&gt;flush_local_count()&lt;/code&gt; &#x5BF9;globalreserve&#x975E;0&#x8FDB;&#x884C;&#x4E86;&#x5904;&#x7406;.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;5.4.3 Signal-Theft Limit Counter Design&lt;/h3&gt;
+
+&lt;p&gt;&#x5173;&#x4E8E;&#x56FE; Signal-Theft State Machine &lt;/p&gt;
+
+&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;&amp;quot;&#x8BF7;&#x6C42;&amp;quot;, &#x8C01;&#x5411;&#x8C01;&#x8BF7;&#x6C42;?
+&#x7B54;: &#x914D;&#x989D;&#x7528;&#x5149;&#x4E86;&#xFF0C;&#x8BF7;&#x6C42;&#x65B0;&#x7684;&#x914D;&#x989D;&#x3002;&#x7EBF;&#x7A0B; &#x5411; &#x5168;&#x5C40; &#x8BF7;&#x6C42;&#x3002;&lt;/p&gt;
+
+&lt;p&gt;&#x56FE;&#x4E2D;&#x7684;ready&#x662F;?, ready to do what?
+&#x7B54;: ready to &#x7A83;&lt;/p&gt;
+
+&lt;p&gt;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x4F7F;&#x7528;&#x201C;&#x8BF7;&#x6C42;&#x201D;&#x548C;&#x201C;&#x786E;&#x8BA4;&#x201D;&#x72B6;&#x6001;&#x6765;&#x786E;&#x5B9A;&#x4FE1;&#x53F7;&#x662F;&#x5426;&#x5E94;&#x5F53;&#x88AB;&#x91CD;&#x53D1;&#x3002;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;flush_local_count()
+{
+    if (READ_ONCE(*theftp[t]) == THEFT_REQ) 
+        pthread_kill(tid, SIGUSR1);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&amp;quot;&#x786E;&#x8BA4;&amp;quot;&#x4EC0;&#x4E48;?
+&#x7B54;: &#x8BF7;&#x6C42;&#x5DF2;&#x6536;&#x5230;&#xFF0C;&#x8BF7;&#x6C42;&#x5DF2;&#x5904;&#x7406;&lt;/p&gt;
+
+&lt;p&gt;&#x4E00;&#x65E6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x53D1;&#x73B0;&#x67D0;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684;theft&#x72B6;&#x6001;&#x4E3A;&#x201C;&#x51C6;&#x5907;&#x5B8C;&#x6BD5;&#x201D;&#xFF0C;&#x8FD9;&#x65F6;&#x6162;&#x901F;&#x8DEF;&#x5F84;&#x6709;&#x6743;&#x7A83;&#x53D6;&#x6B64;&#x7EBF;&#x7A0B;&#x7684;&#x8BA1;&#x6570;&#x3002;
+awakening-fong&#x6CE8;&#x91CA;: 
+&#x7A83;&#x53D6;&#x610F;&#x601D;&#x662F;  &#x4E0D;&#x662F;&#x4FEE;&#x6539;&#x81EA;&#x5DF1;&#x7684;count&#xFF0C;&#x800C;&#x662F; &#x4FEE;&#x6539;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B;&#xFF0C;&#x62FF;&#x522B;&#x4EBA;&#x7684;&#x4E1C;&#x897F;&#xFF0C;&#x4E3A;&#x7A83;&#x3002;
+&#x51CF;&#x5C11;&#x4E86;per-thread &#x7684;count&#xFF0C;&#x8FD9;&#x4E2A;&#x4E4B;&#x540E;&#x81EA;&#x7136;&#x5C31;&#x662F;&#x53D1;&#x5E03;publish &#x5230;&#x5168;&#x5C40;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_2"&gt;Chapter 6 Partitioning and Synchronization Design&lt;/h3&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&amp;quot;&#x6BCF;&#x4E2A;&#x54F2;&#x5B66;&#x5BB6;&#x90FD;&#x5148;&#x62FF;&#x4ED6;&#x76D8;&#x5B50;&#x5468;&#x56F4;&#x7F16;&#x53F7;&#x6700;&#x5C0F;&#x7684;&#x53C9;&#x5B50;&#xFF0C;&#x7136;&#x540E;&#x518D;&#x62FF;&#x7F16;&#x53F7;&#x6700;&#x9AD8;&#x7684;&#x53C9;&#x5B50;&#x3002;&amp;quot;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;awakening-fong&#x6CE8;&#x91CA;: 
+&#x539F;&#x6587;&#x662F; 
+Each philosopher picks up the lowest-numbered fork next to his or her plate, then picks up the other fork. 
+&#x8FD9;&#x91CC;&#x4E2D;&#x6587;&#x7FFB;&#x8BD1;&#x5E94;&#x8BE5;&#x6709;&#x95EE;&#x9898;&#x3002;
+&#x7B2C;2&#x56DE;&#x662F;&#x62FF; &#x7F16;&#x53F7;&#x6700;&#x5927;&#x7684;&#x5417;&#xFF1F;&#x597D;&#x50CF;&#x4E0D;&#x662F;&#xFF0C;&#x62FF;&#x7684;&#x5E94;&#x8BE5;&#x662F; &#x76D8;&#x5B50;&#x4E24;&#x8FB9;&#x7684;&#x53E6;&#x4E00;&#x4E2A;&#x53C9;&#x5B50;&#xFF0C;&#x8FD9;&#x4E2A;&#x53C9;&#x5B50;&#x6BD4;&#x9996;&#x6B21;&#x7684;&#x53C9;&#x5B50;&#x7F16;&#x53F7;&#x8981;&#x5927;&#xFF0C;&#x4F46;&#x4E0D;&#x662F;&#x5168;&#x5C40;&#x6700;&#x5927;&#x7684;&#x7F16;&#x53F7;&#x3002;&lt;/p&gt;
+
+&lt;h3 id="toc_3"&gt;Chapter 7 Locking&lt;/h3&gt;
+
+&lt;p&gt;Strict RAII locking also prohibits overlapping critical sections, due to the fact that scopes must nest. &lt;/p&gt;
+
+&lt;p&gt;awakening-fong&#xFF1A;&#x6BD4;&#x5982;&#x4E0D;&#x5141;&#x8BB8;&#x5982;&#x4E0B;&#x7684;&#x91CD;&#x53E0;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;|-------|       lock1
+   |--------|   lock2
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    <item>
       <title>bit rot</title>
       <link>https://awakening-fong.github.io/posts/fs/bit_rot</link>
       <pubDate>2022-07-30</pubDate>
@@ -693,26 +693,6 @@ promise(1,V1)&#x6D88;&#x606F;&#x6765;&#x81EA;A1. &lt;/p&gt;
 </description>
     </item>
     <item>
-      <title>&#x6A21;&#x5F0F; 04: trouble less &#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
-      <link>https://awakening-fong.github.io/posts/other/trouble_less_pattern</link>
-      <pubDate>2020-10-17</pubDate>
-      <description>&lt;h3 id="toc_0"&gt;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
-
-&lt;p&gt;&#x8FDB;&#x7A0B;&#x95F4;&#x4EA4;&#x4E92;&#x901A;&#x8FC7;&#x4F20;&#x9012;&#x6D88;&#x606F;, &#x800C;&#x4E0D;&#x8981;&#x5171;&#x4EAB;&#x72B6;&#x6001;.&lt;/p&gt;
-
-&lt;h3 id="toc_1"&gt;&#x5C11;&#x7528;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
-
-&lt;h3 id="toc_2"&gt;&#x4FE1;&#x53F7;&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;1: &#x5C4F;&#x853D;&#x4E00;&#x4E9B;&#x4FE1;&#x53F7;, &#x7136;&#x540E;&#x4F7F;&#x7528; signalfd &#x6216; sigwaitinfo.&lt;/li&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;2: &#x4FE1;&#x53F7;&#x5904;&#x7406;&#x51FD;&#x6570;&#x4E2D;&#x4EC5;&#x4EC5; &#x8BBE;&#x7F6E;&#x4FE1;&#x53F7;&#x5230;&#x6765;&#x7684;&#x6807;&#x5FD7;, &#x5176;&#x4ED6;&#x5730;&#x65B9;&#x68C0;&#x6D4B;&#x8BE5;&#x6807;&#x5FD7;.&lt;/li&gt;
-&lt;li&gt;&#x65B9;&#x5F0F;3: &#x4FE1;&#x53F7; handler &#x4E2D;, &#x5F80; pipe/eventfd &#x5199;&#x5165;&#x5185;&#x5BB9;,
-&#x4E3B;&#x7A0B;&#x5E8F;&#x901A;&#x8FC7; poll/epoll &#x6765;&#x5224;&#x65AD;&#x6709;&#x4E8B;&#x4EF6;&#x5230;&#x6765;.&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    <item>
       <title>&#x6A21;&#x5F0F; 02: IO&#x6027;&#x80FD;&#x4F18;&#x5316;&#x7684;&#x4E00;&#x4E9B;&#x65B9;&#x6CD5;</title>
       <link>https://awakening-fong.github.io/posts/other/io_perf</link>
       <pubDate>2020-10-17</pubDate>
@@ -803,6 +783,26 @@ promise(1,V1)&#x6D88;&#x606F;&#x6765;&#x81EA;A1. &lt;/p&gt;
 &lt;li&gt;io_uring &lt;/li&gt;
 &lt;li&gt;eBPF&lt;/li&gt;
 &lt;li&gt;&#x200B;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>&#x6A21;&#x5F0F; 04: trouble less &#x7684;&#x4E00;&#x4E9B;&#x6A21;&#x5F0F;(&#x5F85;&#x66F4;&#x65B0;)</title>
+      <link>https://awakening-fong.github.io/posts/other/trouble_less_pattern</link>
+      <pubDate>2020-10-17</pubDate>
+      <description>&lt;h3 id="toc_0"&gt;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
+
+&lt;p&gt;&#x8FDB;&#x7A0B;&#x95F4;&#x4EA4;&#x4E92;&#x901A;&#x8FC7;&#x4F20;&#x9012;&#x6D88;&#x606F;, &#x800C;&#x4E0D;&#x8981;&#x5171;&#x4EAB;&#x72B6;&#x6001;.&lt;/p&gt;
+
+&lt;h3 id="toc_1"&gt;&#x5C11;&#x7528;&#x591A;&#x7EBF;&#x7A0B;&lt;/h3&gt;
+
+&lt;h3 id="toc_2"&gt;&#x4FE1;&#x53F7;&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&#x65B9;&#x5F0F;1: &#x5C4F;&#x853D;&#x4E00;&#x4E9B;&#x4FE1;&#x53F7;, &#x7136;&#x540E;&#x4F7F;&#x7528; signalfd &#x6216; sigwaitinfo.&lt;/li&gt;
+&lt;li&gt;&#x65B9;&#x5F0F;2: &#x4FE1;&#x53F7;&#x5904;&#x7406;&#x51FD;&#x6570;&#x4E2D;&#x4EC5;&#x4EC5; &#x8BBE;&#x7F6E;&#x4FE1;&#x53F7;&#x5230;&#x6765;&#x7684;&#x6807;&#x5FD7;, &#x5176;&#x4ED6;&#x5730;&#x65B9;&#x68C0;&#x6D4B;&#x8BE5;&#x6807;&#x5FD7;.&lt;/li&gt;
+&lt;li&gt;&#x65B9;&#x5F0F;3: &#x4FE1;&#x53F7; handler &#x4E2D;, &#x5F80; pipe/eventfd &#x5199;&#x5165;&#x5185;&#x5BB9;,
+&#x4E3B;&#x7A0B;&#x5E8F;&#x901A;&#x8FC7; poll/epoll &#x6765;&#x5224;&#x65AD;&#x6709;&#x4E8B;&#x4EF6;&#x5230;&#x6765;.&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

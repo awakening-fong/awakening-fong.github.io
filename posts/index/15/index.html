@@ -54,6 +54,37 @@
         <div class="row-fluid">
   <div class="span12">
       <div class="posts">
+        <h3 class="title"><a href="/posts/other/arm_kthread_do_exit">关于arm linux中kthread()中的do_exit()</a> <span class="date">2016-12-31</span></h3>
+
+        <div class="summary ellipsis">
+<p>来自本人的旧博客:
+http://blog.163.com/awaken_ing/blog/static/12061319720151129103139710 </p>
+
+<h1 id="toc_0"><h4>1. 问题</h4></h1>
+
+<p>linux-3.10.86/kernel/kthread.c</p>
+
+<pre><code>static int kthread(void *_create)
+{
+...
+    /* we can't just return, we must preserve "self" on stack */
+    do_exit(ret);
+}
+</code></pre>
+
+<p>这里注释说不能省略do_exit(), why?</p>
+
+<h1 id="toc_1"><h4>2. 解</h4></h1>
+
+<h1 id="toc_2"><h4>2.1 内核创建</h4></h1>
+
+</div>
+
+        <div class="more">
+          <a href="/posts/other/arm_kthread_do_exit" class="btn btn-small">read more..</a>
+        </div>
+      </div>
+      <div class="posts">
         <h3 class="title"><a href="/posts/other/kthread_park_unpark">内核线程的park和unpark</a> <span class="date">2016-12-31</span></h3>
 
         <div class="summary ellipsis">
@@ -87,34 +118,18 @@ http://blog.163.com/awaken_ing/blog/static/120613197201511307274526
         </div>
       </div>
       <div class="posts">
-        <h3 class="title"><a href="/posts/mm/flush_dcache_page">flush_dcache_page</a> <span class="date">2016-12-31</span></h3>
+        <h3 class="title"><a href="/posts/fs/ext2_layout">ext2 disk layout</a> <span class="date">2016-12-30</span></h3>
 
-        <div class="summary ellipsis">
-<h1 id="toc_0"><h4>1. flush<em>dcache</em>page的实现</h4></h1>
+        <div class="summary">
+主要为了验证对ext2的 Disk Organization的理解, 诸如Block Group Descriptor, Inode Table之类.<br>
 
-<p>问题:flush<em>dcache</em>page()到底是 invalid, 还是 clean and invalid, 还是仅清掉dirty bit</p>
+给定一个ext2镜像, 遍历其所有文件, 并显示文件内容.<br>
 
-<p>linux-3.10.86/arch/arm/mm/flush.c</p>
-
-<pre><code>flush_dcache_page -&gt; __flush_dcache_page
-{
-    /*
-     * Writeback ...
-    */
-
-}
-</code></pre>
-
-<p>是Writeback, 所以, 可以理解为 clean and invalid, 尽管实现上可能采用lazy什么的.</p>
-
-<h1 id="toc_1"><h4>2. 读写中的使用</h4></h1>
-
-<p>linux-3.10.86/mm/filemap.c</p>
-
+假定该镜像的文件大小都比较小, 不需要indirect pointer.
 </div>
 
         <div class="more">
-          <a href="/posts/mm/flush_dcache_page" class="btn btn-small">read more..</a>
+          <a href="/posts/fs/ext2_layout" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
@@ -146,21 +161,6 @@ sync_mapping_buffers(struct address_space *mapping)
 
         <div class="more">
           <a href="/posts/io/field_of_bh_and_address_space" class="btn btn-small">read more..</a>
-        </div>
-      </div>
-      <div class="posts">
-        <h3 class="title"><a href="/posts/fs/ext2_layout">ext2 disk layout</a> <span class="date">2016-12-30</span></h3>
-
-        <div class="summary">
-主要为了验证对ext2的 Disk Organization的理解, 诸如Block Group Descriptor, Inode Table之类.<br>
-
-给定一个ext2镜像, 遍历其所有文件, 并显示文件内容.<br>
-
-假定该镜像的文件大小都比较小, 不需要indirect pointer.
-</div>
-
-        <div class="more">
-          <a href="/posts/fs/ext2_layout" class="btn btn-small">read more..</a>
         </div>
       </div>
       <div class="posts">
