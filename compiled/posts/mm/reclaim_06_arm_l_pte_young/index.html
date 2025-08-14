@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>page reclaim 06:ARM和L_PTE_YOUNG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>page reclaim 06:ARM和L_PTE_YOUNG </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-07</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. page<em>referenced</em>one对硬件页表的影响</h4></h1>
+
+<p>linux-3.10.86/include/asm-generic/pgtable.h</p>
+
+<pre><code>page_referenced_one -&gt; ptep_clear_flush_young_notify -&gt; ptep_clear_flush_young -&gt; ptep_test_and_clear_young
+{
+//pte_mkold 实现上是:PTE_BIT_FUNC(mkold,     &amp;= ~L_PTE_YOUNG);
+set_pte_at(vma-&gt;vm_mm, address, ptep, pte_mkold(pte));
+}
+</code></pre>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+                  pte_t *ptep, pte_t pteval)
+{
+    unsigned long ext = 0;
+
+    if (addr &lt; TASK_SIZE &amp;&amp; pte_present_user(pteval)) {
+        __sync_icache_dcache(pteval);
+        ext |= PTE_EXT_NG;
+    }
+    /*
+    @pteval 是linux版的pte
+    硬件版的会根据ext来生成
+    */
+    set_pte_ext(ptep, pteval, ext);
+}
+</code></pre>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable-2level-hwdef.h</p>
+
+<pre><code>#define PTE_EXT_NG      (_AT(pteval_t, 1) &lt;&lt; 11)    /* v6 */    
+</code></pre>
+
+<p>这个后续没有用到, 忽略.</p>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable-2level.h</p>
+
+<pre><code>#define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+</code></pre>
+
+<p>set<em>pte</em>at -&gt; set<em>pte</em>ext -&gt; cpu<em>set</em>pte<em>ext -&gt; cpu</em>v7<em>set</em>pte_ext</p>
+
+<p>我们想知道的是: ext中 L<em>PTE</em>YOUNG没有置位时, 硬件页表的变化.</p>
+
+<p>linux-3.10.86/arch/arm/mm/proc-v7-2level.S</p>
+
+<pre><code>ENTRY(cpu_v7_set_pte_ext)
+...
+@r1是linux版
+tst r1, #L_PTE_YOUNG
+tstne   r1, #L_PTE_VALID
+@#define L_PTE_NONE     (_AT(pteval_t, 1) &lt;&lt; 11)
+eorne   r1, r1, #L_PTE_NONE
+tstne   r1, #L_PTE_NONE
+moveq   r3, #0
+...
+</code></pre>
+
+<p>当L<em>PTE</em>YOUNG没有置位时, 这里会执行moveq r3, #0, 
+也就是页表项修改为0, 然后存储到硬件版页表.</p>
+
+<h1 id="toc_1"><h4>2. 后续访问相关page会如何</h4></h1>
+
+<p>执行page<em>referenced</em>one之后, 由于硬件页表被清零, 后续访问引发异常, 会执行到handle<em>pte</em>fault.</p>
+
+<p>linux-3.10.86/mm/memory.c</p>
+
+<pre><code>handle_pte_fault
+{
+    if (!pte_present(entry)) {
+
+        return ...
+    }
+    ...
+    entry = pte_mkyoung(entry);
+    ptep_set_access_flags() -&gt;  set_pte_at()
+
+}   
+</code></pre>
+
+<p>上面硬件页表被清零了, 但是linux版页表并没有清零, 只清掉L<em>PTE</em>YOUNG.
+这里需要知道, if (!pte_present(entry))是否会成立.</p>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>#define pte_present(pte)    (pte_isset((pte), L_PTE_PRESENT))
+</code></pre>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable-2level.h</p>
+
+<pre><code>#define L_PTE_PRESENT       (_AT(pteval_t, 1) &lt;&lt; 0)
+#define L_PTE_YOUNG     (_AT(pteval_t, 1) &lt;&lt; 1)
+</code></pre>
+
+<p>以通过mmap来访问文件为例, 看看创建的linux的pte.</p>
+
+<pre><code>mmap_region
+|--vma-&gt;vm_flags = vm_flags;
+|--vma-&gt;vm_page_prot = vm_get_page_prot(vm_flags);
+
+vm_get_page_prot -&gt; protection_map -&gt; __PAGE_NONE
+</code></pre>
+
+<p>linux-3.10.86/arch/arm/include/asm/pgtable.h</p>
+
+<pre><code>#define __PAGE_NONE     __pgprot(_L_PTE_DEFAULT | ...省略...  )
+#define _L_PTE_DEFAULT  L_PTE_PRESENT | L_PTE_YOUNG
+</code></pre>
+
+<p>_<em>PAGE</em>NONE 和其他的_<em>PAGE</em>xx 都含<em>L</em>PTE<em>DEFAULT.
+也就是说, 创建的linux版pte含有L</em>PTE_PRESENT.</p>
+
+<p>set<em>pte</em>at -&gt; set<em>pte</em>ext -&gt; cpu<em>set</em>pte<em>ext -&gt; cpu</em>v7<em>set</em>pte<em>ext<br>
+cpu</em>v7<em>set</em>pte<em>ext不会修改到L</em>PTE<em>PRESENT.<br>
+也就是说, 后续异常时, L</em>PTE<em>PRESENT是置位状态了, 后续若因reclaim的扫描, L</em>PTE<em>YOUNG会被清掉, 硬件页表也被清零, 若访问该页表相关的page, 不走if (!pte</em>present(entry)), 而是会置位L<em>PTE</em>YOUNG, 并根据这个含有L<em>PTE</em>YOUNG的linux页表 重新设置硬件页表.</p>
+
+<p>由于这个异常只有在该page被reclaim扫描到后才会发生, 故overhead并不严重.  </p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/mm/reclaim_06_arm_l_pte_young>https://awakening-fong.github.io/posts/mm/reclaim_06_arm_l_pte_young</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#内存管理/features-ref">内存管理/features <span>11</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#reclaim-ref">reclaim <span>7</span></a>
+      </li>
+      <li>
+        <a href="/tags#ARM-ref">ARM <span>12</span></a>
+      </li>
+      <li>
+        <a href="/tags#exception-ref">exception <span>6</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/arm/arm_asid" title="arm linux的ASID (Address Space ID)">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/mm/reclaim_05_page_count" title="page reclaim 05:page count">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>模式 01: 内核中常见的性能优化方法</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>模式 01: 内核中常见的性能优化方法 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2017-02-23</strong>
+    </div>
+    <div class="content">
+      <h1 id="toc_0"><h4>1. 批量处理</h4></h1>
+
+<p><code>add_to_page_cache_lru</code>,  操作lru的话, 先放到per cpu的lru cache (struct pagevec), 待lru cache存满后drain.</p>
+
+<h1 id="toc_1"><h4>2. 吞吐量（Throughput）和时延（Latency）</h4></h1>
+
+<p>2.1   HZ 设置为 250, 1000等.</p>
+
+<p>2.2 
+中断线程化后, 吞吐量可能下降, 但系统其它地方的时延可能改善.</p>
+
+<h1 id="toc_2"><h4>3. 用空间换时间</h4></h1>
+
+<p>计算结果缓存之类的, 比如 一些数值计算, 开根号什么的.</p>
+
+<h1 id="toc_3"><h4>4. 收敛?</h4></h1>
+
+<p>radix tree的tag, 不必逐个判断该节点 子树 下的叶子. 这个可能也可以归到  缓存 中.</p>
+
+<p>hash应该也算这个类别.</p>
+
+<h1 id="toc_4"><h4>5. 缓存</h4></h1>
+
+<p>buddy system 一开始从zone的链表中分配, 释放时放到per cpu的pcp, 后续从pcp中取, 减少了锁的问题.</p>
+
+<h1 id="toc_5"><h4>6. 锁的问题</h4></h1>
+
+<p>6.1 使用per cpu.
+比如 lru问题 per cpu的 pagevec.</p>
+
+<p>6.2<br>
+1. lock全局的链表,<br>
+2. 从全局的链表中挑选放入on a local list,<br>
+3. unlock 全局的链表<br>
+4. 对 local list进行相对比较耗时的操作</p>
+
+<p>这个比较常见, 比如 ...</p>
+
+<p>6.3 RCU的适用范围
+...</p>
+
+<p>6.4 把相关信息 挤到  int 中, 更新int是原子的, 就省掉了锁.
+比如, 
+strct page中有:</p>
+
+<pre><code>struct { /* SLUB */
+    unsigned inuse:16;
+    unsigned objects:15;
+    unsigned frozen:1; 
+};
+</code></pre>
+
+<h1 id="toc_6"><h4>7. offload</h4></h1>
+
+<p>网卡: TSO, GRO 等  </p>
+
+<p>DMA</p>
+
+<h1 id="toc_7"><h4>8. poll 改成 回调</h4></h1>
+
+<p>poll的写法:</p>
+
+<pre><code>check_and_run()
+{
+for each item //不管是否ready
+   if (item.check_ready())
+     do something for item
+}
+</code></pre>
+
+<p>如果 要检查的item非常多, 可能出现很多都不是ready状态, 这样, 会浪费不少时间在检查上.</p>
+
+<p>改成回调的形式:</p>
+
+<pre><code>某个时机, 添加item到ready队列中.
+run_ready_item()
+{
+for each one in ready queue
+   do something for item
+}
+</code></pre>
+
+<!-- 
+<h4>9. 其他</h4>
+
+====== 分而治之
+
+网卡多队列RSS(Receive Side Scaling)
+
+
+====== 亲和, 相邻?
+
+网卡Flow Director
+--> 
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/other/optimize>https://awakening-fong.github.io/posts/other/optimize</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#模式-ref">模式 <span>5</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#性能-ref">性能 <span>9</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/other/pt_regs_for_debug" title="内核中 通过 struct pt_regs 来获取  用户传递的参数">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/arm/thread_start_sp" title="关于THREAD_START_SP">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>

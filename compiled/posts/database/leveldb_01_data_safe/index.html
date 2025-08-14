@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>LevelDB 01: 数据安全</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>LevelDB 01: 数据安全 </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2019-09-09</strong>
+    </div>
+    <div class="content">
+      <p>目录:
+<li> <a href="#toc_0"> 1. 原子性 Atomicity</a>  </li>
+<li> <a href="#toc_1"> 2. Consistency</a>  </li>
+<li> <a href="#toc_2"> 2.1 有没有事务, log没有保存旧值, 如何撤销?</a>  </li>
+<li> <a href="#toc_3"> 2.2 (TODO)基于leveldb, filestore 是否实现了 事务/commit等?</a>  </li>
+<li> <a href="#toc_5"> 3. log</a>  </li>
+<li> <a href="#toc_6"> 3.1 写log在哪里</a>  </li>
+<li> <a href="#toc_7"> 4. RecoverLogFile</a>  </li>
+<li> <a href="#toc_8"> 5. VersionSet::Recover</a>  </li></p>
+
+<hr>
+
+<h2 id="toc_0">1. 原子性 Atomicity</h2>
+
+<p>ReadPhysicalRecord():</p>
+
+<ol>
+<li>header  eof, 但读到的&lt;kHeaderSize, 则知道header不完整.</li>
+<li>header完整, 但对应的payload数据不够.</li>
+<li>检查 checksum</li>
+</ol>
+
+<p><br/></p>
+
+<p>CURRENT文件的原子:
+通过mv来实现, 保证CURRENT的内容是有效的.
+see SetCurrentFile()</p>
+
+<p><br/></p>
+
+<pre><code>leveldb::WriteBatch batch;
+batch.Delete(&quot;key&quot;);
+batch.Put(&quot;key2&quot;, value);
+db-&gt;Write(leveldb::WriteOptions(), &amp;batch);
+</code></pre>
+
+<p>WriteBatch中 <code>rep_</code> 中虽然有存储batch需要完成的个数.<br>
+WriteBatch::Put -&gt; WriteBatchInternal::SetCount 修改 -&gt;rep_[8]<br>
+Writer::AddRecord -&gt; Writer::EmitPhysicalRecord<br>
+但这个并不作为完整性校验的依据.<br>
+原子的实现 和 非batch 的方法一样.</p>
+
+<h2 id="toc_1">2. Consistency</h2>
+
+<h3 id="toc_2">2.1 有没有事务, log没有保存旧值, 如何撤销?</h3>
+
+<p>问题: log record内容是 事务id, 元素, 旧值, 新值, 对吗?<br>
+答:不对. 因为不支持事务, 也不存储旧值.</p>
+
+<p>问题: 检查到 corrupt 的记录后, 如何处理, 有没有将这个corrupt的记录抹掉,代码在?<br>
+答:</p>
+
+<pre><code>VersionSet::Recover
+{
+  while (reader.ReadRecord(&amp;record, &amp;scratch) &amp;&amp; s.ok()) {
+    s = edit.DecodeFrom(record);
+  }
+}
+</code></pre>
+
+<p>没有抹掉 corrupt 的数据.</p>
+
+<p>问题: open, 不写入key, 然后关闭, 后续, 是否会重复同一个文件的 Recover ?  </p>
+
+<pre><code>DB::Open
+{
+  VersionEdit edit;
+  bool save_manifest = false;
+  impl-&gt;Recover(&amp;edit, &amp;save_manifest);
+  if (save_manifest) {
+    edit.SetPrevLogNumber(0);// No older logs needed after recovery.
+    edit.SetLogNumber(impl-&gt;logfile_number_);
+  }
+}
+</code></pre>
+
+<p>问题: 判断是否有log 需要恢复?<br>
+答: 参与恢复的log, 其编号 需要大于LogNumber().  </p>
+
+<pre><code>DBImpl::Recover
+|--VersionSet::Recover(bool *save_manifest)
+| |--log::Reader reader(file,.., 0/*initial_offset*/);
+| |--reader.ReadRecord(&amp;record, &amp;scratch)
+| |--log_number_, has_prev_log_number_
+|--Recover from all newer log files than the ones named in the descriptor
+|--const uint64_t min_log = versions_-&gt;LogNumber();
+|--env_-&gt;GetChildren(dbname_, &amp;filenames) //读取目录
+|--for each of filenames
+| |--if (type == kLogFile &amp;&amp; ((number &gt;= min_log) {logs.push_back(number)}
+|--for each of logs
+| |--RecoverLogFile
+</code></pre>
+
+<h3 id="toc_3">2.2 (TODO)基于leveldb, filestore 是否实现了 事务/commit等?</h3>
+
+<h2 id="toc_4">3. log</h2>
+
+<pre><code>uint64_t new_log_number = versions_-&gt;NewFileNumber();
+</code></pre>
+
+<p>所以, log编号的作用域是VersionSet.</p>
+
+<h3 id="toc_5">3.1 写log在哪里</h3>
+
+<p>当应用写入一条Key:Value记录的时候，LevelDb会先往log文件里写入，成功后将记录插进Memtable中，这样基本就算完成了写入操作.  代码?</p>
+
+<p>答:</p>
+
+<pre><code>MakeRoomForWrite
+{
+  // Attempt to switch to a new memtable and trigger compaction of old
+  // 1.memtable满了 或者 2.没满但force
+  //因为background_work_finished_signal_.Wait完成, 压缩完成, 也就是没有log正在被压缩, 故PrevLogNumber()为0.
+  assert(versions_-&gt;PrevLogNumber() == 0);
+  WritableFile* lfile = nullptr;
+  env_-&gt;NewWritableFile(LogFileName(dbname_, new_log_number), &amp;lfile);
+  logfile_ = lfile;
+  log_ = new log::Writer(lfile);
+}
+</code></pre>
+
+<pre><code>DBImpl::Write
+|--log_-&gt;AddRecord
+| |--dest_-&gt;Append()
+|--if (options.sync) logfile_-&gt;Sync()
+|--以下是写内存
+|--WriteBatchInternal::InsertInto(updates, mem_)
+| |--MemTableInserter inserter;
+| |--inserter.mem_ = memtable;
+| |--updates-&gt;Iterate(&amp;inserter)
+| | |--Slice input(rep_);
+| | |--case kTypeValue:
+| | | |--handler-&gt;Put(key, value) =&gt; MemTableInserter::Put
+| | | |--mem_-&gt;Add(sequence_, kTypeValue, key, value)
+| | | | |--SkipList
+</code></pre>
+
+<h2 id="toc_6">4. RecoverLogFile</h2>
+
+<pre><code>RecoverLogFile
+|--while
+| |--reader.ReadRecord(&amp;record, &amp;scratch)
+| |--WriteBatchInternal::SetContents(&amp;batch, record)
+| | |--把record 放入 b-&gt;rep_
+| |--if (mem == nullptr) mem = new MemTable;
+| |--WriteBatchInternal::InsertInto(&amp;batch, mem)
+| | |--   input(也就是record) 格式是:  (WriteBatch::rep_的格式)
+| | |--     seq(8B)  cnt(4B)tag key(+value) tag key(+value)
+| | |--    |---------|------|--|------------|--|-------------|
+| | |--while
+| | | |--MemTableInserter::Put 或Delete, 放入 MemTable
+| | | |--sequence_++
+| |--if (mem &gt; write_buffer_size) WriteLevel0Table
+</code></pre>
+
+<h2 id="toc_7">5. VersionSet::Recover</h2>
+
+<pre><code>VersionSet::Recover
+|--Builder builder(this, current_);
+|--while
+| |--reader.ReadRecord(&amp;record, &amp;scratch)
+| |--VersionEdit edit;
+| |--edit.DecodeFrom(record);
+| | |--case kCompactPointer:
+| | |  |--GetLevel
+| | |  |--GetInternalKey
+| | |  |--compact_pointers_.push_back(std::make_pair(level, key))
+| | |--case kDeletedFile:
+| | | |--deleted_files_.insert(std::make_pair(level, number))
+| | |--case kNewFile:
+| | | |--FileMetaData f
+| | | |--new_files_.push_back(std::make_pair(level, f))
+| |--builder.Apply(&amp;edit); 将edit 应用到 Builder, 之后, edit就可以丢弃
+|--Version* v = new Version(this); // 基于VersionSet创建Version
+|--builder.SaveTo(v)  // Version* v
+| |--将base_ 和 levels_中added_files, 按递增顺序  放入 v
+| | |--MaybeAddFile -&gt; push to v-&gt;files_[level]
+|--Finalize(v)  计算下次从哪个level进行压缩.
+|--AppendVersion(v);  current_ 指向@v
+</code></pre>
+
+<p>要指明一个文件, 需要给出level 和 number. 比如
+Level 4: File4_0, File4_1, File4_2, File4_3</p>
+
+<p>compact_pointers_ 见 <a href="https://awakening-fong.github.io/posts/database/leveldb_04_compact">https://awakening-fong.github.io/posts/database/leveldb_04_compact</a></p>
+
+<p>VersionSet是版本的集合, 从 AppendVersion() 就有体现.
+VersionEdit 不是 VersionSet. VersionEdit 的意思是版本经过 edit后, 变成另一个版本,
+所以, VersionEdit可以认为是差异.</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/database/leveldb_01_data_safe>https://awakening-fong.github.io/posts/database/leveldb_01_data_safe</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#database-ref">database <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#database-ref">database <span>6</span></a>
+      </li>
+      <li>
+        <a href="/tags#leveldb-ref">leveldb <span>5</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/tools/why_clion" title="推荐C++编辑器 Clion">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/database/leveldb_02_snapshot" title="LevelDB 02: snapshot">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>

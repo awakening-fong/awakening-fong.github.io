@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>LevelDB 02: snapshot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="awaken_ing">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+<link href='/assets/stylesheets/bootstrap.min-cda5ce8bd759b8186e71e4929410abbf.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/style-e81fa375b231bedf6cb2dbc6653570cc.css' type='text/css' rel='stylesheet' media='all'>
+<link href='/assets/stylesheets/google_prettify/sons-of-obsidian-afb0925bfa2d994f17dab93e13fbf999.css' type='text/css' rel='stylesheet' media='all'>
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">首页</a>
+          <ul class="nav">
+              
+                <li><a href="/archive">Archive</a></li>
+              
+              
+                <li><a href="/tags">Tags</a></li>
+              
+              
+                <li><a href="/categories">Categories</a></li>
+              
+              
+                <li><a href="/about-me">About Me</a></li>
+              
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+<div class="page-header">
+  <h1>LevelDB 02: snapshot </h1>
+</div>
+
+<div class="row-fluid post-full">
+  <div class="span12">
+    <div class="date">
+      <span>2019-09-10</strong>
+    </div>
+    <div class="content">
+      <p>目录:
+<li> <a href="#toc_0"> 1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</a>  </li>
+<li> <a href="#toc_1"> 1.1 写 MANIFEST</a>  </li>
+<li> <a href="#toc_2"> 1.2 Builder一个用途</a>  </li>
+<li> <a href="#toc_3"> 2. Get</a>  </li>
+<li> <a href="#toc_4"> 2.1 序列号在 SkipList 查找中的作用</a>  </li>
+<li> <a href="#toc_5"> 2.2 leveldb读写可以同时进行吗？</a>  </li>
+<li> <a href="#toc_6"> 2.3 对于skiplist, 在哪些地方加锁了?</a>  </li>
+<li> <a href="#toc_7"> 2.3 没有处理 序列号 溢出/回绕问题</a>  </li>
+<li> <a href="#toc_8"> 3. manifest</a>  </li>
+<li> <a href="#toc_9"> 3.1 为何有多个 manifest 文件?</a>  </li>
+<li> <a href="#toc_10"> 3.2 manifest 存储的内容是啥:</a>  </li>
+<li> <a href="#toc_11"> 4. VersionEdit (未完成)</a>  </li>
+<li> <a href="#toc_12"> 4.1 ctor</a>  </li></p>
+
+<hr>
+
+<h2 id="toc_0">1. LogAndApply, 以DBImpl::CompactMemTable()为例进行说明</h2>
+
+<p>使用场景:</p>
+
+<pre><code>DBImpl::CompactMemTable()
+{
+  VersionEdit edit;
+  Version* base = versions_-&gt;current();
+  WriteLevel0Table(imm_, &amp;edit, base);
+  edit.SetPrevLogNumber(0);
+  edit.SetLogNumber(logfile_number_);  // Earlier logs no longer needed
+  s = versions_-&gt;LogAndApply(&amp;edit, &amp;mutex_);
+}
+</code></pre>
+
+<h3 id="toc_1">1.1 写 MANIFEST</h3>
+
+<pre><code>LogAndApply
+|--edit.SetLogNumber = ..
+|--Version* v = new Version(this);
+|--builder.Apply(edit) +  SaveTo
+|--Finalize(v); 计算下次从哪个level进行压缩.
+|--new_manifest_file = DescriptorFileName(...)
+| |--snprintf(buf, sizeof(buf), &quot;/MANIFEST-%06llu&quot;,...)
+|--env_-&gt;NewWritableFile(new_manifest_file, &amp;descriptor_file_)
+|--descriptor_log_ = new log::Writer(descriptor_file_);
+|--WriteSnapshot(descriptor_log_);
+| |--compact_pointer_, current_-&gt;files_ 等信息放入edit
+| |--edit.EncodeTo(&amp;record); 转为string record;
+| |--descriptor_log_-&gt;AddRecord(record);
+|--edit-&gt;EncodeTo(&amp;record);
+|--descriptor_log_-&gt;AddRecord(record) //Write new record to MANIFEST log
+|--SetCurrentFile(env_, dbname_, manifest_file_number_)
+|--AppendVersion  =&gt; current_ = xxx
+</code></pre>
+
+<p>MANIFEST中是 一个个 VersionEdit.</p>
+
+<h3 id="toc_2">1.2 Builder一个用途</h3>
+
+<p>恢复元信息的过程是逐个应用VersionEdit的过程，若不使用builder, 则该过程会产生大量的Version，但这些我们并不需要。引入VersionSet::Builder, 将所有的VersoinEdit交由Version::Builder处理，然后一次应用产生最终的Version.</p>
+
+<p>代码:</p>
+
+<pre><code>VersionSet::Recover
+{
+
+  Builder builder(this, current_);
+  while (reader.ReadRecord(&amp;record, &amp;scratch) &amp;&amp; s.ok()) {
+    VersionEdit edit;
+    s = edit.DecodeFrom(record); // 将读出来的转为VersionEdit
+    builder.Apply(&amp;edit);
+  }
+  Version* v = new Version(this);
+  builder.SaveTo(v);
+}
+</code></pre>
+
+<p>builder.Apply(&amp;edit);
+将 VersionEdit中关于 <code>compact_pointer_</code>, <code>deleted_files</code> 和 <code>added_files</code> 的信息 放入 Builder.
+<code>deleted_files</code> 和 <code>added_files</code> 是差异/变动的信息,</p>
+
+<p>从磁盘manifest读入  record,
+DecodeFrom解码后存入 VersionEdit,
+经过Apply, 放入 Builder.
+这样, 所有的record都 由 Builder 来组织了.</p>
+
+<h2 id="toc_3">2. Get</h2>
+
+<h3 id="toc_4">2.1 序列号在 SkipList 查找中的作用</h3>
+
+<pre><code>template&lt;typename Key, class Comparator&gt;
+inline void SkipList&lt;Key,Comparator&gt;::Iterator::Seek(const Key&amp; target) {
+ node_ = list_-&gt;FindGreaterOrEqual(target, nullptr);
+}
+</code></pre>
+
+<p>typedef SkipList<const char*, KeyComparator> Table;</p>
+
+<p>对于memtable, Key为char * .</p>
+
+<pre><code>template&lt;typename Key, class Comparator&gt;
+inline void SkipList&lt;Key,Comparator&gt;:
+Iterator::Seek(const Key&amp; target) {
+  node_ = list_-&gt;FindGreaterOrEqual(target, nullptr);
+}
+</code></pre>
+
+<pre><code>FindGreaterOrEqual -&gt; KeyIsAfterNode -&gt; compare_(a, b)  
+</code></pre>
+
+<p>Comparator const compare_;   来自模板 class Comparator<br>
+<br/></p>
+
+<pre><code>struct KeyComparator {
+  const InternalKeyComparator comparator;
+  explicit KeyComparator(const InternalKeyComparator&amp; c) : comparator(c) { }
+  int operator()(const char* a, const char* b) const;
+};
+</code></pre>
+
+<p><br/>
+leveldb/db/memtable.cc:</p>
+
+<pre><code>int MemTable::KeyComparator::operator()(const char* aptr, const char* bptr)
+    const {
+  // Internal keys are encoded as length-prefixed strings.
+  Slice a = GetLengthPrefixedSlice(aptr);
+  Slice b = GetLengthPrefixedSlice(bptr);
+  return comparator.Compare(a, b);
+}
+</code></pre>
+
+<p><br/>
+leveldb/db/dbformat.cc:</p>
+
+<pre><code>int InternalKeyComparator::Compare(const Slice&amp; akey, const Slice&amp; bkey) const {
+  // Order by:
+  //    increasing user key (according to user-supplied comparator)
+  //    decreasing sequence number
+  //    decreasing type (though sequence# should be enough to disambiguate)
+  int r = user_comparator_-&gt;Compare(ExtractUserKey(akey), ExtractUserKey(bkey));
+  if (r == 0) {
+    // 序列号
+    const uint64_t anum = DecodeFixed64(akey.data() + akey.size() - 8);
+    const uint64_t bnum = DecodeFixed64(bkey.data() + bkey.size() - 8);
+    if (anum &gt; bnum) {
+      r = -1;
+    } else if (anum &lt; bnum) {
+      r = +1;
+    }
+  }
+  return r;
+}
+</code></pre>
+
+<p>要找到 &gt;= 给定用户key 的项, 如果找到的项, 其key一致, 但seq比 用户给定的大 (也就是, 找到的是 新近添加的项), 那么, 这个相对于查询时的snapshot, 新近的项 会被排除, 进而查找其他项. 所以, 允许get的时候, 执行put吗?</p>
+
+<p><br/>
+问题: 用户有没有提供序号啊?<br>
+答:</p>
+
+<pre><code>DBImpl::Get()
+|--SequenceNumber snapshot;
+|--snapshot = versions_-&gt;LastSequence() or from options.snapshot
+|--//|usize + 8| user_key| seq(7B) type(1B)|
+|--LookupKey lkey(key, snapshot);
+|--mem-&gt;Get(lkey, value, xx)
+| |--iter.Seek(..);
+</code></pre>
+
+<p>MemTable::Get(const LookupKey&amp; key, std::string* value, Status* s)
+查询时, user key会加上seq.<br>
+LookupKey格式:</p>
+
+<pre><code>|usize + 8| user_key| seq(7B) type(1B)|
+</code></pre>
+
+<p><br/>
+放入跳表中,会添加seq信息, 从MemTable::Add的原型就可知:</p>
+
+<pre><code>MemTable::Add(SequenceNumber s, ValueType type,
+                   const Slice&amp; key,
+                   const Slice&amp; value)
+</code></pre>
+
+<h3 id="toc_5">2.2 leveldb读写可以同时进行吗？</h3>
+
+<p>答: 看起来并不阻止.</p>
+
+<pre><code>DBImpl::Write
+{
+
+  MutexLock l(&amp;mutex_);
+  ...
+
+  &amp;w is currently responsible for logging
+      // and protects against concurrent loggers and concurrent writes
+      // into mem_.
+  mutex_.Unlock();
+  WriteBatchInternal::InsertInto(updates, mem_);
+
+}
+</code></pre>
+
+<pre><code>DBImpl::Get
+{
+  MutexLock l(&amp;mutex_);
+  ...
+  // Unlock while reading from files and memtables
+  mutex_.Unlock();
+  LookupKey lkey(key, snapshot);
+  mem-&gt;Get(lkey, value, &amp;s) or imm-&gt;Get or current-&gt;Get
+
+}
+</code></pre>
+
+<h3 id="toc_6">2.3 对于skiplist, 在哪些地方加锁了?</h3>
+
+<pre><code>...
+void SkipList&lt;Key,Comparator&gt;::Insert(const Key&amp; key) {
+  Insert() is externally synchronized.
+}
+</code></pre>
+
+<h3 id="toc_7">2.3 没有处理 序列号 溢出/回绕问题</h3>
+
+<p>按1s一个提交,
+uint64_t 差不多可使用584942417355年, 故无需处理回绕问题.</p>
+
+<h2 id="toc_8">3. manifest</h2>
+
+<p>A MANIFEST file lists the set of sorted tables that make up each level, the corresponding key ranges, and other important metadata.  (<a href="https://github.com/google/leveldb/blob/master/doc/impl.md">https://github.com/google/leveldb/blob/master/doc/impl.md</a>)
+列出了每层的sorted tables, 相应的key范围, 以及metadata.</p>
+
+<h3 id="toc_9">3.1 为何有多个 manifest 文件?</h3>
+
+<p>情景1: manifest太大了, 换新文件进行写<br>
+情景2:</p>
+
+<h3 id="toc_10">3.2 manifest 存储的内容是啥:</h3>
+
+<pre><code>VersionSet::Recover
+{
+std::string dscname = dbname_ + &quot;/&quot; + current; //为 manifest文件
+SequentialFile* file;
+s = env_-&gt;NewSequentialFile(dscname, &amp;file)
+log::Reader reader(file, &amp;reporter, ...)
+reader.ReadRecord(&amp;record, &amp;scratch)
+edit.DecodeFrom(record) 可知, 从 manifest 中读出的是 :log_number_, prev_log_number_, next_file_number_, last_sequence_, deleted_files_
+}
+</code></pre>
+
+<h2 id="toc_11">4. VersionEdit (未完成)</h2>
+
+<p>leveldb/db/db_impl.cc:</p>
+
+<pre><code>Status DB::Open(){
+  /*edit和 log关联的意义是????*/
+  edit.SetLogNumber(new_log_number);  
+}
+</code></pre>
+
+<pre><code>VersionSet::LogAndApply(VersionEdit* edit, port::Mutex* mu) {
+  if (edit-&gt;has_log_number_) {
+    /*相比于VersionSet, VersionEdit内容更加新*/
+    assert(edit-&gt;log_number_ &gt;= log_number_);
+  }
+}
+</code></pre>
+
+<p>VersionSet::log<em>number</em> &lt; VersionEdit::log<em>number</em>
+对旧的VersionSet, 打上 新的VersionEdit,</p>
+
+<p>Version0 + VersionEdit = Version1</p>
+
+<h3 id="toc_12">4.1 ctor</h3>
+
+<pre><code>DBImpl::DBImpl(const Options&amp; raw_options, const std::string&amp; dbname):
+internal_comparator_(raw_options.comparator),
+versions_(new VersionSet(dbname_, &amp;options_, table_cache_,
+                               &amp;internal_comparator_)) {...}
+</code></pre>
+
+<p>Options 默认的comparator是 BytewiseComparator() -&gt;  BytewiseComparatorImpl,
+所以, DBImpl的 VersionSet 的比较器 默认是 BytewiseComparator().</p>
+
+<p><br/></p>
+
+<pre><code>VersionSet::VersionSet():
+  .略.
+  dummy_versions_(this),
+  current_(nullptr)
+{
+  AppendVersion(new Version(this));
+}
+</code></pre>
+
+<p>AppendVersion会修改 current_, 指向 new Version(this)</p>
+
+	  <p>
+	  本文地址: <a href=https://awakening-fong.github.io/posts/database/leveldb_02_snapshot>https://awakening-fong.github.io/posts/database/leveldb_02_snapshot</a>
+	  </p>
+	  <p>
+	  转载请注明出处: <a href=https://awakening-fong.github.io>https://awakening-fong.github.io</a>
+	  </p>
+	  
+    </div>
+    <ul class="tag_box inline">
+      <li><i class="icon-folder-open"></i></li>
+      <li>
+        <a href="/categories#database-ref">database <span>6</span></a>
+      </li>
+    </ul>
+    <ul class="tag_box inline">
+      <li><i class="icon-tags"></i></li>
+      <li>
+        <a href="/tags#database-ref">database <span>6</span></a>
+      </li>
+      <li>
+        <a href="/tags#leveldb-ref">leveldb <span>5</span></a>
+      </li>
+    </ul>
+    <hr>
+    <div class="pagination">
+      <ul>
+          <li class="prev"><a href="/posts/database/leveldb_01_data_safe" title="LevelDB 01: 数据安全">&larr; Previous</a></li>
+
+          <li><a href="/archive">Archive</a></li>
+
+          <li class="next"><a href="/posts/database/leveldb_03_data_format" title="LevelDB 03: 数据格式">Next &rarr;</a></li>
+      </ul>
+    </div>
+	<p>
+	  若无法评论, 请打开JavaScript, 并通过proxy.
+	</p>
+    <hr>
+    <div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'awakening-fong'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+</div>
+
+
+      </div>
+
+      <hr>
+      <div class="footer">
+        <p> Published with <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?f4e841cbc2b3d9bb97bf39b0ed5657e5";
+	  var s = document.getElementsByTagName("script")[0];
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+
+
+    
+<!--
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-89949508-1']);
+  _gaq.push(['_trackPageview']);
+  
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+-->
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-JPNKP1DLMW"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-JPNKP1DLMW');
+	</script>
+
+  </body>
+</html>
